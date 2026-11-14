@@ -1,0 +1,159 @@
+{
+  "siteId": "gale-synthetic",
+  "name": "Synthetic placeholder (Gale boxwork layout)",
+  "body": "Mars",
+  "version": "0.0.1-fixture",
+  "synthetic": true,
+  "notice": "Invented terrain for development only. Replace with Sahaj's real Gale bundle. Not Mars data.",
+  "siteHash": "45695baa1fed4fa7",
+  "crs": {
+    "proj4": "local ENU, metres, origin at box centre (fixture)",
+    "origin": {
+      "lat": -4.86,
+      "lon": 137.32
+    },
+    "datum": "sphere R=3396190 m",
+    "lonDomain": "-180..180"
+  },
+  "grid": {
+    "liveM": 4,
+    "cols": 750,
+    "rows": 750,
+    "extentM": 3000
+  },
+  "elevation": {
+    "min": -3635.52,
+    "max": -3445.48
+  },
+  "files": [
+    {
+      "name": "height",
+      "path": "height_4m.f32",
+      "dtype": "float32",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1,
+      "offset": 0,
+      "sha256": "45695baa1fed4fa7cc7d52fd373a930c912cd927c466998e8e3efcc4196d7ba9"
+    },
+    {
+      "name": "slope",
+      "path": "slope_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.1,
+      "offset": 0,
+      "sha256": "d1df42976f1d762ef58e9eccd816c2d87115d7f5b43a8621b66a5366f2331668"
+    }
+  ],
+  "layers": [
+    {
+      "id": "dem",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "HiRISE (USGS merged DEM)",
+      "productId": "MSL_Gale_DEM_Mosaic_1m_v3 (pending)",
+      "resolutionM": 1,
+      "acquired": "various",
+      "tag": "SCENARIO",
+      "attribution": "Placeholder until USGS Astrogeology product is baked",
+      "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m"
+    },
+    {
+      "id": "slope",
+      "kind": "topographic",
+      "mission": "Derived",
+      "instrument": "Horn 3x3 on the DEM",
+      "productId": "slope_4m",
+      "resolutionM": 4,
+      "acquired": "computed",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline",
+      "url": ""
+    },
+    {
+      "id": "ortho",
+      "kind": "optical",
+      "mission": "MRO",
+      "instrument": "HiRISE",
+      "productId": "MSL_Gale_Orthophoto_Mosaic_25cm_v3 (pending)",
+      "resolutionM": 0.25,
+      "acquired": "various",
+      "tag": "SCENARIO",
+      "attribution": "NASA/JPL/University of Arizona; USGS",
+      "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm"
+    },
+    {
+      "id": "envelope",
+      "kind": "operations",
+      "mission": "Engine",
+      "instrument": "Reverse Dijkstra, paired crew",
+      "productId": "live",
+      "resolutionM": 4,
+      "acquired": "live",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON engine",
+      "url": ""
+    }
+  ],
+  "patches": [],
+  "splats": [],
+  "havens": [
+    {
+      "id": "hab",
+      "type": "habitat",
+      "x": -498,
+      "y": -902
+    },
+    {
+      "id": "rover",
+      "type": "rover",
+      "x": 582,
+      "y": 298
+    }
+  ],
+  "targets": [
+    {
+      "id": "ridge-a",
+      "name": "Ridge A (placeholder)",
+      "type": "ridge",
+      "x": -178,
+      "y": -382,
+      "sol": null,
+      "source": "fixture"
+    },
+    {
+      "id": "hollow-a",
+      "name": "Hollow A (placeholder)",
+      "type": "hollow",
+      "x": -98,
+      "y": -322,
+      "sol": null,
+      "source": "fixture"
+    },
+    {
+      "id": "ridge-b",
+      "name": "Ridge B (placeholder)",
+      "type": "ridge",
+      "x": 742,
+      "y": 458,
+      "sol": null,
+      "source": "fixture"
+    },
+    {
+      "id": "drill",
+      "name": "Drill site (placeholder)",
+      "type": "drill",
+      "x": 142,
+      "y": -22,
+      "sol": null,
+      "source": "fixture"
+    }
+  ],
+  "povImages": [],
+  "route": {
+    "source": "fixture",
+    "points": []
+  }
+}
