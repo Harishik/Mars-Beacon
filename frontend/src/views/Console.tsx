@@ -6,6 +6,7 @@ import { HudOverlay, InstrumentStrip, LinkedFrames, ViewSwitch } from "../panels
 import { MissionTimeline, PlanCharts } from "../panels/Plan";
 import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
+import { MapLayers } from "../panels/MapLayers";
 import { VERT_EXAG } from "../render/Terrain";
 
 export function Console() {
@@ -27,6 +28,7 @@ export function Console() {
         <ViewSwitch />
       </header>
       {view !== "hud" && <InstrumentStrip />}
+      {(view === "console" || view === "tablet") && <MapLayers />}
       {view !== "hud" && <LayerDrawer />}
       {(view === "console" || view === "tablet") && <CrewPanel />}
       {view === "linked" && <LinkedFrames />}

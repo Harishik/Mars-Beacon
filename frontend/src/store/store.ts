@@ -1,3 +1,4 @@
+import type { OverlayId } from "../engine/overlays";
 import { create } from "zustand";
 import type { SiteBundle } from "../data/bundle";
 import type { Plan } from "../engine/planner";
@@ -31,6 +32,7 @@ interface State {
   lmstHours: number;                // local mean solar time, hours
   lsDeg: number;                    // solar longitude (season)
   tau: number;                      // column dust optical depth at the datum
+  overlay: OverlayId;               // data field coloured onto the terrain
   storm: boolean;                   // solar particle event / dust storm scenario
   // Assumptions and scenario values (shown in the app with their tags)
   v0: number; slopeLimitDeg: number; reserveM: number; kG: number; mRestW: number; bodyMassKg: number;
@@ -72,6 +74,7 @@ export const useStore = create<State>((set) => ({
   lmstHours: 9.0,
   lsDeg: 150,
   tau: 0.6,
+  overlay: "none",
   storm: false,
   v0: 0.7, slopeLimitDeg: 20, reserveM: 0.25, kG: 0.78, mRestW: 100, bodyMassKg: 80,
   timeBudgetS: 4 * 3600, timeSpentS: 0,

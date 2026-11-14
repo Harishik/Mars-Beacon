@@ -4,6 +4,8 @@ Sources: the 2DGS architecture report (docx), the "Martian 4D Digital Twin" slid
 
 The pack is read as one body of ideas. Each source fills a different gap; together they give a fuller picture than any one of them.
 
+Correction (15 Nov): the first pass did not fully read two sources. The slide deck PDF is image-only, so its text extraction came back empty, and the "4D Mars Digital Twin" video was never transcribed. Both have now been read (deck pages rendered as images, video transcribed). What they add is in section 5.
+
 ## 1. Already built from the pack (frontend branch `v6/frontend-prototype`)
 
 | Idea | Source | In the app |
@@ -47,3 +49,15 @@ When we build these, the numbers come from the engine and the bundle, with prove
 ## 4. Process notes from the architecture video
 
 The video describes the workflow the team is using: contracts first, fixtures so nobody waits, short branches, CI on every merge, cached fallback, a hard feature freeze at 12:00 and a calm finish. It is a good outline for the 3-minute walkthrough and the "Project Details" text.
+
+## 5. Added after reading the deck and the twin video
+
+| Idea | Source | Status |
+|---|---|---|
+| Transient Fourier heat conduction, ρc ∂T/∂t = ∇·(k∇T) + q_solar − q_rad, baked per slope class and looked up in the shader | Deck slide 7, report section 3 (R channel = surface temperature), twin video ("Tier 2: thermal dynamics is the high-impact differentiator") | Built: `frontend/src/engine/thermal.ts`. 1D column per slope and aspect class, Mars24 sun, dust τ, thermal inertia 350. Flat ground at Gale, Ls 150, τ 0.6: −87 °C before dawn, −8.5 °C after noon, inside the range REMS measured. Tests in `thermal.test.ts` |
+| Solar yield for habitat and rover decisions | Deck slide 9 ("Solar Yield"), report Tier 3 ("solar energy generation forecasts") | Built: solar energy per sol on every slope (kWh/m²) as a map layer |
+| Toggle layers (RGB, thermal, hazard, topography) by shader channel swapping | Deck slide 9 | Built: one data field at a time on the terrain (temperature, solar energy, science value, boulders) with legend and value under the pointer |
+| Decouple albedo from solar illumination so the time slider relights the scene | Deck slide 5 (ShadowGS idea) | Already in place: HiRISE albedo is softened and our own Mars24 sun, cast shadows and dust do the lighting |
+| Traversability and risk scoring as the decision layer | Deck slides 2 and 9, twin video ("Tier 3: advanced hazard scoring") | Return Envelope and planner; next: one hazard score per stop combining slope, boulders, temperature and dose |
+| Regolith sinkage (Drucker-Prager material point method) | Deck slide 6 | Not built: needs soil strength data we do not have for this site. Noted as future work |
+| RPC pushbroom camera model for splats | Deck slide 4, twin video | Not needed for our terrain (we use the USGS orthorectified DEM and orthophoto); relevant only if we build orbital splats |

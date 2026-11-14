@@ -5,6 +5,7 @@ import { useStore } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
 import { sunMars24 } from "../engine/sun";
 import { beamTransmission, tauAtElevation } from "../engine/environment";
+import { OVERLAYS, overlayValues, encodeOverlay } from "../engine/overlays";
 
 /** Vertical exaggeration. Set from the manifest (display.verticalExaggeration); 1.0 for real terrain. */
 export let VERT_EXAG = 1.6;
@@ -68,6 +69,22 @@ const frag = /* glsl */ `
   uniform float uShadows;
   uniform float uBeam;        // fraction of sunlight surviving the dust column
   uniform float uTau;
+  uniform sampler2D uOverlay;  // 0..254 data value, 255 = no data
+  uniform float uOverlayMode;  // -1 none, 0 thermal, 1 solar, 2 science, 3 hazard
+
+  vec3 overlayRamp(float v, float mode) {
+    if (mode < 0.5) {        // thermal: deep blue, violet, orange, pale yellow
+      vec3 a = vec3(0.10, 0.16, 0.45), b = vec3(0.45, 0.22, 0.62), c = vec3(0.93, 0.42, 0.20), d = vec3(1.0, 0.92, 0.62);
+      return v < 0.4 ? mix(a, b, v / 0.4) : v < 0.75 ? mix(b, c, (v - 0.4) / 0.35) : mix(c, d, (v - 0.75) / 0.25);
+    }
+    if (mode < 1.5) {        // solar: dark slate to gold
+      return mix(vec3(0.10, 0.12, 0.22), vec3(1.0, 0.80, 0.35), smoothstep(0.0, 1.0, v));
+    }
+    if (mode < 2.5) {        // science: dark to teal-green
+      return mix(vec3(0.08, 0.14, 0.18), vec3(0.35, 0.95, 0.78), v);
+    }
+    return mix(vec3(0.20, 0.12, 0.16), vec3(1.0, 0.32, 0.55), smoothstep(0.0, 0.6, v));   // boulder hazard
+  }
 
   vec3 marsRamp(float t) {
     vec3 a = vec3(0.13, 0.065, 0.04);
@@ -190,6 +207,17 @@ const frag = /* glsl */ `
       }
     }
 
+    // Data overlay: one physical field at a time, keeping the terrain shading underneath.
+    if (uOverlayMode > -0.5) {
+      float raw = texture2D(uOverlay, vUv).r;
+      if (raw < 0.999) {
+        float v = raw * 255.0 / 254.0;
+        float shade = clamp(dot(col, vec3(0.3, 0.59, 0.11)) * 2.2, 0.35, 1.25);
+        float a = uOverlayMode > 1.5 ? 0.25 + 0.6 * smoothstep(0.0, 0.25, v) : 0.82;
+        col = mix(col, overlayRamp(v, uOverlayMode) * shade, a);
+      }
+    }
+
     // Return Envelope: margin field from the worker. Boundary at 0.5.
     if (uShowEnvelope > 0.5 && uHasMargin > 0.5) {
       vec3 mt = texture2D(uMargin, vUv).rgb;
@@ -300,6 +328,8 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uShadows: { value: 1 },
       uBeam: { value: 0.7 },
       uTau: { value: 0.6 },
+      uOverlay: { value: null },
+      uOverlayMode: { value: -1 },
     },
   });
 }
@@ -425,5 +455,33 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
     material.uniforms.uHasMargin.value = 1;
   }, [envelopeVersion, cols, rows, material, slopeDeg]);
 
+  useOverlayTexture(bundle, material);
+
   return <mesh geometry={geometry} material={material} rotation={[-Math.PI / 2, 0, 0]} />;
+}
+
+/** Keeps the overlay texture in step with the chosen layer and the shared clock (throttled while playing). */
+function useOverlayTexture(bundle: SiteBundle, material: THREE.ShaderMaterial) {
+  const { cols, rows } = bundle.manifest.grid;
+  const overlay = useStore((s) => s.overlay);
+  const ls = useStore((s) => Math.round(s.lsDeg));
+  const tau = useStore((s) => (s.storm ? Math.max(s.tau, 3) : s.tau));
+  // Temperature changes slowly: refresh every 10 Mars minutes of clock time.
+  const lmstStep = useStore((s) => Math.round(s.lmstHours * 6) / 6);
+  const tex = useMemo(() => {
+    const t = new THREE.DataTexture(new Uint8Array(cols * rows).fill(255), cols, rows, THREE.RedFormat, THREE.UnsignedByteType);
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.unpackAlignment = 1; t.flipY = false; t.needsUpdate = true;
+    return t;
+  }, [cols, rows]);
+  useEffect(() => () => tex.dispose(), [tex]);
+  useEffect(() => {
+    const u = material.uniforms;
+    const info = OVERLAYS.find((o) => o.id === overlay);
+    const vals = info ? overlayValues(overlay, bundle, ls, tauAtElevation(tau, -3.6), lmstStep) : null;
+    if (!info || !vals) { u.uOverlayMode.value = -1; return; }
+    encodeOverlay(vals, info, tex.image.data as Uint8Array);
+    tex.needsUpdate = true;
+    u.uOverlay.value = tex;
+    u.uOverlayMode.value = info.ramp;
+  }, [overlay, ls, tau, lmstStep, bundle, material, tex]);
 }
