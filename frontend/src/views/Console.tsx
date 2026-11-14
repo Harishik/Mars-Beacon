@@ -7,34 +7,37 @@ import { MissionTimeline, PlanCharts } from "../panels/Plan";
 import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
 import { MapLayers } from "../panels/MapLayers";
+import { PhaseBar, ExploreBrief, DebriefPanel, CueCard } from "../panels/Phases";
 import { VERT_EXAG } from "../render/Terrain";
 
 export function Console() {
   const bundle = useStore((s) => s.bundle);
   const view = useStore((s) => s.view);
+  const phase = useStore((s) => s.phase);
   if (!bundle) return null;
   const synthetic = bundle.manifest.synthetic;
 
   return (
-    <div className={`console view-${view}`}>
+    <div className={`console view-${view} phase-${phase}`}>
       <Scene bundle={bundle} mode={view} />
       <header className="topbar">
         <a href="#/" className="brand" aria-label="Mars BEACON home"><Wordmark /></a>
-        <div className="site-name">
-          <span>Gale crater, Mount Sharp boxwork</span>
-          {synthetic && <span className="badge-warn" title={bundle.manifest.notice}>Placeholder terrain</span>}
-        </div>
-        <button className="btn btn-quiet ledger-btn" onClick={() => useStore.getState().set({ ledger: true })}>Equations and assumptions</button>
+        {synthetic && <span className="badge-warn" title={bundle.manifest.notice}>Placeholder terrain</span>}
+        <PhaseBar />
+        <button className="btn btn-quiet ledger-btn" onClick={() => useStore.getState().set({ ledger: true })}>Equations</button>
         <ViewSwitch />
       </header>
       {view !== "hud" && <InstrumentStrip />}
-      {(view === "console" || view === "tablet") && <MapLayers />}
+      {(view === "console" || view === "tablet") && (phase === "explore" || phase === "plan") && <MapLayers />}
       {view !== "hud" && <LayerDrawer />}
-      {(view === "console" || view === "tablet") && <CrewPanel />}
+      {view === "console" && phase === "explore" && <ExploreBrief />}
+      {(view === "console" || view === "tablet") && phase !== "explore" && <CrewPanel />}
       {view === "linked" && <LinkedFrames />}
       {view === "hud" && <HudOverlay />}
       <MissionTimeline />
-      {view === "console" && <PlanCharts />}
+      {view === "console" && (phase === "plan" || phase === "rehearse") && <PlanCharts />}
+      {view === "console" && phase === "debrief" && <DebriefPanel />}
+      <CueCard />
       <Ledger />
       {false && (
         <div className="legend" aria-hidden>

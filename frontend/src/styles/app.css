@@ -526,3 +526,55 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .ml-here b { color: var(--dust); }
 .ml-src { margin: 6px 0 0; font-size: 0.6875rem; line-height: 1.4; color: var(--dust-3); }
 @media (max-width: 1100px) { .maplayers { top: 96px; } .ml-legend { width: 260px; } .seg button { padding: 6px 9px; } }
+
+/* ---------- EVA workflow ---------- */
+.phasebar { display: flex; align-items: center; gap: 2px; margin: 0 auto; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(14px); }
+.phasebar button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; padding: 6px 13px 6px 7px; border-radius: 999px; color: var(--dust-2); cursor: pointer; font: inherit; font-size: var(--step--1); font-weight: 500; white-space: nowrap; }
+.phasebar button i { font-style: normal; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(236, 229, 216, 0.3); font-size: 0.6875rem; }
+.phasebar button:hover:not([aria-current]) { color: var(--dust); }
+.phasebar button[aria-current="step"] { background: rgba(143, 188, 240, 0.16); color: var(--dust); box-shadow: inset 0 0 0 1px rgba(143, 188, 240, 0.45); }
+.phasebar button[aria-current="step"] i { background: var(--home); border-color: var(--home); color: var(--night); font-weight: 700; }
+.topbar .ledger-btn { margin-left: 0; }
+@media (max-width: 1280px) { .phasebar button span { display: none; } .phasebar button { padding: 6px; } }
+
+.brief { top: 102px; right: 16px; bottom: 112px; width: 340px; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; }
+.brief-body { padding: 4px 18px 18px; display: grid; gap: 12px; }
+.brief-lede { margin: 0; color: var(--dust); line-height: 1.45; }
+.brief-grid { margin: 0; display: grid; gap: 8px; }
+.brief-grid > div { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "dt tag" "dd tag"; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(236, 229, 216, 0.04); }
+.brief-grid dt { grid-area: dt; font-size: 0.6875rem; color: var(--dust-3); }
+.brief-grid dd { grid-area: dd; margin: 0; color: var(--dust); font-weight: 600; font-size: 0.875rem; }
+.brief-grid .tag { grid-area: tag; }
+.brief-kinds { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 0.75rem; }
+.brief-kinds li { display: grid; grid-template-columns: 92px 1fr; gap: 8px; }
+.brief-kinds b { color: var(--dust); font-weight: 600; }
+.brief-kinds span { color: var(--dust-2); }
+.brief-note { margin: 0; font-size: 0.6875rem; color: var(--dust-3); }
+.brief-next { justify-self: start; }
+
+.debrief { left: 332px; right: 352px; bottom: 112px; padding: 14px 18px; max-height: 300px; overflow-y: auto; }
+.db-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.db-head h2 { margin: 0; font-size: var(--step-0); }
+.db-head span { color: var(--dust-3); font-size: 0.75rem; }
+.db-head .btn { margin-left: auto; height: 30px; font-size: 0.75rem; }
+.db-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; }
+.db-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.db-table th, .db-table td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+.db-table thead th { color: var(--dust-3); font-weight: 500; font-size: 0.6875rem; }
+.db-table tbody th { color: var(--dust-2); font-weight: 500; }
+.db-table td { color: var(--dust); font-variant-numeric: tabular-nums; }
+.db-notes h3 { margin: 0 0 4px; font-size: 0.75rem; color: var(--sun); font-weight: 600; }
+.db-notes p, .db-notes ul { margin: 0 0 10px; font-size: 0.75rem; line-height: 1.45; color: var(--dust-2); padding-left: 0; }
+.db-notes ul { padding-left: 16px; }
+@media (max-width: 1100px) { .debrief { left: 16px; right: 16px; } .db-grid { grid-template-columns: 1fr; } }
+
+.cuecard { display: none; }
+@media print {
+  body * { visibility: hidden !important; }
+  .cuecard, .cuecard * { visibility: visible !important; }
+  .cuecard { display: block !important; position: absolute; inset: 0; padding: 12mm; background: #fff; color: #000; font: 11pt/1.4 Archivo, sans-serif; }
+  .cuecard h1 { font-size: 16pt; margin: 0 0 6pt; }
+  .cuecard table { width: 100%; border-collapse: collapse; margin: 8pt 0; }
+  .cuecard th, .cuecard td { border: 1px solid #555; padding: 4pt 5pt; text-align: left; font-size: 9.5pt; }
+  .cuecard .cc-src { font-size: 8pt; color: #444; }
+}

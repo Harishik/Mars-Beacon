@@ -5,6 +5,7 @@ import type { Plan } from "../engine/planner";
 import { setVertExag } from "../render/Terrain";
 
 export type View = "console" | "tablet" | "hud" | "linked";
+export type Phase = "explore" | "plan" | "rehearse" | "execute" | "debrief";
 export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse" | "patches";
 
 export interface Crew { label: string; loadKg: number; fMob: number; o2BudgetG: number; o2SpentG: number }
@@ -27,6 +28,7 @@ interface State {
   bundle: SiteBundle | null;
   loadError: string | null;
   view: View;
+  phase: Phase;                     // EVA workflow step
   layers: Record<LayerId, boolean>;
   provenance: string | null;        // layer id whose card is open
   lmstHours: number;                // local mean solar time, hours
@@ -60,6 +62,7 @@ interface State {
   setBundle: (b: SiteBundle) => void;
   setError: (e: string) => void;
   set: (p: Partial<State>) => void;
+  setPhase: (p: Phase) => void;
   toggleLayer: (id: LayerId) => void;
   setCrew: (i: 0 | 1, p: Partial<Crew>) => void;
   setEnvelope: (p: Partial<EnvelopeState>) => void;
@@ -69,6 +72,7 @@ export const useStore = create<State>((set) => ({
   bundle: null,
   loadError: null,
   view: "console",
+  phase: "plan",
   layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true, traverse: true, patches: true },
   provenance: null,
   lmstHours: 9.0,
@@ -108,6 +112,17 @@ export const useStore = create<State>((set) => ({
   },
   setError: (e) => set({ loadError: e }),
   set: (p) => set(p),
+  setPhase: (phase) => set((s) => {
+    const wide = typeof window === "undefined" || window.innerWidth >= 1100;
+    const total = s.plans.find((p) => p.id === s.activePlan)?.totalS ?? 0;
+    switch (phase) {
+      case "explore": return { phase, view: "console", panel: "layers", playing: false };
+      case "plan": return { phase, view: "console", panel: "mission", playing: false, playheadS: 0, overlay: "none" };
+      case "rehearse": return { phase, view: wide ? "linked" : "console", panel: "mission", playing: true, overlay: "none", playheadS: s.playheadS >= total ? 0 : s.playheadS };
+      case "execute": return { phase, view: "tablet", panel: "mission", overlay: "none" };
+      case "debrief": return { phase, view: "console", panel: "mission", playing: false, overlay: "none" };
+    }
+  }),
   toggleLayer: (id) => set((s) => ({ layers: { ...s.layers, [id]: !s.layers[id] } })),
   setCrew: (i, p) => set((s) => {
     const crew = [...s.crew] as [Crew, Crew];
