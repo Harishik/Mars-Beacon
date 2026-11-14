@@ -1,0 +1,33 @@
+{
+  "siteId": "gale-boxwork",
+  "name": "Gale crater, Mount Sharp boxwork unit",
+  "body": "Mars",
+  "version": "0.1.0",
+  "siteHash": "TBD",
+  "crs": {
+    "proj4": "TBD (local equirectangular centred on the box)",
+    "origin": { "lat": -4.86, "lon": 137.32 },
+    "datum": "sphere R=3396190 m",
+    "lonDomain": "-180..180"
+  },
+  "grid": { "liveM": 4, "cols": 750, "rows": 750, "extentM": 3000 },
+  "elevation": { "min": 0, "max": 0 },
+  "files": [
+    { "name": "height", "path": "height_4m.f32", "dtype": "float32", "cols": 750, "rows": 750, "scale": 1, "offset": 0, "sha256": "TBD" },
+    { "name": "slope", "path": "slope_4m.u8", "dtype": "uint8", "cols": 750, "rows": 750, "scale": 0.1, "offset": 0, "sha256": "TBD" },
+    { "name": "horizon", "path": "horizon_32az.u8", "dtype": "uint8", "cols": 750, "rows": 750, "scale": 0.5, "offset": 0, "sha256": "TBD" },
+    { "name": "normal", "path": "normal_2048.webp", "dtype": "image", "cols": 2048, "rows": 2048, "scale": 1, "offset": 0, "sha256": "TBD" }
+  ],
+  "layers": [
+    { "id": "ortho", "kind": "optical", "mission": "MRO", "instrument": "HiRISE", "productId": "MSL_Gale_Orthophoto_Mosaic_25cm_v3", "resolutionM": 0.25, "acquired": "various", "tag": "OBSERVED", "attribution": "NASA/JPL/University of Arizona; USGS", "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm" },
+    { "id": "dem", "kind": "topographic", "mission": "MRO", "instrument": "HiRISE (+CTX, HRSC, MOLA)", "productId": "MSL_Gale_DEM_Mosaic_1m_v3", "resolutionM": 1, "acquired": "various", "tag": "OBSERVED", "attribution": "USGS Astrogeology", "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m" }
+  ],
+  "patches": [],
+  "splats": [],
+  "havens": [ { "id": "hab", "type": "habitat", "x": 0, "y": 0 } ],
+  "targets": [
+    { "id": "altadena", "name": "Altadena drill site", "type": "drill", "x": 0, "y": 0, "sol": 4564, "source": "PDS PLACES (TBD)" }
+  ],
+  "povImages": [],
+  "route": { "source": "PDS PLACES / Curiosity traverse", "points": [] }
+}
