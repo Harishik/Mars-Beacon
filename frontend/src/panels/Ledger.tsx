@@ -11,7 +11,7 @@ const PARAMS: Param[] = [
   { key: "v0", name: "Flat-ground pace, v0", unit: "m/s", min: 0.4, max: 1.0, step: 0.05, tag: "ASSUMPTION", note: "Apollo treated about 1 m/s as the maximum nominal walking speed" },
   { key: "slopeLimitDeg", name: "Slope limit", unit: "°", min: 10, max: 25, step: 1, tag: "ASSUMPTION", note: "Steeper cells are no-go" },
   { key: "reserveM", name: "Reserve margin, m", unit: "%", min: 0, max: 0.5, step: 0.05, tag: "ASSUMPTION", note: "Every return cost is multiplied by 1 + m", fmt: (v) => `${Math.round(v * 100)}` },
-  { key: "kG", name: "Gravity and suit factor, k_g", unit: "", min: 0.4, max: 1.2, step: 0.02, tag: "ASSUMPTION", note: "To be fitted to NASA suited-walking tests (Norcross et al. 2009)" },
+  { key: "kG", name: "Gravity and suit factor, k_g", unit: "", min: 0.4, max: 1.2, step: 0.02, tag: "DERIVED", note: "0.78 fitted by Sahaj to NASA/TM-2010-216138 Fig. 10 (suited walking at Mars gravity)" },
   { key: "mRestW", name: "Resting power, M_rest", unit: "W", min: 60, max: 160, step: 5, tag: "ASSUMPTION", note: "Suited crew member standing" },
 ];
 

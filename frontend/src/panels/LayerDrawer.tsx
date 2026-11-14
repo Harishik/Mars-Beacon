@@ -79,6 +79,7 @@ export function LayerDrawer() {
             })}
           </section>
         ))}
+        <ReconstructionGroup />
         <section className="layer-group pending">
           <h3>Arriving with the real bundle</h3>
           {PENDING.map((p) => (
@@ -105,5 +106,40 @@ function ProvenanceCard({ layer, synthetic }: { layer: ManifestLayer; synthetic:
       {layer.url && <div><dt>Source</dt><dd><a href={layer.url} target="_blank" rel="noreferrer">Open product page</a></dd></div>}
       {synthetic && <p className="prov-note">This view uses the synthetic placeholder bundle. The product above is what the real bundle will contain.</p>}
     </dl>
+  );
+}
+
+function ReconstructionGroup() {
+  const patches = useStore((s) => ((s.bundle?.manifest as unknown as { patches?: { id: string; source: string; products?: { site: number }[]; validation: Record<string, number | number[]> }[] })?.patches) ?? []);
+  const on = useStore((s) => s.layers.patches);
+  const toggle = useStore((s) => s.toggleLayer);
+  if (!patches.length) return null;
+  return (
+    <section className="layer-group">
+      <h3>Reconstruction</h3>
+      <div className={`layer-row ${on ? "on" : ""}`}>
+        <button className="layer-toggle" role="switch" aria-checked={on} onClick={() => toggle("patches")}>
+          <span className="switch" aria-hidden />
+          <span className="layer-text">
+            <span className="layer-name">Rover stereo ground patches</span>
+            <span className="layer-source">Curiosity Navcam stereo fused onto HiRISE</span>
+          </span>
+        </button>
+        <div className="layer-meta"><Tag t="DERIVED" /></div>
+      </div>
+      {patches.map((p) => {
+        const v = p.validation as { points: number; rmseM: number; madM: number; coverage: number; horizontalShiftM?: number[]; rmse1mBeforeM?: number; rmse1mAfterM?: number };
+        return (
+          <dl key={p.id} className="prov-card">
+            <div><dt>Where</dt><dd>Site {p.products?.[0]?.site ?? ""}, 64 m around the sol 4752 workspace, 25 cm grid</dd></div>
+            <div><dt>Points</dt><dd>{(v.points / 1e6).toFixed(2)} million stereo points</dd></div>
+            <div><dt>Fit to HiRISE</dt><dd>median difference {Math.round(v.madM * 100)} cm, RMSE {v.rmseM.toFixed(2)} m (4 m grid)</dd></div>
+            {v.horizontalShiftM && <div><dt>Registration</dt><dd>shifted {v.horizontalShiftM[0]} m E, {v.horizontalShiftM[1]} m N; RMSE against the 1 m DEM {v.rmse1mBeforeM?.toFixed(2)} to {v.rmse1mAfterM?.toFixed(2)} m</dd></div>}
+            <div><dt>Coverage</dt><dd>{Math.round(v.coverage * 100)}% of the patch; gaps use HiRISE</dd></div>
+            <div><dt>Source</dt><dd>{p.source}</dd></div>
+          </dl>
+        );
+      })}
+    </section>
   );
 }

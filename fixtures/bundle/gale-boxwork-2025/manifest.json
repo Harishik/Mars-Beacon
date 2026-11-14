@@ -143,7 +143,72 @@
       "url": ""
     }
   ],
-  "patches": [],
+  "patches": [
+    {
+      "id": "l1_sol120",
+      "kind": "stereo",
+      "x0": -131.26,
+      "y0": -167.54,
+      "size": 64.0,
+      "res": 0.25,
+      "cols": 256,
+      "rows": 256,
+      "height": "l1_sol120_height.f32",
+      "mask": "l1_sol120_mask.u8",
+      "validation": {
+        "verticalOffsetM": 0.613,
+        "rmseM": 0.24,
+        "madM": 0.047,
+        "points": 4351114,
+        "coverage": 0.318,
+        "horizontalShiftM": [
+          4.5,
+          0.75
+        ],
+        "rmse1mBeforeM": 0.45,
+        "rmse1mAfterM": 0.292
+      },
+      "source": "MSL Navcam XYZ RDR, PDS Imaging Node; site origin from PDS PLACES",
+      "products": [
+        {
+          "file": "NLB_819358454XYZ_F1200538NCAM00274M1.IMG",
+          "site": 120,
+          "points": 613213
+        },
+        {
+          "file": "NLB_819358540XYZ_F1200538NCAM00274M1.IMG",
+          "site": 120,
+          "points": 841536
+        },
+        {
+          "file": "NLB_819359218XYZ_F1200538NCAM00275M1.IMG",
+          "site": 120,
+          "points": 852724
+        },
+        {
+          "file": "NLB_819359365XYZ_F1200538NCAM00275M1.IMG",
+          "site": 120,
+          "points": 292764
+        },
+        {
+          "file": "NLB_819359474XYZ_F1200538NCAM00354M1.IMG",
+          "site": 120,
+          "points": 689121
+        },
+        {
+          "file": "NLB_819359556XYZ_F1200538NCAM00354M1.IMG",
+          "site": 120,
+          "points": 671394
+        },
+        {
+          "file": "NLB_819362161XYZ_F1200538NCAM00353M1.IMG",
+          "site": 120,
+          "points": 630457
+        }
+      ],
+      "tag": "DERIVED"
+    }
+  ],
   "splats": [],
   "havens": [
     {

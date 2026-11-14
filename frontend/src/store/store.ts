@@ -4,7 +4,7 @@ import type { Plan } from "../engine/planner";
 import { setVertExag } from "../render/Terrain";
 
 export type View = "console" | "tablet" | "hud" | "linked";
-export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse";
+export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse" | "patches";
 
 export interface Crew { label: string; loadKg: number; fMob: number; o2BudgetG: number; o2SpentG: number }
 
@@ -65,13 +65,13 @@ export const useStore = create<State>((set) => ({
   bundle: null,
   loadError: null,
   view: "console",
-  layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true, traverse: true },
+  layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true, traverse: true, patches: true },
   provenance: null,
   lmstHours: 9.0,
   lsDeg: 150,
   tau: 0.6,
   storm: false,
-  v0: 0.7, slopeLimitDeg: 20, reserveM: 0.25, kG: 0.76, mRestW: 100, bodyMassKg: 80,
+  v0: 0.7, slopeLimitDeg: 20, reserveM: 0.25, kG: 0.78, mRestW: 100, bodyMassKg: 80,
   timeBudgetS: 4 * 3600, timeSpentS: 0,
   crew: [
     { label: "EV1", loadKg: 104, fMob: 1, o2BudgetG: 1000, o2SpentG: 0 },

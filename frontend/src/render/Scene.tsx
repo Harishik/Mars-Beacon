@@ -14,6 +14,7 @@ import { RouteHome } from "./RouteHome";
 import { PlanRoute } from "./PlanRoute";
 import { LinkedViews } from "./LinkedViews";
 import { CuriosityTraverse } from "./Traverse";
+import { Patches } from "./Patches";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
 type Mode = "hero" | View;
@@ -157,6 +158,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <Sky />
       <Lights lat={m.crs.origin.lat} />
       <Surroundings bundle={bundle} />
+      <Patches bundle={bundle} />
       <group onClick={onClick} onPointerMove={onMove} onPointerOut={() => useStore.getState().set({ cursor: null })}>
         <Terrain bundle={bundle} segments={mode === "hero" ? 320 : 448} />
       </group>
