@@ -1,5 +1,6 @@
 import { useStore } from "../store/store";
 import { Reading, Tag } from "./Tag";
+import { evaDoseMsv } from "../engine/environment";
 
 const fmtMin = (s: number) => `${Math.max(0, Math.round(s / 60))}`;
 
@@ -14,7 +15,9 @@ export function CrewPanel() {
   const cell = useStore((s) => s.bundle?.manifest.grid.liveM ?? 4);
   const set = useStore((s) => s.set);
 
+  const storm = useStore((s) => s.storm);
   const areaKm2 = (env.insideCells * cell * cell) / 1e6;
+  const dose = evaDoseMsv(tSpent, storm ? 10 : 1);
   const noReturn = env.margin && env.insideCells === 0;
 
   return (
@@ -31,6 +34,7 @@ export function CrewPanel() {
           <>
             <Reading label="Reachable and returnable" value={areaKm2.toFixed(2)} unit="km²" tag="DERIVED" />
             <Reading label="EVA time left" value={fmtMin(tBudget - tSpent)} unit="min" tag="SCENARIO" />
+            <Reading label="Dose this EVA" value={dose.toFixed(2)} unit="mSv" tag={storm ? "SCENARIO" : "HISTORICAL"} />
           </>
         )}
       </div>

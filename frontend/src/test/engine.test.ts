@@ -58,3 +58,24 @@ describe("envelope", () => {
     expect(out.insideCells).toBeGreaterThan(1000);
   });
 });
+
+import { airMass, declinationDeg, directIrradiance, evaDoseMsv, toaIrradiance } from "../engine/environment";
+describe("environment", () => {
+  it("declination is zero at Ls 0 and +25.19 at Ls 90", () => {
+    expect(declinationDeg(0)).toBeCloseTo(0, 6);
+    expect(declinationDeg(90)).toBeCloseTo(25.19, 4);
+  });
+  it("air mass is 1 overhead and grows toward the horizon", () => {
+    expect(airMass(0)).toBeCloseTo(1, 6);
+    expect(airMass(80)).toBeGreaterThan(5);
+  });
+  it("irradiance is higher near perihelion than aphelion", () => {
+    expect(toaIrradiance(251)).toBeGreaterThan(toaIrradiance(71));
+  });
+  it("dust dims the direct beam", () => {
+    expect(directIrradiance(150, 60, 3)).toBeLessThan(directIrradiance(150, 60, 0.5));
+  });
+  it("one sol outside is about 0.66 mSv at the RAD average", () => {
+    expect(evaDoseMsv(88775.2)).toBeCloseTo(0.66, 1);
+  });
+});

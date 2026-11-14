@@ -3,7 +3,9 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useStore } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
+import { declinationDeg } from "../engine/environment";
 import { sunAt } from "../engine/sun";
+import { beamTransmission, tauAtElevation } from "../engine/environment";
 
 /** Vertical exaggeration. Set from the manifest (display.verticalExaggeration); 1.0 for real terrain. */
 export let VERT_EXAG = 1.6;
@@ -65,6 +67,8 @@ const frag = /* glsl */ `
   uniform float uHasHeight;
   uniform float uExtent;
   uniform float uShadows;
+  uniform float uBeam;        // fraction of sunlight surviving the dust column
+  uniform float uTau;
 
   vec3 marsRamp(float t) {
     vec3 a = vec3(0.13, 0.065, 0.04);
@@ -144,13 +148,15 @@ const frag = /* glsl */ `
     vec3 L = normalize(uSunDir);
     float day = smoothstep(-4.0, 8.0, uSunElev);
     float sh = castShadow(vWorld, L);
-    float lambert = max(dot(n, L), 0.0) * day * sh;
+    float lambert = max(dot(n, L), 0.0) * day * sh * uBeam;
     vec3 sunCol = mix(vec3(1.0, 0.66, 0.45), vec3(1.0, 0.9, 0.78), smoothstep(4.0, 30.0, uSunElev)) * 2.0;
     vec3 skyCol = mix(vec3(0.05, 0.08, 0.16), vec3(0.62, 0.42, 0.30), day);
     float hemi = 0.55 + 0.45 * n.y;
     // Light bounced off the red ground fills the shadows warm.
     vec3 bounce = vec3(0.35, 0.18, 0.09) * day * (0.5 - 0.5 * n.y);
-    vec3 col = albedo * cavity * (sunCol * lambert + skyCol * hemi * 0.36 + bounce * 0.4);
+    // Dust scatters the lost beam into a brighter, flatter sky.
+    float skyBoost = 1.0 + 0.9 * (1.0 - uBeam) * day;
+    vec3 col = albedo * cavity * (sunCol * lambert * 1.25 + skyCol * hemi * 0.36 * skyBoost + bounce * 0.4);
 
     // Contours every 10 m, index contour every 50 m.
     if (uShowContours > 0.5) {
@@ -215,7 +221,7 @@ const frag = /* glsl */ `
 
     // Distance haze.
     // Aerial perspective: suspended dust scatters light into the line of sight.
-    float fog = 1.0 - exp(-max(camDist - uFogNear * 0.15, 0.0) / uFogFar * 1.6);
+    float fog = 1.0 - exp(-max(camDist - uFogNear * 0.15, 0.0) / uFogFar * (0.9 + 1.2 * uTau));
     col = mix(col, uFogColor, clamp(fog, 0.0, 0.85));
 
     gl_FragColor = vec4(col, 1.0);
@@ -286,6 +292,8 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uHasHeight: { value: 0 },
       uExtent: { value: 3000 },
       uShadows: { value: 1 },
+      uBeam: { value: 0.7 },
+      uTau: { value: 0.6 },
     },
   });
 }
@@ -296,9 +304,12 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
   useFrame((state, dt) => {
     const s = useStore.getState();
     const u = material.uniforms;
-    const sun = sunAt(s.lmstHours, lat);
+    const sun = sunAt(s.lmstHours, lat, declinationDeg(s.lsDeg));
     u.uSunDir.value.set(...sun.dir);
     u.uSunElev.value = sun.elevationDeg;
+    const tau = tauAtElevation(s.storm ? Math.max(s.tau, 3) : s.tau, -3.6);
+    u.uTau.value = tau;
+    u.uBeam.value = Math.max(beamTransmission(sun.elevationDeg, tau), 0.0);
     u.uSlopeLimit.value = s.slopeLimitDeg;
     u.uTime.value = state.clock.elapsedTime;
     u.uShowEnvelope.value = site && s.layers.envelope ? 1 : 0;

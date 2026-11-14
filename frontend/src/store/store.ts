@@ -26,6 +26,9 @@ interface State {
   layers: Record<LayerId, boolean>;
   provenance: string | null;        // layer id whose card is open
   lmstHours: number;                // local mean solar time, hours
+  lsDeg: number;                    // solar longitude (season)
+  tau: number;                      // column dust optical depth at the datum
+  storm: boolean;                   // solar particle event / dust storm scenario
   // Assumptions and scenario values (shown in the app with their tags)
   v0: number; slopeLimitDeg: number; reserveM: number; kG: number; mRestW: number; bodyMassKg: number;
   timeBudgetS: number; timeSpentS: number;
@@ -53,6 +56,9 @@ export const useStore = create<State>((set) => ({
   layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true },
   provenance: null,
   lmstHours: 15.6,
+  lsDeg: 150,
+  tau: 0.6,
+  storm: false,
   v0: 0.7, slopeLimitDeg: 20, reserveM: 0.25, kG: 0.76, mRestW: 100, bodyMassKg: 80,
   timeBudgetS: 4 * 3600, timeSpentS: 3 * 3600 + 28 * 60,
   crew: [

@@ -404,3 +404,12 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 @media (max-width: 560px) { .lineage-list { grid-template-columns: 1fr; } .brief-table td:first-child { width: 45%; } }
 
 .scene-veil { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; gap: 14px; text-align: center; color: var(--dust-2); background: radial-gradient(80% 60% at 50% 60%, #1a2236 0%, var(--night) 70%); pointer-events: none; }
+
+.season { display: grid; gap: 2px; min-width: 120px; font-size: 0.75rem; color: var(--dust-3); }
+.season b { color: var(--dust); font-weight: 600; }
+.season input { height: 14px; }
+.chip { border: 1px solid var(--line-strong); background: none; border-radius: 999px; padding: 5px 10px; font-size: 0.75rem; color: var(--dust-2); cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--sun); }
+.chip-on { border-color: var(--flare); color: var(--flare); background: rgba(255, 115, 87, 0.1); }
+.envelope-summary { grid-template-columns: 1fr 1fr 1fr; }
+.envelope-summary .reading-value { font-size: 1.5rem; }

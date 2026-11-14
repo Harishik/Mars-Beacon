@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useStore, type View } from "../store/store";
 import { sampleHeight, toCell } from "../data/bundle";
 import { formatLmst, sunAt } from "../engine/sun";
+import { declinationDeg, directIrradiance, tauAtElevation } from "../engine/environment";
 import { Tag } from "./Tag";
 
 export function InstrumentStrip() {
@@ -52,7 +53,13 @@ export function TimeBar() {
   const lmst = useStore((s) => s.lmstHours);
   const set = useStore((s) => s.set);
   const lat = useStore((s) => s.bundle?.manifest.crs.origin.lat ?? -4.86);
-  const sun = sunAt(lmst, lat);
+  const ls = useStore((s) => s.lsDeg);
+  const tauRef = useStore((s) => s.tau);
+  const storm = useStore((s) => s.storm);
+  const elevKm = useStore((s) => s.bundle ? (s.bundle.manifest.elevation.min + s.bundle.manifest.elevation.max) / 2000 : -3.6);
+  const sun = sunAt(lmst, lat, declinationDeg(ls));
+  const tau = tauAtElevation(storm ? Math.max(tauRef, 3) : tauRef, elevKm);
+  const irr = directIrradiance(ls, sun.elevationDeg, tau);
   const pct = ((lmst - 5) / 14) * 100;
   return (
     <div className="pane timebar">
@@ -69,9 +76,16 @@ export function TimeBar() {
         </div>
       </div>
       <div className="sun-readout">
-        <span><b>{sun.elevationDeg.toFixed(0)}°</b> sun elevation</span>
-        <span><b>{sun.azimuthDeg.toFixed(0)}°</b> azimuth</span>
-        <Tag t="ASSUMPTION" />
+        <span><b>{sun.elevationDeg.toFixed(0)}°</b> sun</span>
+        <span title="Direct sunlight reaching flat ground through the dust"><b>{Math.round(irr)}</b> W/m² direct</span>
+        <label className="season" title="Solar longitude: 0 spring equinox (north), 90 summer, 180 autumn, 270 winter. Dust season peaks near 250.">
+          <span>Season L<sub>s</sub> <b>{Math.round(ls)}°</b></span>
+          <input type="range" min={0} max={359} step={1} value={ls} onChange={(e) => set({ lsDeg: Number(e.target.value) })} />
+        </label>
+        <button className={`chip ${storm ? "chip-on" : ""}`} aria-pressed={storm} onClick={() => set({ storm: !storm })} title="Scenario: regional dust storm and solar particle event">
+          Storm scenario
+        </button>
+        <Tag t={storm ? "SCENARIO" : "PREDICTED"} />
       </div>
     </div>
   );

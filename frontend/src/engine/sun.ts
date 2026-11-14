@@ -1,5 +1,6 @@
-// PLACEHOLDER sun position until Sahaj's Mars24 port lands (21_Simulation_and_Physics.md section 7).
-// Assumes solar declination 0 (equinox) and LMST = true solar time. Tagged ASSUMPTION in the UI.
+// Sun position for a season (solar longitude Ls) and local solar time.
+// Declination from Ls; local mean time used as true solar time (equation of time not yet applied).
+// The full Mars24 port (Sahaj) replaces this. Tagged ASSUMPTION in the UI.
 
 export interface Sun { elevationDeg: number; azimuthDeg: number; dir: [number, number, number] }
 
