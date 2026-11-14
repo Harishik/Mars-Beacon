@@ -9,6 +9,7 @@ import { sunAt } from "../engine/sun";
 import { Terrain } from "./Terrain";
 import { Sky } from "./Sky";
 import { Surroundings } from "./Surroundings";
+import { RouteHome } from "./RouteHome";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
 type Mode = "hero" | View;
@@ -105,6 +106,10 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   }, [bundle, goal.x, goal.y, hab.x, hab.y]);
   const habP = useMemo(() => toScene(bundle, hab.x, hab.y), [bundle, hab.x, hab.y]);
 
+  const onClick = (e: { point: THREE.Vector3; delta: number }) => {
+    if (mode === "hero" || mode === "hud" || e.delta > 6) return; // ignore drags
+    useStore.getState().set({ selected: { x: e.point.x, y: -e.point.z } });
+  };
   const onMove = (e: { point: THREE.Vector3 }) => {
     if (mode === "hero") return;
     useStore.getState().set({ cursor: { x: e.point.x, y: -e.point.z } });
@@ -115,7 +120,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <Sky />
       <Lights lat={m.crs.origin.lat} />
       <Surroundings bundle={bundle} />
-      <group onPointerMove={onMove} onPointerOut={() => useStore.getState().set({ cursor: null })}>
+      <group onClick={onClick} onPointerMove={onMove} onPointerOut={() => useStore.getState().set({ cursor: null })}>
         <Terrain bundle={bundle} segments={mode === "hero" ? 320 : 448} />
       </group>
       {showHavens && <Habitat position={habP} />}
@@ -123,6 +128,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <Astronaut position={crewPos[0]} color="#6fd6e6" />
       <Astronaut position={crewPos[1]} color="#f4c552" phase={1.4} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
+      {mode !== "hero" && <RouteHome bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
     </>
   );

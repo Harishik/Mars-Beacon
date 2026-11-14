@@ -16,8 +16,8 @@ self.onmessage = (e: MessageEvent) => {
   if (msg.type === "envelope" && height && slope) {
     const out = computeEnvelope(height, slope, msg.params);
     (self as unknown as Worker).postMessage(
-      { type: "envelope", id: msg.id, margin: out.margin, timeToHaven: out.timeToHaven, ms: out.ms, insideCells: out.insideCells },
-      [out.margin.buffer, out.timeToHaven.buffer],
+      { type: "envelope", id: msg.id, margin: out.margin, timeToHaven: out.timeToHaven, parent: out.parent, o2A: out.o2A, o2B: out.o2B, ms: out.ms, insideCells: out.insideCells },
+      [out.margin.buffer, out.timeToHaven.buffer, out.parent.buffer, out.o2A.buffer, out.o2B.buffer],
     );
   }
 };

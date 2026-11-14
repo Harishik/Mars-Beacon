@@ -9,6 +9,9 @@ export interface Crew { label: string; loadKg: number; fMob: number; o2BudgetG: 
 export interface EnvelopeState {
   margin: Float32Array | null;
   timeToHaven: Float32Array | null;
+  parent: Int32Array | null;
+  o2A: Float32Array | null;
+  o2B: Float32Array | null;
   ms: number;
   insideCells: number;
   computing: boolean;
@@ -29,6 +32,9 @@ interface State {
   roverActive: boolean;
   envelope: EnvelopeState;
   cursor: { x: number; y: number } | null; // site-frame metres under the pointer
+  selected: { x: number; y: number; label?: string } | null; // point the crew is asking about
+  panel: "mission" | "layers";
+  ledger: boolean;                  // equations and assumptions sheet open
   tour: boolean;
   setBundle: (b: SiteBundle) => void;
   setError: (e: string) => void;
@@ -52,10 +58,17 @@ export const useStore = create<State>((set) => ({
     { label: "EV2", loadKg: 104, fMob: 1, o2BudgetG: 1000, o2SpentG: 790 },
   ],
   roverActive: false,
-  envelope: { margin: null, timeToHaven: null, ms: 0, insideCells: 0, computing: false, version: 0 },
+  envelope: { margin: null, timeToHaven: null, parent: null, o2A: null, o2B: null, ms: 0, insideCells: 0, computing: false, version: 0 },
   cursor: null,
+  selected: null,
+  panel: "mission",
+  ledger: false,
   tour: false,
-  setBundle: (b) => set({ bundle: b, loadError: null }),
+  setBundle: (b) => {
+    // Start with the first ridge selected so the turn-back card and route are visible at once.
+    const t = b.manifest.targets.find((x) => x.type === "ridge") ?? b.manifest.targets[0];
+    set({ bundle: b, loadError: null, selected: t ? { x: t.x, y: t.y, label: t.name } : null });
+  },
   setError: (e) => set({ loadError: e }),
   set: (p) => set(p),
   toggleLayer: (id) => set((s) => ({ layers: { ...s.layers, [id]: !s.layers[id] } })),

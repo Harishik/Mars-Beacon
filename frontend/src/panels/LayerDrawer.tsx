@@ -1,6 +1,7 @@
 import { useStore, type LayerId } from "../store/store";
 import type { ManifestLayer, Tag as TagT } from "../data/bundle";
 import { Tag } from "./Tag";
+import { MissionPanel } from "./MissionPanel";
 
 interface Row { id: LayerId; name: string; source: string; tag: TagT; manifestId?: string }
 interface Group { kind: string; rows: Row[] }
@@ -37,13 +38,15 @@ export function LayerDrawer() {
   const set = useStore((s) => s.set);
   const manifest = useStore((s) => s.bundle?.manifest);
   const synthetic = !!manifest?.synthetic;
+  const panel = useStore((s) => s.panel);
 
   return (
-    <aside className="pane drawer" aria-label="Map layers">
-      <header className="pane-head">
-        <h2>Layers</h2>
-        <span className="pane-sub">{manifest?.layers.length ?? 0} in bundle</span>
+    <aside className="pane drawer" aria-label="Mission and layers">
+      <header className="pane-head pane-tabs" role="tablist">
+        <button role="tab" aria-selected={panel === "mission"} onClick={() => set({ panel: "mission" })}>Mission</button>
+        <button role="tab" aria-selected={panel === "layers"} onClick={() => set({ panel: "layers" })}>Data layers <span className="count">{manifest?.layers.length ?? 0}</span></button>
       </header>
+      {panel === "mission" ? <div className="drawer-scroll"><MissionPanel /></div> : (
       <div className="drawer-scroll">
         {GROUPS.map((g) => (
           <section key={g.kind} className="layer-group">
@@ -84,7 +87,7 @@ export function LayerDrawer() {
             </div>
           ))}
         </section>
-      </div>
+      </div>)}
     </aside>
   );
 }

@@ -20,6 +20,9 @@ export interface EnvelopeOut {
   timeToHaven: Float32Array;  // seconds; Infinity when no path or beyond the time reach
   margin: Float32Array;       // smallest remaining fraction over all resources; < 0 is outside
   inside: Uint8Array;
+  parent: Int32Array;         // next cell on the way home (-1 at a haven or unreached)
+  o2A: Float32Array;          // grams of O2 EV1 needs to walk home from each cell
+  o2B: Float32Array;
   ms: number;
   insideCells: number;
 }
@@ -42,6 +45,7 @@ export function computeEnvelope(height: Float32Array, slopeDeg: Float32Array, p:
   const o2A = new Float32Array(n);
   const o2B = new Float32Array(n);
   const done = new Uint8Array(n);
+  const parent = new Int32Array(n).fill(-1);
 
   // Binary min-heap of (key, node) in typed arrays, lazy deletion.
   let cap = 1 << 20;
@@ -120,6 +124,7 @@ export function computeEnvelope(height: Float32Array, slopeDeg: Float32Array, p:
       const nt = time[v] + dt;
       if (nt < time[u] && nt <= maxT) {
         time[u] = nt;
+        parent[u] = v;
         const h = dt / 3600;
         o2A[u] = o2A[v] + o2RateGph(metabolicPower(grade, vPair, p.bodyMassKg, A.loadKg, p.kG, p.mRestW)) * h;
         o2B[u] = o2B[v] + o2RateGph(metabolicPower(grade, vPair, p.bodyMassKg, B.loadKg, p.kG, p.mRestW)) * h;
@@ -143,5 +148,13 @@ export function computeEnvelope(height: Float32Array, slopeDeg: Float32Array, p:
     margin[i] = m;
     if (m >= 0) { inside[i] = 1; insideCells++; }
   }
-  return { timeToHaven: time, margin, inside, ms: performance.now() - t0, insideCells };
+  return { timeToHaven: time, margin, inside, parent, o2A, o2B, ms: performance.now() - t0, insideCells };
+}
+
+/** Walk the tree from a cell to its haven: the certified route home, as cell indices. */
+export function routeHome(parent: Int32Array, start: number, maxSteps = 5000): number[] {
+  const out: number[] = [];
+  let c = start;
+  for (let i = 0; i < maxSteps && c >= 0; i++) { out.push(c); c = parent[c]; }
+  return out;
 }
