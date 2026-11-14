@@ -26,6 +26,16 @@
 
 **Mars-Beacon**, our project for the Martian Map challenge. Details, setup steps and the demo link will be added here as the build progresses.
 
+## Repository layout
+
+| Folder | Owner | Contents |
+|---|---|---|
+| `frontend/` | Harishik | React Three Fiber web app (habitat console, field tablet, helmet HUD) and planning engine |
+| `backend/` | Naomi | FastAPI + PostgreSQL/PostGIS API |
+| `pipeline/` | Sahaj | Python data processing, terrain reconstruction and ML |
+| `contracts/` | All | Shared formats: API contract, site manifest, mission state schema |
+| `fixtures/` | All | Small fake data in the real formats for parallel development |
+
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).

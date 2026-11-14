@@ -1,0 +1,27 @@
+# Node
+node_modules/
+dist/
+.vite/
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+# Secrets
+.env
+.env.*
+!.env.example
+# Large data (bundles go to the storage bucket, not Git)
+data/
+*.tif
+*.tiff
+*.img
+*.ply
+*.spz
+*.ckpt
+*.pt
+*.onnx
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
