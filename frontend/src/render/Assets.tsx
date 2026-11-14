@@ -88,7 +88,7 @@ export function Rover({ bundle, x, y, active }: { bundle: SiteBundle; x: number;
   );
 }
 
-export function Astronaut({ position, color, phase = 0 }: { position: THREE.Vector3; color: string; phase?: number }) {
+export function Astronaut({ position, color, phase = 0, layer = 0 }: { position: THREE.Vector3; color: string; phase?: number; layer?: number }) {
   const legL = useRef<THREE.Mesh>(null), legR = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime * 2.2 + phase;
@@ -96,7 +96,7 @@ export function Astronaut({ position, color, phase = 0 }: { position: THREE.Vect
     if (legR.current) legR.current.rotation.x = -Math.sin(t) * 0.35;
   });
   return (
-    <group position={position} scale={1}>
+    <group position={position} scale={1} ref={(g) => { if (layer) g?.traverse((o) => o.layers.set(layer)); }}>
       <mesh ref={legL} material={suit} position={[-0.17, 0.45, 0]}><capsuleGeometry args={[0.13, 0.6, 4, 10]} /></mesh>
       <mesh ref={legR} material={suit} position={[0.17, 0.45, 0]}><capsuleGeometry args={[0.13, 0.6, 4, 10]} /></mesh>
       <mesh material={suit} position={[0, 1.2, 0]}><capsuleGeometry args={[0.3, 0.55, 4, 14]} /></mesh>

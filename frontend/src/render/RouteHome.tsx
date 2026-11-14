@@ -32,7 +32,7 @@ export function RouteHome({ bundle, marker = true }: { bundle: SiteBundle; marke
           <Line points={data.pts} color={col} lineWidth={2.5} dashed dashSize={14} gapSize={7} />
         </>
       )}
-      {marker && <group position={p}>
+      {marker && <group position={p} ref={(g) => g?.traverse((o) => o.layers.set(1))}>
         <mesh position={[0, 9, 0]}>
           <cylinderGeometry args={[0.4, 0.4, 18, 6]} />
           <meshBasicMaterial color={col} />

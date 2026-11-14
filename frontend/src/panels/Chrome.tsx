@@ -97,6 +97,7 @@ const VIEWS: { id: View; label: string; short: string; hint: string }[] = [
   { id: "console", label: "Habitat console", short: "Console", hint: "Full 3D map and analysis" },
   { id: "tablet", label: "Field tablet", short: "Tablet", hint: "Top-down map for walking crew" },
   { id: "hud", label: "Helmet display", short: "Helmet", hint: "First-person view at eye height" },
+  { id: "linked", label: "All linked", short: "Linked", hint: "Console, tablet and visor together from one mission state" },
 ];
 
 export function ViewSwitch() {
@@ -181,6 +182,36 @@ function Compass() {
         <span key={m.deg} style={{ left: `${50 + ((m.deg - h) / 120) * 100}%` }} className={m.label.length <= 2 ? "card" : ""}>{m.label}</span>
       ))}
       <b>{String(Math.round(h)).padStart(3, "0")}°</b>
+    </div>
+  );
+}
+
+/** Frames and readouts over the two linked insets (tablet and visor). */
+export function LinkedFrames() {
+  const nav = useStore(useShallow((s) => {
+    const plan = s.plans.find((p) => p.id === s.activePlan) ?? s.plans[0];
+    const pos = s.crewPos;
+    if (!plan || !pos || !s.bundle) return null;
+    const next = plan.events.find((e) => e.kind === "arrive" && e.t > s.playheadS);
+    const tgt = next ? s.bundle.manifest.targets.find((t) => t.id === next.stop) : null;
+    const hab = s.bundle.manifest.havens.find((h) => h.type === "habitat")!;
+    const goal = tgt ?? { name: "Habitat airlock", x: hab.x, y: hab.y };
+    const r = reportAt(s.bundle, s, pos.x, pos.y);
+    return { name: goal.name, dist: Math.hypot(goal.x - pos.x, goal.y - pos.y), stay: r?.stayMin ?? null,
+      a: s.crew[0].o2BudgetG - s.crew[0].o2SpentG, b: s.crew[1].o2BudgetG - s.crew[1].o2SpentG, tLeft: s.timeBudgetS - s.timeSpentS };
+  }));
+  return (
+    <div className="linked-frames" aria-hidden>
+      <div className="lf lf-tablet">
+        <span className="lf-title">Field tablet</span>
+        {nav && <span className="lf-read"><i className="ca">EV1 {Math.round(nav.a)} g</i><i className="cb">EV2 {Math.round(nav.b)} g</i><i>{Math.round(nav.tLeft / 60)} min left</i></span>}
+      </div>
+      <div className="lf lf-visor">
+        <span className="lf-title">Helmet visor, EV1</span>
+        {nav && <span className="lf-read"><i>Next: {nav.name}, {Math.round(nav.dist)} m</i>{nav.stay !== null && <i className={nav.stay < 10 ? "tight" : ""}>Turn back within {Math.max(0, Math.floor(nav.stay))} min</i>}</span>}
+        <span className="lf-horizon" />
+      </div>
+      <p className="lf-note">One mission state drives all three displays: the same plan, crew position, consumables and Return Envelope.</p>
     </div>
   );
 }

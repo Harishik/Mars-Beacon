@@ -2,7 +2,7 @@ import { useStore } from "../store/store";
 import { Scene } from "../render/Scene";
 import { LayerDrawer } from "../panels/LayerDrawer";
 import { CrewPanel } from "../panels/CrewPanel";
-import { HudOverlay, InstrumentStrip, ViewSwitch } from "../panels/Chrome";
+import { HudOverlay, InstrumentStrip, LinkedFrames, ViewSwitch } from "../panels/Chrome";
 import { MissionTimeline, PlanCharts } from "../panels/Plan";
 import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
@@ -28,7 +28,8 @@ export function Console() {
       </header>
       {view !== "hud" && <InstrumentStrip />}
       {view !== "hud" && <LayerDrawer />}
-      {view !== "hud" && <CrewPanel />}
+      {(view === "console" || view === "tablet") && <CrewPanel />}
+      {view === "linked" && <LinkedFrames />}
       {view === "hud" && <HudOverlay />}
       <MissionTimeline />
       {view === "console" && <PlanCharts />}

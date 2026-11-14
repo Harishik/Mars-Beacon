@@ -12,6 +12,7 @@ import { Sky } from "./Sky";
 import { Surroundings } from "./Surroundings";
 import { RouteHome } from "./RouteHome";
 import { PlanRoute } from "./PlanRoute";
+import { LinkedViews } from "./LinkedViews";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
 type Mode = "hero" | View;
@@ -83,6 +84,8 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       c?.target.set(habP.x + 250, habP.y - 60, habP.z - 200);
       cam.fov = 45;
     }
+    cam.layers.enable(1); // layer 1: selection markers, hidden from the visor camera
+    cam.layers.enable(2); // layer 2: EV1's own suit, hidden from EV1's visor
     cam.near = mode === "hud" ? 0.1 : 1;
     cam.updateProjectionMatrix();
     c?.update();
@@ -99,7 +102,7 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       autoRotateSpeed={0.25}
       enabled={mode !== "hero"}
       enableRotate={mode !== "tablet"}
-      enablePan={mode === "console" || mode === "tablet"}
+      enablePan={mode === "console" || mode === "tablet" || mode === "linked"}
       enableZoom={mode !== "hud"}
       screenSpacePanning={mode === "tablet"}
       maxPolarAngle={mode === "hud" ? Math.PI * 0.62 : Math.PI * 0.47}
@@ -150,12 +153,13 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       </group>
       {showHavens && <Habitat position={habP} />}
       {showHavens && rover && <Rover bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
-      {mode !== "hud" && <Astronaut position={(crewAt ?? crewPos)[0]} color="#6fd6e6" />}
+      {mode !== "hud" && <Astronaut position={(crewAt ?? crewPos)[0]} color="#6fd6e6" layer={2} />}
       <Astronaut position={(crewAt ?? crewPos)[1]} color="#f4c552" phase={1.4} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
       {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
       {mode !== "hero" && <PlanRoute bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
+      {mode === "linked" && <LinkedViews bundle={bundle} />}
       <FirstFrame />
     </>
   );
