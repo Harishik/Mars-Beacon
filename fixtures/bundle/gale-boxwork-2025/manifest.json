@@ -1,0 +1,940 @@
+{
+  "siteId": "gale-boxwork-2025",
+  "name": "Gale crater, Mount Sharp boxwork (Curiosity 2025 campaign area)",
+  "body": "Mars",
+  "version": "0.1.0-sample",
+  "synthetic": false,
+  "notice": "Real USGS HiRISE elevation and imagery. Stops are Curiosity workspaces from PDS PLACES. Habitat and rover positions are placeholders on walkable ground.",
+  "siteHash": "b9ff6d70b89fc2a5",
+  "crs": {
+    "proj4": "+proj=eqc +R=3396190 +lon_0=0 (USGS source); local ENU metres from box centre",
+    "origin": {
+      "lat": -4.8057,
+      "lon": 137.3828
+    },
+    "datum": "sphere R=3396190 m",
+    "lonDomain": "-180..180"
+  },
+  "grid": {
+    "liveM": 4,
+    "cols": 750,
+    "rows": 750,
+    "extentM": 3000
+  },
+  "elevation": {
+    "min": -4009.09,
+    "max": -3319.95,
+    "datum": "Mars areoid (USGS)"
+  },
+  "display": {
+    "verticalExaggeration": 1.0
+  },
+  "files": [
+    {
+      "name": "height",
+      "path": "height_4m.f32",
+      "dtype": "float32",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1,
+      "offset": 0,
+      "sha256": "b9ff6d70b89fc2a5c883142a445f899373d10bb208ddcf4874ca5a9d19f709a9"
+    },
+    {
+      "name": "slope",
+      "path": "slope_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0,
+      "sha256": "aaa910d8d90d0815f24c2e45e4e9a3c31c96401bf3b2c1ba2505cc58f923e91a"
+    },
+    {
+      "name": "slopemax1m",
+      "path": "slopemax1m_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0,
+      "sha256": "ed544c43b3d42aeae25741abf6d07bd2e330f4b8e2081b357fa9c92087fbbec8"
+    },
+    {
+      "name": "ortho",
+      "path": "ortho_4096.jpg",
+      "dtype": "image",
+      "cols": 4096,
+      "rows": 4096,
+      "scale": 1,
+      "offset": 0,
+      "sha256": ""
+    },
+    {
+      "name": "normal",
+      "path": "normal_2048.jpg",
+      "dtype": "image",
+      "cols": 2048,
+      "rows": 2048,
+      "scale": 1,
+      "offset": 0,
+      "sha256": ""
+    }
+  ],
+  "layers": [
+    {
+      "id": "dem",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "HiRISE (+CTX, HRSC, MOLA), USGS merged DEM",
+      "productId": "MSL_Gale_DEM_Mosaic_1m_v3",
+      "resolutionM": 1,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "USGS Astrogeology Science Center; NASA/JPL/University of Arizona",
+      "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m"
+    },
+    {
+      "id": "ortho",
+      "kind": "optical",
+      "mission": "MRO",
+      "instrument": "HiRISE",
+      "productId": "MSL_Gale_Orthophoto_Mosaic_25cm_v3",
+      "resolutionM": 0.25,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "NASA/JPL/University of Arizona; USGS Astrogeology",
+      "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm"
+    },
+    {
+      "id": "slope",
+      "kind": "topographic",
+      "mission": "Derived",
+      "instrument": "Horn 3x3 on the 4 m DEM",
+      "productId": "slope_4m",
+      "resolutionM": 4,
+      "acquired": "computed",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline",
+      "url": ""
+    },
+    {
+      "id": "traverse",
+      "kind": "rover",
+      "mission": "MSL Curiosity",
+      "instrument": "PLACES localization",
+      "productId": "msl_places localized_pos.csv",
+      "resolutionM": 1,
+      "acquired": "sols in box",
+      "tag": "HISTORICAL",
+      "attribution": "NASA/JPL-Caltech, PDS Imaging Node",
+      "url": "https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/"
+    },
+    {
+      "id": "envelope",
+      "kind": "operations",
+      "mission": "Engine",
+      "instrument": "Reverse Dijkstra, paired crew",
+      "productId": "live",
+      "resolutionM": 4,
+      "acquired": "live",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON engine",
+      "url": ""
+    }
+  ],
+  "patches": [],
+  "splats": [],
+  "havens": [
+    {
+      "id": "hab",
+      "type": "habitat",
+      "x": 50,
+      "y": 526
+    },
+    {
+      "id": "rover",
+      "type": "rover",
+      "x": -182,
+      "y": 334
+    }
+  ],
+  "targets": [
+    {
+      "id": "sol4554",
+      "name": "Sol 4554 workspace",
+      "type": "ridge",
+      "x": 38,
+      "y": 355,
+      "sol": 4554,
+      "source": "PDS PLACES localized position, site 116 drive 1806, sols 4554 to 4558; type from local relief"
+    },
+    {
+      "id": "sol4616",
+      "name": "Sol 4616 workspace",
+      "type": "hollow",
+      "x": -194,
+      "y": 15,
+      "sol": 4616,
+      "source": "PDS PLACES localized position, site 118 drive 162, sols 4616 to 4621; type from local relief"
+    },
+    {
+      "id": "sol4647",
+      "name": "Sol 4647 workspace",
+      "type": "hollow",
+      "x": -177,
+      "y": -71,
+      "sol": 4647,
+      "source": "PDS PLACES localized position, site 118 drive 2268, sols 4647 to 4650; type from local relief"
+    },
+    {
+      "id": "sol4673",
+      "name": "Sol 4673 workspace",
+      "type": "hollow",
+      "x": -73,
+      "y": -179,
+      "sol": 4673,
+      "source": "PDS PLACES localized position, site 119 drive 846, sols 4673 to 4677; type from local relief"
+    },
+    {
+      "id": "sol4752",
+      "name": "Sol 4752 workspace",
+      "type": "ridge",
+      "x": -107,
+      "y": -138,
+      "sol": 4752,
+      "source": "PDS PLACES localized position, site 120 drive 538, sols 4752 to 4789; type from local relief"
+    },
+    {
+      "id": "sol4820",
+      "name": "Sol 4820 workspace",
+      "type": "drill",
+      "x": -8,
+      "y": -124,
+      "sol": 4820,
+      "source": "PDS PLACES localized position, site 120 drive 2102, sols 4820 to 4823; type from local relief"
+    }
+  ],
+  "povImages": [],
+  "route": {
+    "source": "PDS PLACES localized_pos.csv (Curiosity rover positions)",
+    "sols": [
+      4135,
+      4865
+    ],
+    "points": [
+      [
+        1464.8,
+        1463.6
+      ],
+      [
+        1459.7,
+        1438.3
+      ],
+      [
+        1459.7,
+        1423.9
+      ],
+      [
+        1458.3,
+        1421.0
+      ],
+      [
+        1461.6,
+        1400.9
+      ],
+      [
+        1461.2,
+        1391.4
+      ],
+      [
+        1466.8,
+        1377.3
+      ],
+      [
+        1465.0,
+        1361.1
+      ],
+      [
+        1461.7,
+        1354.3
+      ],
+      [
+        1454.5,
+        1339.6
+      ],
+      [
+        1469.0,
+        1329.8
+      ],
+      [
+        1475.1,
+        1319.3
+      ],
+      [
+        1471.8,
+        1120.2
+      ],
+      [
+        1472.4,
+        1120.8
+      ],
+      [
+        1466.1,
+        1119.6
+      ],
+      [
+        1454.9,
+        1117.0
+      ],
+      [
+        1446.2,
+        1119.8
+      ],
+      [
+        1435.8,
+        1132.1
+      ],
+      [
+        1435.5,
+        1156.6
+      ],
+      [
+        1431.1,
+        1181.1
+      ],
+      [
+        1421.0,
+        1215.6
+      ],
+      [
+        1381.0,
+        1242.6
+      ],
+      [
+        1368.3,
+        1281.7
+      ],
+      [
+        1343.7,
+        1290.0
+      ],
+      [
+        1326.9,
+        1306.5
+      ],
+      [
+        1310.2,
+        1331.9
+      ],
+      [
+        1302.9,
+        1348.7
+      ],
+      [
+        1295.9,
+        1367.9
+      ],
+      [
+        1295.1,
+        1369.2
+      ],
+      [
+        1287.6,
+        1386.8
+      ],
+      [
+        1287.1,
+        1395.8
+      ],
+      [
+        1267.9,
+        1390.8
+      ],
+      [
+        1245.1,
+        1387.6
+      ],
+      [
+        1231.1,
+        1376.2
+      ],
+      [
+        1215.2,
+        1363.5
+      ],
+      [
+        1186.2,
+        1359.5
+      ],
+      [
+        1165.1,
+        1347.1
+      ],
+      [
+        1134.3,
+        1327.1
+      ],
+      [
+        1086.7,
+        1319.4
+      ],
+      [
+        1037.8,
+        1327.1
+      ],
+      [
+        995.4,
+        1329.1
+      ],
+      [
+        978.5,
+        1326.2
+      ],
+      [
+        958.8,
+        1322.6
+      ],
+      [
+        940.9,
+        1334.1
+      ],
+      [
+        911.4,
+        1333.0
+      ],
+      [
+        897.6,
+        1330.6
+      ],
+      [
+        876.4,
+        1321.4
+      ],
+      [
+        840.3,
+        1312.7
+      ],
+      [
+        834.5,
+        1290.0
+      ],
+      [
+        822.2,
+        1254.2
+      ],
+      [
+        790.0,
+        1236.0
+      ],
+      [
+        772.1,
+        1257.4
+      ],
+      [
+        751.3,
+        1229.7
+      ],
+      [
+        734.8,
+        1209.8
+      ],
+      [
+        711.6,
+        1189.5
+      ],
+      [
+        699.0,
+        1172.4
+      ],
+      [
+        695.1,
+        1171.8
+      ],
+      [
+        660.9,
+        1162.1
+      ],
+      [
+        645.3,
+        1131.9
+      ],
+      [
+        612.0,
+        1112.9
+      ],
+      [
+        582.1,
+        1095.0
+      ],
+      [
+        559.5,
+        1066.6
+      ],
+      [
+        533.7,
+        1038.6
+      ],
+      [
+        514.8,
+        995.7
+      ],
+      [
+        503.7,
+        972.2
+      ],
+      [
+        510.7,
+        953.4
+      ],
+      [
+        516.7,
+        919.5
+      ],
+      [
+        506.1,
+        903.5
+      ],
+      [
+        501.0,
+        881.3
+      ],
+      [
+        501.6,
+        881.2
+      ],
+      [
+        480.4,
+        874.0
+      ],
+      [
+        465.8,
+        854.1
+      ],
+      [
+        467.5,
+        836.6
+      ],
+      [
+        474.4,
+        806.1
+      ],
+      [
+        470.0,
+        787.8
+      ],
+      [
+        478.5,
+        764.9
+      ],
+      [
+        459.3,
+        745.8
+      ],
+      [
+        428.6,
+        717.5
+      ],
+      [
+        421.2,
+        716.8
+      ],
+      [
+        401.8,
+        719.1
+      ],
+      [
+        372.0,
+        731.2
+      ],
+      [
+        359.7,
+        740.3
+      ],
+      [
+        324.6,
+        702.7
+      ],
+      [
+        319.4,
+        650.1
+      ],
+      [
+        321.8,
+        631.7
+      ],
+      [
+        303.1,
+        590.7
+      ],
+      [
+        303.3,
+        573.9
+      ],
+      [
+        300.6,
+        569.1
+      ],
+      [
+        293.2,
+        550.6
+      ],
+      [
+        291.4,
+        522.5
+      ],
+      [
+        279.0,
+        503.0
+      ],
+      [
+        253.0,
+        491.5
+      ],
+      [
+        228.2,
+        486.2
+      ],
+      [
+        215.5,
+        479.1
+      ],
+      [
+        201.5,
+        469.1
+      ],
+      [
+        185.0,
+        467.3
+      ],
+      [
+        185.3,
+        467.3
+      ],
+      [
+        169.7,
+        458.8
+      ],
+      [
+        131.0,
+        440.7
+      ],
+      [
+        73.8,
+        409.4
+      ],
+      [
+        45.8,
+        381.1
+      ],
+      [
+        37.8,
+        354.8
+      ],
+      [
+        41.4,
+        349.0
+      ],
+      [
+        43.9,
+        346.9
+      ],
+      [
+        11.1,
+        313.7
+      ],
+      [
+        -16.8,
+        268.9
+      ],
+      [
+        -40.7,
+        224.7
+      ],
+      [
+        -64.9,
+        223.4
+      ],
+      [
+        -91.8,
+        200.0
+      ],
+      [
+        -91.7,
+        198.8
+      ],
+      [
+        -103.6,
+        185.7
+      ],
+      [
+        -119.1,
+        175.7
+      ],
+      [
+        -130.7,
+        193.8
+      ],
+      [
+        -139.3,
+        189.1
+      ],
+      [
+        -140.4,
+        162.2
+      ],
+      [
+        -161.6,
+        124.1
+      ],
+      [
+        -180.5,
+        99.8
+      ],
+      [
+        -184.6,
+        89.6
+      ],
+      [
+        -188.3,
+        79.0
+      ],
+      [
+        -192.2,
+        75.1
+      ],
+      [
+        -206.3,
+        56.9
+      ],
+      [
+        -207.7,
+        44.7
+      ],
+      [
+        -198.7,
+        29.3
+      ],
+      [
+        -194.1,
+        14.7
+      ],
+      [
+        -193.5,
+        12.1
+      ],
+      [
+        -194.9,
+        17.0
+      ],
+      [
+        -170.9,
+        12.8
+      ],
+      [
+        -180.3,
+        -9.4
+      ],
+      [
+        -198.0,
+        -17.2
+      ],
+      [
+        -182.4,
+        -27.7
+      ],
+      [
+        -185.3,
+        -44.9
+      ],
+      [
+        -218.3,
+        -38.9
+      ],
+      [
+        -205.2,
+        -49.7
+      ],
+      [
+        -206.4,
+        -50.6
+      ],
+      [
+        -204.3,
+        -58.7
+      ],
+      [
+        -200.8,
+        -65.0
+      ],
+      [
+        -177.1,
+        -70.6
+      ],
+      [
+        -175.3,
+        -70.7
+      ],
+      [
+        -172.1,
+        -81.8
+      ],
+      [
+        -172.2,
+        -87.0
+      ],
+      [
+        -162.4,
+        -103.9
+      ],
+      [
+        -154.7,
+        -114.3
+      ],
+      [
+        -151.2,
+        -131.9
+      ],
+      [
+        -135.9,
+        -137.7
+      ],
+      [
+        -113.6,
+        -139.4
+      ],
+      [
+        -90.7,
+        -152.4
+      ],
+      [
+        -72.9,
+        -178.8
+      ],
+      [
+        -65.8,
+        -178.6
+      ],
+      [
+        -92.1,
+        -152.4
+      ],
+      [
+        -105.6,
+        -137.0
+      ],
+      [
+        -104.6,
+        -126.8
+      ],
+      [
+        -103.8,
+        -136.3
+      ],
+      [
+        -106.4,
+        -136.8
+      ],
+      [
+        -105.9,
+        -122.3
+      ],
+      [
+        -99.6,
+        -130.9
+      ],
+      [
+        -107.1,
+        -138.2
+      ],
+      [
+        -107.1,
+        -136.7
+      ],
+      [
+        -81.8,
+        -126.7
+      ],
+      [
+        -76.8,
+        -108.9
+      ],
+      [
+        -67.1,
+        -97.8
+      ],
+      [
+        -51.0,
+        -108.2
+      ],
+      [
+        -14.1,
+        -130.6
+      ],
+      [
+        -7.6,
+        -123.6
+      ],
+      [
+        -10.2,
+        -129.4
+      ],
+      [
+        3.2,
+        -144.2
+      ],
+      [
+        -8.8,
+        -185.1
+      ],
+      [
+        -6.1,
+        -227.8
+      ],
+      [
+        -26.2,
+        -238.1
+      ],
+      [
+        -55.6,
+        -249.7
+      ],
+      [
+        -61.9,
+        -279.8
+      ],
+      [
+        -66.6,
+        -286.6
+      ],
+      [
+        -68.4,
+        -290.5
+      ],
+      [
+        -58.6,
+        -346.9
+      ],
+      [
+        -45.2,
+        -374.3
+      ],
+      [
+        -38.6,
+        -423.8
+      ],
+      [
+        -56.6,
+        -442.7
+      ],
+      [
+        -84.7,
+        -446.2
+      ],
+      [
+        -106.7,
+        -479.5
+      ]
+    ]
+  }
+}

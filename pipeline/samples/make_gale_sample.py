@@ -45,19 +45,28 @@ def sha(a):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
-    ap.add_argument("--lat", type=float, default=-4.865)
-    ap.add_argument("--lon", type=float, default=137.315)
+    ap.add_argument("--lat", type=float, default=-4.8057)
+    ap.add_argument("--lon", type=float, default=137.3828)
     ap.add_argument("--dem-npy", help="reuse an already clipped 3000x3000 DEM (.npy)")
     ap.add_argument("--ortho-png", help="reuse an already clipped 12000x12000 orthophoto (.png)")
+    ap.add_argument("--cache", help="directory to keep the clipped DEM and orthophoto between runs")
+    ap.add_argument("--min-sol", type=int, default=4500, help="earliest sol for workspaces (boxwork campaign from sol 4534)")
+    ap.add_argument("--places", help="PDS PLACES localized_pos.csv (Curiosity positions); downloaded if omitted")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     cx, cy = R * math.radians(a.lon), R * math.radians(a.lat)
 
+    cd = a.cache
+    if cd and not a.dem_npy and os.path.exists(os.path.join(cd, "dem.npy")): a.dem_npy = os.path.join(cd, "dem.npy")
+    if cd and not a.ortho_png and os.path.exists(os.path.join(cd, "ortho.npy")): a.ortho_png = os.path.join(cd, "ortho.npy")
     dem = np.load(a.dem_npy) if a.dem_npy else clip(DEM, cx, cy, 1.0)[0]
+    if cd: os.makedirs(cd, exist_ok=True); np.save(os.path.join(cd, "dem.npy"), dem)
     dem = dem.astype(np.float32)
     if (dem < -30000).any():
         raise SystemExit("No-data cells in the clip; choose another box (voids are never interpolated).")
-    ortho = np.array(Image.open(a.ortho_png)) if a.ortho_png else clip(ORTHO, cx, cy, 0.25)[0]
+    if a.ortho_png and a.ortho_png.endswith(".npy"): ortho = np.load(a.ortho_png)
+    else: ortho = np.array(Image.open(a.ortho_png)) if a.ortho_png else clip(ORTHO, cx, cy, 0.25)[0]
+    if cd and not os.path.exists(os.path.join(cd, "ortho.npy")): np.save(os.path.join(cd, "ortho.npy"), ortho)
 
     h4 = dem.reshape(N, CELL, N, CELL).mean(axis=(1, 3)).astype(np.float32)
     s4 = horn_slope(h4, CELL)
@@ -80,29 +89,59 @@ def main():
     nrm = np.stack([nx / ln, ny / ln, nz / ln], -1)
     Image.fromarray(((nrm * 0.5 + 0.5) * 255).astype(np.uint8)).save(os.path.join(a.out, "normal_2048.jpg"), quality=92)
 
-    # Placeholder havens and stops on walkable ground, chosen from the terrain itself.
-    flat = ndimage.uniform_filter((s4 < 12).astype(np.float32), 15)
-    relief = h4 - ndimage.gaussian_filter(h4, 12)
     def to_xy(r, c):
         return {"x": round((c + 0.5) * CELL - EXTENT / 2), "y": round(EXTENT / 2 - (r + 0.5) * CELL)}
     def best(score, r0, r1, c0, c1):
         sub = score[r0:r1, c0:c1]
         r, c = np.unravel_index(np.nanargmax(sub), sub.shape)
         return r0 + r, c0 + c
-    hab = best(flat, 300, 450, 250, 450)
-    rov = best(flat, 180, 330, 420, 600)
-    walk = (s4 < 18).astype(float)
-    ring = lambda r, c, lo, hi: np.fromfunction(lambda i, j: ((np.hypot(i - r, j - c) > lo) & (np.hypot(i - r, j - c) < hi)).astype(float), (N, N))
-    ra = best(np.where((walk > 0) & (ring(*hab, 30, 75) > 0), relief, -1e9), 0, N, 0, N)
-    ho = best(np.where((walk > 0) & (np.hypot(*(np.indices((N, N)) - np.array(ra)[:, None, None])) < 25), -relief, -1e9), 0, N, 0, N)
-    rb = best(np.where((walk > 0) & (ring(*rov, 30, 75) > 0), relief, -1e9), 0, N, 0, N)
-    dr = best(np.where((walk > 0) & (ring(*hab, 70, 130) > 0), flat, -1e9), 0, N, 0, N)
+
+    # Curiosity's real positions (PDS PLACES), same eqc projection as the USGS mosaics.
+    import csv, urllib.request
+    places = a.places
+    if not places:
+        places = os.path.join(a.out, "_localized_pos.csv")
+        urllib.request.urlretrieve("https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/data_localizations/localized_pos.csv", places)
+    rows = [r for r in csv.DictReader(open(places)) if r["frame"] == "ROVER"]
+    def site_xy(r):
+        return float(r["easting"]) - cx, float(r["northing"]) - cy
+    inbox = [r for r in rows if all(abs(v) < EXTENT / 2 - 20 for v in site_xy(r))]
+    route = [[round(x, 1), round(y, 1)] for x, y in map(site_xy, inbox)]
+    # Workspaces: where the rover stayed for several sols without driving far.
+    stays = []
+    i = 0
+    while i < len(inbox):
+        j = i
+        while j + 1 < len(inbox) and math.hypot(*np.subtract(site_xy(inbox[j + 1]), site_xy(inbox[i]))) < 8:
+            j += 1
+        s0, s1 = int(inbox[i]["sol"]), int(inbox[j]["sol"])
+        if s1 - s0 >= 3 and s0 >= a.min_sol:
+            stays.append((s1 - s0, s0, s1, site_xy(inbox[i]), inbox[i]))
+        i = j + 1
+    stays.sort(reverse=True)
+    relief = h4 - ndimage.gaussian_filter(h4, 6)
+    targets = []
+    for dur, s0, s1, (x, y), r in sorted(stays[:6], key=lambda t: t[1]):
+        c, rr = int((x + EXTENT / 2) / CELL), int((EXTENT / 2 - y) / CELL)
+        kind = "ridge" if relief[rr, c] > 0.15 else "hollow" if relief[rr, c] < -0.15 else "drill"
+        targets.append({"id": f"sol{s0}", "name": f"Sol {s0} workspace", "type": kind, "x": round(x), "y": round(y),
+                        "sol": s0, "source": f"PDS PLACES localized position, site {r['site']} drive {r['drive']}, sols {s0} to {s1}; type from local relief"})
+
+    # Habitat (placeholder): flattest open ground 300 to 700 m from the traverse centre.
+    flat = ndimage.uniform_filter((s4 < 10).astype(np.float32), 15)
+    rc = np.indices((N, N))
+    mx = np.mean([t["x"] for t in targets]) if targets else 0
+    my = np.mean([t["y"] for t in targets]) if targets else 0
+    cc0, rr0 = (mx + EXTENT / 2) / CELL, (EXTENT / 2 - my) / CELL
+    dist = np.hypot(rc[0] - rr0, rc[1] - cc0) * CELL
+    hab = best(np.where((dist > 300) & (dist < 700), flat, -1), 0, N, 0, N)
+    rov = best(np.where((dist > 150) & (dist < 400) & (np.hypot(rc[0] - hab[0], rc[1] - hab[1]) * CELL > 300), flat, -1), 0, N, 0, N)
 
     m = {
         "siteId": os.path.basename(os.path.normpath(a.out)),
-        "name": "Gale crater, lower Mount Sharp (3 km sample clip)",
+        "name": "Gale crater, Mount Sharp boxwork (Curiosity 2025 campaign area)",
         "body": "Mars", "version": "0.1.0-sample", "synthetic": False,
-        "notice": "Real USGS HiRISE elevation and imagery. Havens and stops are placeholder locations picked on walkable ground, not mission sites.",
+        "notice": "Real USGS HiRISE elevation and imagery. Stops are Curiosity workspaces from PDS PLACES. Habitat and rover positions are placeholders on walkable ground.",
         "siteHash": sha(h4)[:16],
         "crs": {"proj4": "+proj=eqc +R=3396190 +lon_0=0 (USGS source); local ENU metres from box centre",
                 "origin": {"lat": a.lat, "lon": a.lon}, "datum": "sphere R=3396190 m", "lonDomain": "-180..180"},
@@ -120,17 +159,13 @@ def main():
             {"id": "dem", "kind": "topographic", "mission": "MRO", "instrument": "HiRISE (+CTX, HRSC, MOLA), USGS merged DEM", "productId": "MSL_Gale_DEM_Mosaic_1m_v3", "resolutionM": 1, "acquired": "various", "tag": "OBSERVED", "attribution": "USGS Astrogeology Science Center; NASA/JPL/University of Arizona", "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m"},
             {"id": "ortho", "kind": "optical", "mission": "MRO", "instrument": "HiRISE", "productId": "MSL_Gale_Orthophoto_Mosaic_25cm_v3", "resolutionM": 0.25, "acquired": "various", "tag": "OBSERVED", "attribution": "NASA/JPL/University of Arizona; USGS Astrogeology", "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm"},
             {"id": "slope", "kind": "topographic", "mission": "Derived", "instrument": "Horn 3x3 on the 4 m DEM", "productId": "slope_4m", "resolutionM": 4, "acquired": "computed", "tag": "DERIVED", "attribution": "Mars BEACON pipeline", "url": ""},
+            {"id": "traverse", "kind": "rover", "mission": "MSL Curiosity", "instrument": "PLACES localization", "productId": "msl_places localized_pos.csv", "resolutionM": 1, "acquired": "sols in box", "tag": "HISTORICAL", "attribution": "NASA/JPL-Caltech, PDS Imaging Node", "url": "https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/"},
             {"id": "envelope", "kind": "operations", "mission": "Engine", "instrument": "Reverse Dijkstra, paired crew", "productId": "live", "resolutionM": 4, "acquired": "live", "tag": "DERIVED", "attribution": "Mars BEACON engine", "url": ""},
         ],
         "patches": [], "splats": [],
         "havens": [{"id": "hab", "type": "habitat", **to_xy(*hab)}, {"id": "rover", "type": "rover", **to_xy(*rov)}],
-        "targets": [
-            {"id": "ridge-a", "name": "Ridge A", "type": "ridge", **to_xy(*ra), "sol": None, "source": "placeholder location (local relief high)"},
-            {"id": "hollow-a", "name": "Hollow A", "type": "hollow", **to_xy(*ho), "sol": None, "source": "placeholder location (local relief low)"},
-            {"id": "ridge-b", "name": "Ridge B", "type": "ridge", **to_xy(*rb), "sol": None, "source": "placeholder location (local relief high)"},
-            {"id": "drill", "name": "Survey site", "type": "drill", **to_xy(*dr), "sol": None, "source": "placeholder location"},
-        ],
-        "povImages": [], "route": {"source": "pending", "points": []},
+        "targets": targets,
+        "povImages": [], "route": {"source": "PDS PLACES localized_pos.csv (Curiosity rover positions)", "sols": [int(inbox[0]["sol"]), int(inbox[-1]["sol"])] if inbox else [], "points": route},
     }
     json.dump(m, open(os.path.join(a.out, "manifest.json"), "w"), indent=2)
     print("wrote", a.out, m["elevation"], [h["x"] for h in m["havens"]])

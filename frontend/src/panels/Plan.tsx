@@ -92,11 +92,15 @@ export function MissionTimeline() {
           })}
           <span className="tl-done" style={{ width: pct(s.playheadS) }} />
         </div>
-        {plan?.events.filter((e) => e.kind === "arrive").map((e) => (
-          <span key={e.stop} className="tl-marker" style={{ left: pct(e.t) }}>
-            <i>{stopIdx.get(e.stop)}</i><span>{name(e.stop)}</span>
-          </span>
-        ))}
+        {plan?.events.filter((e) => e.kind === "arrive").map((e, i, arr) => {
+          const nextT = arr[i + 1]?.t ?? Infinity;
+          const roomy = (nextT - e.t) / total > 0.16;
+          return (
+            <span key={e.stop} className="tl-marker" style={{ left: pct(e.t) }} title={name(e.stop)}>
+              <i>{stopIdx.get(e.stop)}</i>{roomy && <span>{name(e.stop)}</span>}
+            </span>
+          );
+        })}
         <input type="range" aria-label="Time since egress" min={0} max={total} step={10} value={Math.min(s.playheadS, total)}
           onChange={(e) => s.set({ playheadS: Number(e.target.value), playing: false })} />
         <div className="tl-ends"><span>Egress</span><span>Airlock {plan ? hm(plan.totalS) : ""}</span></div>

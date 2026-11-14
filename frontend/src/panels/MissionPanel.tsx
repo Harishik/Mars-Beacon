@@ -7,9 +7,9 @@ import { PlanCards } from "./Plan";
 
 const TYPE_LABEL = { ridge: "Ridge", hollow: "Hollow", drill: "Drill site" } as const;
 const WHY = {
-  ridge: "Resistant rib. Sample the cement that may have filled old fractures.",
-  hollow: "Softer rock between ridges. Sample to compare with the ridge.",
-  drill: "Where Curiosity drilled. Ground truth for the comparison.",
+  ridge: "Where Curiosity worked on a local high. Sample the resistant rock to compare with a hollow.",
+  hollow: "Where Curiosity worked in a local low. Sample to compare with a ridge.",
+  drill: "Where Curiosity stopped to work on flat ground. Context sample for the comparison.",
 } as const;
 
 function useReport(x: number, y: number) {

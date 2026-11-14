@@ -17,8 +17,9 @@ const GROUPS: Group[] = [
     { id: "havens", name: "Habitat and rover", source: "Mission plan", tag: "SCENARIO" },
     { id: "grid", name: "500 m grid", source: "Site frame", tag: "DERIVED" },
   ] },
-  { kind: "Science", rows: [
-    { id: "targets", name: "Ridge and hollow targets", source: "Curiosity boxwork campaign", tag: "HISTORICAL" },
+  { kind: "Science and rover context", rows: [
+    { id: "targets", name: "Curiosity workspaces", source: "PDS PLACES rover positions, by sol", tag: "HISTORICAL" },
+    { id: "traverse", name: "Curiosity traverse", source: "MSL localizations, PDS Imaging Node", tag: "HISTORICAL", manifestId: "traverse" },
   ] },
 ];
 

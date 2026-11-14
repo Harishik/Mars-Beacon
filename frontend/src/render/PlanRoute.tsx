@@ -28,7 +28,7 @@ export function PlanRoute({ bundle }: { bundle: SiteBundle }) {
       {plan.order.map((id, i) => {
         const t = targets.find((x) => x.id === id);
         if (!t) return null;
-        return <group key={id} position={toScene(bundle, t.x, t.y)}><Label text={`${i + 1}  ${t.name}`} color="#f3efe6" y={22} /></group>;
+        return <group key={id} position={toScene(bundle, t.x, t.y)}><Label text={`${i + 1}`} color="#f3efe6" y={22} /></group>;
       })}
     </group>
   );

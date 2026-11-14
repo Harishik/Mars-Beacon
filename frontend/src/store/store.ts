@@ -4,7 +4,7 @@ import type { Plan } from "../engine/planner";
 import { setVertExag } from "../render/Terrain";
 
 export type View = "console" | "tablet" | "hud" | "linked";
-export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens";
+export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse";
 
 export interface Crew { label: string; loadKg: number; fMob: number; o2BudgetG: number; o2SpentG: number }
 
@@ -65,7 +65,7 @@ export const useStore = create<State>((set) => ({
   bundle: null,
   loadError: null,
   view: "console",
-  layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true },
+  layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true, traverse: true },
   provenance: null,
   lmstHours: 9.0,
   lsDeg: 150,

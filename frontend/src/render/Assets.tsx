@@ -110,6 +110,7 @@ export function Astronaut({ position, color, phase = 0, layer = 0 }: { position:
 
 export function TargetPins({ bundle }: { bundle: SiteBundle }) {
   const show = useStore((s) => s.layers.targets);
+  const inPlan = useStore((s) => new Set((s.plans.find((p) => p.id === s.activePlan) ?? s.plans[0])?.order ?? []));
   if (!show) return null;
   return (
     <>
@@ -126,7 +127,7 @@ export function TargetPins({ bundle }: { bundle: SiteBundle }) {
               <octahedronGeometry args={[2.6]} />
               <meshBasicMaterial color={col} />
             </mesh>
-            <Label text={t.name} color={col} y={36} />
+            {!inPlan.has(t.id) && <Label text={t.name} color={col} y={36} />}
           </group>
         );
       })}

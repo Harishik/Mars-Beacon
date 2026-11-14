@@ -13,6 +13,7 @@ import { Surroundings } from "./Surroundings";
 import { RouteHome } from "./RouteHome";
 import { PlanRoute } from "./PlanRoute";
 import { LinkedViews } from "./LinkedViews";
+import { CuriosityTraverse } from "./Traverse";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
 type Mode = "hero" | View;
@@ -57,6 +58,13 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
   const livePos = useStore((s) => s.crewPos);
   const goal = m.targets.find((t) => t.type === "ridge") ?? m.targets[0];
   const goalP = useMemo(() => toScene(bundle, goal.x, goal.y), [bundle, goal.x, goal.y]);
+  // Frame the working area: habitat and stops.
+  const focus = useMemo(() => {
+    const pts = [hab, ...m.targets];
+    const fx = pts.reduce((a, p) => a + p.x, 0) / pts.length, fy = pts.reduce((a, p) => a + p.y, 0) / pts.length;
+    const span = Math.max(300, ...pts.map((p) => Math.hypot(p.x - fx, p.y - fy)));
+    return { p: toScene(bundle, fx, fy), span };
+  }, [bundle, hab, m.targets]);
 
   useEffect(() => {
     const c = controls.current;
@@ -80,8 +88,9 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       c?.target.set(habP.x + 350, habP.y - 40, habP.z - 250);
       cam.fov = 38;
     } else {
-      cam.position.set(habP.x - 700, habP.y + 900, habP.z + 1300);
-      c?.target.set(habP.x + 250, habP.y - 60, habP.z - 200);
+      const d = focus.span * 2.4;
+      cam.position.set(focus.p.x - d * 0.35, focus.p.y + d * 0.75, focus.p.z + d * 0.9);
+      c?.target.set(focus.p.x, focus.p.y, focus.p.z);
       cam.fov = 45;
     }
     cam.layers.enable(1); // layer 1: selection markers, hidden from the visor camera
@@ -89,7 +98,7 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
     cam.near = mode === "hud" ? 0.1 : 1;
     cam.updateProjectionMatrix();
     c?.update();
-  }, [mode, camera, habP, goalP, bundle, hab.x, hab.y, mode === "hud" ? livePos : null]);
+  }, [mode, camera, habP, goalP, focus, bundle, hab.x, hab.y, mode === "hud" ? livePos : null]);
 
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
@@ -158,6 +167,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
       {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
       {mode !== "hero" && <PlanRoute bundle={bundle} />}
+      {mode !== "hero" && <CuriosityTraverse bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
       {mode === "linked" && <LinkedViews bundle={bundle} />}
       <FirstFrame />
