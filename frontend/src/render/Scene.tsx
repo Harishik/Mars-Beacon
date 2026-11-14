@@ -46,8 +46,8 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
     const c = controls.current;
     const cam = camera as THREE.PerspectiveCamera;
     if (mode === "tablet") {
-      cam.position.set(habP.x + 250, 3800, habP.z + 250.01);
-      c?.target.set(habP.x + 250, 0, habP.z + 250);
+      cam.position.set(0, 4300, 0.01);
+      c?.target.set(0, 0, 0);
       cam.fov = 40;
     } else if (mode === "hud") {
       const dir = goalP.clone().sub(habP).setY(0).normalize();
