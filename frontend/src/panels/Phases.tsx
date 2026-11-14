@@ -8,6 +8,7 @@ import { directIrradiance, tauAtElevation, evaDoseMsv, RAD_GY_PER_DAY, RAD_QUALI
 import { overlayValues, currentThermalTable } from "../engine/overlays";
 import { flatCurve, STEPS_PER_SOL } from "../engine/thermal";
 import { Tag } from "./Tag";
+import { RoverViews } from "./RoverViews";
 import type { Plan } from "../engine/planner";
 
 export const PHASES: { id: Phase; label: string; hint: string }[] = [
@@ -164,3 +165,24 @@ export function CueCard() {
 }
 
 export function planSummary(plan: Plan | undefined) { return plan ? `${plan.order.length} stops, ${hm(plan.totalS)}` : ""; }
+
+/** Execute: the next stop, when the crew gets there, and what it will look like. */
+export function ExecuteNext() {
+  const s = useStore();
+  const plan = activePlanOf(s);
+  const b = s.bundle;
+  if (!plan || !b) return null;
+  const next = plan.events.find((e) => e.kind === "arrive" && e.t > s.playheadS);
+  const tgt = next ? b.manifest.targets.find((t) => t.id === next.stop) : null;
+  const idx = next ? plan.order.indexOf(next.stop) + 1 : 0;
+  return (
+    <section className="pane exec-next" aria-label="Next stop">
+      <header className="db-head">
+        <h2>{tgt ? `Next: stop ${idx}` : "Walk home"}</h2>
+        <span>{tgt ? `${tgt.name}, in ${Math.max(0, Math.round((next!.t - s.playheadS) / 60))} min` : `Airlock in ${Math.max(0, Math.round((plan.totalS - s.playheadS) / 60))} min`}</span>
+        <button className="btn btn-quiet" onClick={() => s.set({ playing: !s.playing })}>{s.playing ? "Pause" : "Resume"}</button>
+      </header>
+      {tgt && <RoverViews stopId={tgt.id} compact />}
+    </section>
+  );
+}

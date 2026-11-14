@@ -1,0 +1,258 @@
+{
+ "note": "Curiosity Navcam frames at each stop; M1 classes are DERIVED (big rock = possible rock).",
+ "model": "m1_terrain_cal_fp16.onnx",
+ "images": [
+  {
+   "stop": "altadena",
+   "imageid": "NLB_802307575EDR_F1161944NCAM00264M",
+   "sol": 4560,
+   "lmst": "Sol-04560M13:27:58.648",
+   "azimuth": 19.3,
+   "elevation": -24.1,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_802307575EDR_F1161944NCAM00264M.jpg",
+   "m1": "rover/NLB_802307575EDR_F1161944NCAM00264M_m1.png",
+   "classFractions": {
+    "soil": 0.173,
+    "bedrock": 0.819,
+    "sand": 0.0,
+    "big_rock": 0.007
+   },
+   "meanEntropy": 0.284,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04560/opgs/edr/ncam/NLB_802307575EDR_F1161944NCAM00264M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "altadena",
+   "imageid": "NLB_802307607EDR_F1161944NCAM00264M",
+   "sol": 4560,
+   "lmst": "Sol-04560M13:28:28.975",
+   "azimuth": 50.7,
+   "elevation": -25.3,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_802307607EDR_F1161944NCAM00264M.jpg",
+   "m1": "rover/NLB_802307607EDR_F1161944NCAM00264M_m1.png",
+   "classFractions": {
+    "soil": 0.028,
+    "bedrock": 0.967,
+    "sand": 0.001,
+    "big_rock": 0.004
+   },
+   "meanEntropy": 0.208,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04560/opgs/edr/ncam/NLB_802307607EDR_F1161944NCAM00264M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "altadena",
+   "imageid": "NLB_802307631EDR_F1161944NCAM00264M",
+   "sol": 4560,
+   "lmst": "Sol-04560M13:28:53.272",
+   "azimuth": 82.4,
+   "elevation": -24.3,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_802307631EDR_F1161944NCAM00264M.jpg",
+   "m1": "rover/NLB_802307631EDR_F1161944NCAM00264M_m1.png",
+   "classFractions": {
+    "soil": 0.062,
+    "bedrock": 0.928,
+    "sand": 0.005,
+    "big_rock": 0.005
+   },
+   "meanEntropy": 0.188,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04560/opgs/edr/ncam/NLB_802307631EDR_F1161944NCAM00264M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "altadena",
+   "imageid": "NLB_802308417EDR_F1161944NCAM00265M",
+   "sol": 4560,
+   "lmst": "Sol-04560M13:41:37.640",
+   "azimuth": 113.2,
+   "elevation": -21.3,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_802308417EDR_F1161944NCAM00265M.jpg",
+   "m1": "rover/NLB_802308417EDR_F1161944NCAM00265M_m1.png",
+   "classFractions": {
+    "soil": 0.0,
+    "bedrock": 0.996,
+    "sand": 0.0,
+    "big_rock": 0.004
+   },
+   "meanEntropy": 0.087,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04560/opgs/edr/ncam/NLB_802308417EDR_F1161944NCAM00265M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "valle_de_la_luna",
+   "imageid": "NLB_815536995EDR_F1200000NCAM00261M",
+   "sol": 4709,
+   "lmst": "Sol-04709M14:00:58.561",
+   "azimuth": 12.1,
+   "elevation": -23.8,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815536995EDR_F1200000NCAM00261M.jpg",
+   "m1": "rover/NLB_815536995EDR_F1200000NCAM00261M_m1.png",
+   "classFractions": {
+    "soil": 0.081,
+    "bedrock": 0.919,
+    "sand": 0.0,
+    "big_rock": 0.0
+   },
+   "meanEntropy": 0.362,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04709/opgs/edr/ncam/NLB_815536995EDR_F1200000NCAM00261M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "valle_de_la_luna",
+   "imageid": "NLB_815537027EDR_F1200000NCAM00261M",
+   "sol": 4709,
+   "lmst": "Sol-04709M14:01:29.611",
+   "azimuth": 42.7,
+   "elevation": -19.4,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815537027EDR_F1200000NCAM00261M.jpg",
+   "m1": "rover/NLB_815537027EDR_F1200000NCAM00261M_m1.png",
+   "classFractions": {
+    "soil": 0.099,
+    "bedrock": 0.879,
+    "sand": 0.021,
+    "big_rock": 0.0
+   },
+   "meanEntropy": 0.297,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04709/opgs/edr/ncam/NLB_815537027EDR_F1200000NCAM00261M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "valle_de_la_luna",
+   "imageid": "NLB_815537059EDR_F1200000NCAM00261M",
+   "sol": 4709,
+   "lmst": "Sol-04709M14:02:00.650",
+   "azimuth": 72.1,
+   "elevation": -14.5,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815537059EDR_F1200000NCAM00261M.jpg",
+   "m1": "rover/NLB_815537059EDR_F1200000NCAM00261M_m1.png",
+   "classFractions": {
+    "soil": 0.0,
+    "bedrock": 0.988,
+    "sand": 0.012,
+    "big_rock": 0.0
+   },
+   "meanEntropy": 0.111,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04709/opgs/edr/ncam/NLB_815537059EDR_F1200000NCAM00261M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "valle_de_la_luna",
+   "imageid": "NLB_815536970EDR_F1200000NCAM00261M",
+   "sol": 4709,
+   "lmst": "Sol-04709M14:00:34.306",
+   "azimuth": 340.5,
+   "elevation": -26.4,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815536970EDR_F1200000NCAM00261M.jpg",
+   "m1": "rover/NLB_815536970EDR_F1200000NCAM00261M_m1.png",
+   "classFractions": {
+    "soil": 0.241,
+    "bedrock": 0.759,
+    "sand": 0.0,
+    "big_rock": 0.0
+   },
+   "meanEntropy": 0.373,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04709/opgs/edr/ncam/NLB_815536970EDR_F1200000NCAM00261M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "nevado_sajama",
+   "imageid": "NLB_815715484EDR_F1200082NCAM00265M",
+   "sol": 4711,
+   "lmst": "Sol-04711M14:16:13.453",
+   "azimuth": 9.7,
+   "elevation": -28.0,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815715484EDR_F1200082NCAM00265M.jpg",
+   "m1": "rover/NLB_815715484EDR_F1200082NCAM00265M_m1.png",
+   "classFractions": {
+    "soil": 0.327,
+    "bedrock": 0.653,
+    "sand": 0.02,
+    "big_rock": 0.0
+   },
+   "meanEntropy": 0.366,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04711/opgs/edr/ncam/NLB_815715484EDR_F1200082NCAM00265M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "nevado_sajama",
+   "imageid": "NLB_815715516EDR_F1200082NCAM00265M",
+   "sol": 4711,
+   "lmst": "Sol-04711M14:16:44.500",
+   "azimuth": 42.1,
+   "elevation": -25.6,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815715516EDR_F1200082NCAM00265M.jpg",
+   "m1": "rover/NLB_815715516EDR_F1200082NCAM00265M_m1.png",
+   "classFractions": {
+    "soil": 0.167,
+    "bedrock": 0.819,
+    "sand": 0.0,
+    "big_rock": 0.014
+   },
+   "meanEntropy": 0.24,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04711/opgs/edr/ncam/NLB_815715516EDR_F1200082NCAM00265M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "nevado_sajama",
+   "imageid": "NLB_815715547EDR_F1200082NCAM00265M",
+   "sol": 4711,
+   "lmst": "Sol-04711M14:17:15.343",
+   "azimuth": 72.6,
+   "elevation": -20.8,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815715547EDR_F1200082NCAM00265M.jpg",
+   "m1": "rover/NLB_815715547EDR_F1200082NCAM00265M_m1.png",
+   "classFractions": {
+    "soil": 0.252,
+    "bedrock": 0.711,
+    "sand": 0.004,
+    "big_rock": 0.032
+   },
+   "meanEntropy": 0.344,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04711/opgs/edr/ncam/NLB_815715547EDR_F1200082NCAM00265M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  },
+  {
+   "stop": "nevado_sajama",
+   "imageid": "NLB_815715579EDR_F1200082NCAM00265M",
+   "sol": 4711,
+   "lmst": "Sol-04711M14:17:46.310",
+   "azimuth": 102.2,
+   "elevation": -15.1,
+   "camera": "Navcam left (B side)",
+   "image": "rover/NLB_815715579EDR_F1200082NCAM00265M.jpg",
+   "m1": "rover/NLB_815715579EDR_F1200082NCAM00265M_m1.png",
+   "classFractions": {
+    "soil": 0.013,
+    "bedrock": 0.902,
+    "sand": 0.026,
+    "big_rock": 0.06
+   },
+   "meanEntropy": 0.279,
+   "source": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04711/opgs/edr/ncam/NLB_815715579EDR_F1200082NCAM00265M_.JPG",
+   "credit": "NASA/JPL-Caltech",
+   "tag": "HISTORICAL"
+  }
+ ]
+}

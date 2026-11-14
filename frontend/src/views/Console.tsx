@@ -7,7 +7,7 @@ import { MissionTimeline, PlanCharts } from "../panels/Plan";
 import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
 import { MapLayers } from "../panels/MapLayers";
-import { PhaseBar, ExploreBrief, DebriefPanel, CueCard } from "../panels/Phases";
+import { PhaseBar, ExploreBrief, DebriefPanel, CueCard, ExecuteNext } from "../panels/Phases";
 import { VERT_EXAG } from "../render/Terrain";
 
 export function Console() {
@@ -38,6 +38,7 @@ export function Console() {
       {view === "console" && (phase === "plan" || phase === "rehearse") && <PlanCharts />}
       {view === "console" && phase === "debrief" && <DebriefPanel />}
       <CueCard />
+      {view === "tablet" && phase === "execute" && <ExecuteNext />}
       <Ledger />
       {false && (
         <div className="legend" aria-hidden>

@@ -4,6 +4,7 @@ import { useStore } from "../store/store";
 import { reportAt, type PointReport } from "../engine/query";
 import { Tag } from "./Tag";
 import { PlanCards } from "./Plan";
+import { RoverViews } from "./RoverViews";
 
 const TYPE_LABEL = { ridge: "Ridge", hollow: "Hollow", drill: "Drill site" } as const;
 const WHY = {
@@ -51,6 +52,7 @@ export function SelectedCard() {
   const sel = useStore((s) => s.selected);
   const set = useStore((s) => s.set);
   const r = useReport(sel?.x ?? 0, sel?.y ?? 0);
+  const stopId = useStore((s) => s.bundle?.manifest.targets.find((t) => sel && t.x === sel.x && t.y === sel.y)?.id);
   if (!sel) return <p className="select-hint">Click anywhere on the terrain, or a stop below, to see the route home and how long the crew can stay there.</p>;
   return (
     <section className="selected" aria-live="polite">
@@ -77,6 +79,7 @@ export function SelectedCard() {
           <p className="fine-note">Route shown on the map is the certified path: time and both suits' oxygen fit on this same path with reserve.</p>
         </>
       )}
+      {stopId && <RoverViews stopId={stopId} />}
     </section>
   );
 }
