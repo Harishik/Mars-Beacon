@@ -1,0 +1,10 @@
+#!/bin/sh
+# Strips AI-assistant attribution lines from every commit message.
+# Enable once per clone:  git config core.hooksPath .githooks
+msg="$1"
+tmp="$msg.tmp.$$"
+grep -viE '^[[:space:]]*co-authored-by:.*(claude|anthropic|copilot|chatgpt|openai|cursor)' "$msg" \
+  | grep -viE 'generated with \[?(claude|claude code)' > "$tmp"
+# drop trailing blank lines left behind
+sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$tmp" > "$msg"
+rm -f "$tmp"

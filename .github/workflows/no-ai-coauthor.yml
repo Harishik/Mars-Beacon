@@ -1,0 +1,30 @@
+name: No AI co-author trailers
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject commits that credit an AI assistant as co-author
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            range="${{ github.sha }}"
+          else
+            range="${{ github.event.before }}..${{ github.sha }}"
+          fi
+          bad=$(git log --format='%H %an <%ae>%n%B' $range \
+            | grep -iE 'co-authored-by:.*(claude|anthropic|noreply@anthropic\.com)|generated with \[?claude' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::A commit credits Claude/Anthropic. Remove the trailer (git commit --amend) and push again."
+            echo "$bad"
+            exit 1
+          fi
+          echo "No AI co-author trailers found."
