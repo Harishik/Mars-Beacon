@@ -1,181 +1,236 @@
-# Mars BEACON: How We Work Together
+# Mars BEACON v6: How It All Fits Together
 
-For Harishik, Sahej and Naomi. Read this once before writing any code. It explains how three people can build separately and still end up with one working app.
+For Harishik, Sahaj and Naomi. Companion to the v6 Team Workflow PDF. The PDF says **what** to do and **when**. This page explains **how** the pieces connect, **how** updates reach everyone, and **why** nobody has to wait for anybody.
 
-## 1. The idea in one picture
+Everything here follows the v6 plan and the repo as it is on `main`.
 
-The app is a pipeline. Data goes in on the left, the map and panels come out on the right. Each person owns some boxes. The arrows between boxes are the **contracts**.
+---
+
+## 1. The whole system on one page
+
+There are four places things live. Each one has one owner.
 
 ```
- OFFLINE (Python, run once)                 IN THE BROWSER (TypeScript)
- --------------------------                 ----------------------------------------------
-
- NASA DEM, HiRISE, CRISM,      bake         public/data/gale/              loader
- THEMIS, RAD, REMS  ---------> scripts ---> height_750.bin, slope...  ---> reads files listed
- (Sahej, Naomi)                (Sahej)      site_manifest.json  [C1]       in the manifest
-                                                                               |
-                                                                               v
-                                             Science functions  [C3]     Store (Zustand)
-                                             speed, metabolic, O2,  <--- MissionState  [C2]
-                                             Mars24 (Sahej)              (Harishik)
-                                                    |                          ^
-                                                    v                          |
-                                             Worker: reverse Dijkstra,  ---> EnvelopeResult [C2]
-                                             dual-tree (Harishik)              |
-                                                                               v
-                                             3D terrain + envelope shader, panels, tablet, HUD
-                                             (Harishik: 3D and views; Naomi: panels and layer cards)
+   GitHub repo (code only)                 Google Cloud Storage bucket (big data)
+   +------------------------+              +------------------------------------+
+   | frontend/   Harishik   |              | gale-boxwork/v0.1.0/               |
+   | backend/    Naomi      |              |   manifest.json                    |
+   | pipeline/   Sahaj      |  Sahaj and   |   height_4m.f32, slope_4m.u8, ...  |
+   |   reconstruction/      |  Harishik    |   ortho tiles, ML layers (Sahaj)   |
+   |              Harishik  |  upload ---> |   glb patches, .spz splats         |
+   | contracts/  all three  |              |   (Harishik)                       |
+   | fixtures/   all three  |              +------------------------------------+
+   +------------------------+                         |
+        |            |                                | app downloads the bundle
+        | merge to   | merge to                       | (VITE_BUNDLE_BASE_URL)
+        | main       | main                           v
+        v            v                     +------------------------------------+
+   Static host   Cloud Run  <-- optional --| BROWSER APP (what judges open)     |
+   (GitHub or    (Naomi's     API calls    | Console, Tablet, HUD               |
+   Cloudflare    FastAPI +    (VITE_API_   | Web Worker computes every number   |
+   Pages)        PostGIS)     BASE_URL)    | (envelope, routes, sun, radiation) |
+   serves the                              +------------------------------------+
+   app files
 ```
 
-- **C1** = `site_manifest.json`: what data files exist and how to read them.
-- **C2** = `mission_state.schema.ts`: what the app's live state looks like.
-- **C3** = `oracle_test_cases.json`: what numbers the science functions must return.
+Two rules make it work:
 
-## 2. What a contract is
+1. **Every number the judges see is computed in the browser**, from the bundle files. The backend only adds live data (DONKI, Mars24 conditions, rover images), sharing and the Site Generator. If the backend is down, the app still works and panels say **CACHED**.
+2. **Code goes in Git. Data goes in the bucket.** Large files never go into Git.
 
-A contract is a short file that all three of us agree on **before** anyone writes feature code. It fixes the shape of the data that crosses from one person's work to another's. Think of it as a plug and a socket: if the plug matches the socket, it does not matter who built which side or when.
+---
 
-Because the shape is fixed, nobody has to wait for anybody:
+## 2. The three contracts: the handshakes between people
 
-- Harishik can build the 3D terrain today using a **fake** height file with the right shape. When Sahej's real Gale file lands with the same shape, it just works.
-- Naomi can build the layer panel today against a **sample** manifest. When the real manifest arrives, the panel fills itself in.
-- Sahej can write the science functions today against the **test cases**. When the worker calls them, the numbers are already proven right.
+A contract is a small file that fixes the **shape** of what one person hands to another. Once the shape is agreed, each side can build and test alone, because they both know exactly what will arrive.
 
-### C1. `site_manifest.json` (written by Sahej and Naomi, read by Harishik's loader and Naomi's panels)
+Think plug and socket. If Sahaj's plug (the bundle) has the agreed shape, Harishik's socket (the loader) accepts it, whether it is fake data at 23:00 or real Gale data at 01:00.
 
-Lists every data file for a site and every layer card. Example of one entry:
+| Contract (in `contracts/`) | Handshake between | Plain meaning |
+|---|---|---|
+| `site_manifest.example.json` | Sahaj (writes data) -> Harishik (app reads) and Naomi (serves it) | "Here is the list of data files for a site, their size, type and scale, and every layer's mission, product ID, date and tag" |
+| `api_contract.yaml` | Naomi (backend answers) -> Harishik (app asks) | "If the app calls `/spaceweather`, here is exactly what comes back" |
+| `mission_state.schema.ts` | Harishik (app state) -> Sahaj (parity tests) and Naomi (saved plans) | "This is what a mission looks like: crew, oxygen, events, plans, envelope" |
+
+### What is actually in them (real examples from the repo)
+
+A file entry in the manifest:
 
 ```json
-{ "name": "height_750.bin", "path": "data/gale/height_750.bin",
-  "dtype": "float32", "cols": 750, "rows": 750, "scale": 1, "offset": 0,
-  "sha256": "..." }
+{ "name": "height", "path": "height_4m.f32", "dtype": "float32",
+  "cols": 750, "rows": 750, "scale": 1, "offset": 0, "sha256": "TBD" }
 ```
 
-and one layer card:
+This tells Harishik's loader: download `height_4m.f32`, read it as 750 x 750 float32 numbers, multiply by `scale`, add `offset`. The loader never hard-codes a file name or size. It reads them here. That is also why Jezero works through the same code: a second manifest, nothing else.
 
-```json
-{ "id": "hirise_dem", "kind": "topographic", "mission": "MRO HiRISE",
-  "productId": "...", "resolutionM": 1, "acquired": "2024-..", "tag": "OBSERVED",
-  "attribution": "NASA/JPL/UArizona/USGS", "url": "..." }
+An endpoint in the API contract:
+
+```yaml
+/plans:
+  post: { summary: Save a plan (MissionState subset), responses: { "201": { description: "{ shareId }" } } }
 ```
 
-Rule: **the app never hard-codes a file name, a size or a product ID.** It reads them from the manifest. That is also how Jezero loads through the same code: a second manifest, nothing else.
+This tells Harishik: send a plan, get back a `shareId`. It tells Naomi: whatever is inside the server, the answer must look like this.
 
-### C2. `mission_state.schema.ts` (written by Harishik, used by everyone in the app)
-
-TypeScript types for the single shared store: crew positions, oxygen and battery spent, events, havens, the current envelope, which layers are on. Every screen (Console, Tablet, HUD, panels) **reads** from this store. Nothing talks to anything else directly.
-
-Rule: if you need a new piece of state, you add a field here first (see section 6), then use it.
-
-### C3. `oracle_test_cases.json` (written by Sahej, checked by tests)
-
-25 cases. Each one is an input and the exact expected output, for example:
-
-```json
-{ "id": "o2_conversion_696W", "fn": "o2RateGph", "input": { "M": 696 },
-  "expected": 178.0, "tol": 1e-5, "tag": "DERIVED" }
-```
-
-The same file is run by Vitest (TypeScript) and Pytest (Python). If both pass, the browser and the offline reference agree. This is Gate G04 and our main proof of validity for judges.
-
-The science functions have **fixed names and inputs** so Harishik's worker can call them before they are finished:
+A type in the mission state schema:
 
 ```ts
-speed(grade: number, fMob: number): number                 // m/s
-metabolicPower(grade, eta, massKg, loadKg, v, kG, mBase): number   // W
-o2RateGph(watts: number): number                           // g/h
-co2RateGph(o2Gph: number): number                          // g/h
-mars24(utcMs: number, lonDeg: number, latDeg: number): { msd, lmst, sunElevDeg, sunAzDeg }
+export interface Haven { id: string; type: "habitat" | "rover" | "shelter"; x: number; y: number; active: boolean; }
 ```
 
-Until Sahej's versions land, these exist as **stubs** that return plausible fixed numbers, so nothing upstream is blocked.
+Naomi stores plans in this shape. Sahaj's Python parity tests read and write this shape. Harishik's store uses it everywhere.
 
-## 3. Who owns which folders
+---
 
-Each person works in their own folders. Two people editing the same file is what causes broken merges, so we avoid it.
+## 3. Fixtures: how you work before the others are done
 
-| Folder | Owner | What lives there |
+`fixtures/` holds **fake data in the real format**. It is the reason nobody waits.
+
+| Who | Builds against | Swaps to the real thing when |
 |---|---|---|
-| `contracts/` | All three, frozen | The three contract files. Changes only by agreement (section 6) |
-| `app/src/render/`, `app/src/views/` | Harishik | Terrain, sky, sun, habitat, rover, astronauts, Console, Tablet, HUD, 2D fallback |
-| `app/src/worker/`, `app/src/store/` | Harishik | Reverse Dijkstra, dual-tree, Zustand store |
-| `app/src/science/`, `science_py/` | Sahej | Speed, metabolic, O2, CO2, Mars24 in TS and Python |
-| `bake/` | Sahej | Python scripts that turn NASA products into `public/data/<site>/` files |
-| `app/src/panels/` | Naomi | Layer drawer, layer cards, RAD/REMS/DONKI cards, assumptions, lineage, guided tour |
-| `data/sources_registry.json` | Naomi | Every source, product ID, credit and verified sol |
-| `tests/` | Sahej (oracle), Naomi (QA checks) | Vitest and Pytest |
+| Harishik (app) | `fixtures/` fake 750 x 750 bundle and fake API responses | Sahaj uploads a real bundle; Naomi posts the Cloud Run URL |
+| Naomi (backend) | `fixtures/` manifest and plan examples | Sahaj's real manifest lands in the bucket |
+| Sahaj (pipeline) | `contracts/site_manifest.example.json` as the output target | Nothing to swap: his output **is** the real thing |
 
-`app/src/App.tsx` (the file that puts the pieces on screen) is Harishik's. Naomi and Sahej export a component or a function; Harishik wires it in, or asks one of them to add one import line.
+### The two switches
 
-## 4. Daily Git routine (simple version)
+The app has two settings. Changing them is the **only** step needed to move from fake to real. No code changes.
 
-Everyone works on their own branch and merges into `main` **often**: every 1 to 2 hours, not once at the end. Small merges are easy; one giant merge at 03:00 is how teams lose the night.
+| Setting | Development value | Real value |
+|---|---|---|
+| `VITE_BUNDLE_BASE_URL` | `/fixtures` | The bucket URL, e.g. `https://storage.googleapis.com/<bucket>/gale-boxwork/` |
+| `VITE_API_BASE_URL` | Fixture mode, or Naomi's laptop | The Cloud Run URL Naomi posts in chat once |
+
+---
+
+## 4. How updates reach everyone (four real stories)
+
+### Story A: Sahaj makes better terrain
+
+1. Sahaj runs `pipeline/build_site.py`. It writes the rasters and a `manifest.json` in the agreed format.
+2. He uploads them to a **new versioned folder** in the bucket, e.g. `gale-boxwork/v0.2.0/`.
+3. He points the site's manifest at the new version.
+4. Harishik (and the judges) reload the app. The new terrain appears. **Nobody changed any code.**
+
+If something is wrong with v0.2.0, point the manifest back to v0.1.0. Old versions are never overwritten.
+
+### Story B: Naomi adds the space weather endpoint
+
+1. Naomi writes `/spaceweather` in `backend/`, matching what `api_contract.yaml` already says.
+2. She merges to `main`. GitHub Actions builds the container and redeploys Cloud Run **at the same URL**.
+3. Harishik's space weather panel, already coded against the contract and tested on fixtures, now shows **LIVE** data. **Harishik does nothing.**
+4. If Cloud Run is asleep or down, the panel shows **CACHED** from the bundle copy.
+
+### Story C: Harishik needs a field that is not in a contract
+
+Example: the HUD needs `sunAzDeg` from `/conditions` and it is not there.
+
+1. Harishik posts in the **"contracts"** chat thread: what field, why.
+2. Naomi says OK (or suggests a better shape).
+3. Naomi updates `api_contract.yaml` **and** the matching fixture in one small PR, then the real endpoint.
+4. Harishik uses the field. Fixtures already have it, so he is not blocked while Naomi codes.
+
+Adding a field is cheap. Renaming or removing one breaks someone: avoid it after Gate 1.
+
+### Story D: Harishik's reconstruction outputs
+
+1. Harishik's scripts in `pipeline/reconstruction/` produce a fused `.glb` patch at waypoint 1 and an `.spz` splat at the destination.
+2. He uploads them into the **same** versioned bundle folder.
+3. He adds entries to the manifest's `patches` and `splats` lists (they already exist, empty).
+4. The app sees new entries and loads them. Same mechanism as Story A.
+
+---
+
+## 5. Your lane: what you touch and what you never touch
+
+| | You own and edit freely | You read but never edit | You change only through the "contracts" thread |
+|---|---|---|---|
+| **Harishik** | `frontend/`, `pipeline/reconstruction/` | `backend/`, `pipeline/` (except reconstruction) | `contracts/` |
+| **Sahaj** | `pipeline/` (except reconstruction) | `frontend/`, `backend/` | `contracts/` |
+| **Naomi** | `backend/`, CI/CD workflows, hosting config | `frontend/`, `pipeline/` | `contracts/` |
+
+Suggested (agree at the contract call): each person owns their own `fixtures/` subfolder (`fixtures/bundle/` Sahaj, `fixtures/api/` Naomi, `fixtures/state/` Harishik).
+
+Two people never edit the same file at the same time. That is what keeps merges painless.
+
+---
+
+## 6. How you know your part fits before you merge
+
+You do not need the others' code running to check that you are compatible. Check yourself against the contract:
+
+| Who | Self-check before merging |
+|---|---|
+| Sahaj | The manifest you wrote validates against `site_manifest.example.json`'s fields; every file listed exists, sizes match `cols x rows`, sha256 filled in. Python parity tests read a `MissionState` in the schema's shape |
+| Naomi | Every endpoint's response matches `api_contract.yaml` (backend tests compare real responses to the contract) |
+| Harishik | The app runs on fixtures with no console errors; the loader rejects a manifest with a wrong size instead of drawing garbage |
+
+Then the real joining happens at the checkpoints (section 8), where you check it together.
+
+---
+
+## 7. Git in six commands
 
 ```bash
-# start of each work block
-git checkout main
-git pull
-git checkout -b sahej/metabolic      # name/what-you-are-doing
-
-# ...work, then save
-git add app/src/science science_py
-git commit -m "Metabolic power in TS and Python, 8 oracle cases pass"
-git push -u origin sahej/metabolic
-# open a pull request into main on GitHub; tests run automatically
+git checkout main && git pull --rebase origin main     # start of every work block
+git checkout -b sahaj/l0-terrain                        # yourname/what-you-are-doing
+# ...work...
+git add pipeline/                                       # only your folders
+git commit -m "Bake slope and horizon rasters for Gale box"
+git push -u origin sahaj/l0-terrain                     # then open a pull request on GitHub
 ```
 
-Merge rule: a pull request goes into `main` only if the tests pass and the app still starts (`npm run dev` shows the map, even if parts are stubs). `main` must always run. Anyone can merge their own PR once tests are green; ping the owner if you touched their folder.
+- Merge into `main` several times a day, in small pieces. Never one huge merge at 03:00.
+- `main` must always build. If CI is green and nobody is awake, merge your own small PR.
+- Conflict and unsure? Stop and ask in chat. Never force-push.
+- No AI co-author lines in commits (the hook and CI remove or reject them). No secrets in Git.
 
-If you get a conflict and are unsure, stop and ask in the team chat. Do not force-push.
+---
 
-## 5. How it comes together: the checkpoints
+## 8. Checkpoints: when the pieces are joined and checked together
 
-Integration is not a separate step at the end. It happens at three checkpoints, and `main` is always the joined-up app.
+Integration is not a step at the end. `main` **is** the integrated app at every moment, and three checkpoints confirm it.
 
-| Checkpoint | What must be true on `main` |
+| Checkpoint | All three open the app and confirm |
 |---|---|
-| **Gate A: contracts frozen** | The three contract files are in `contracts/`. A sample manifest and fake 750 x 750 files load. Science stubs exist. App starts and shows a flat test terrain |
-| **Gate 1: live envelope on real Gale** | Sahej's real Gale files and manifest replace the fake ones. Worker runs on them. Envelope draws on the terrain. At least 10 oracle cases pass |
-| **Gate 2: feature freeze (Sun 12:00)** | Every feature merged. All 25 oracle cases pass. Naomi runs G01 to G13 on desktop and phone. After this only fixes |
+| **Gate A: contracts frozen** | All three contract files agreed, `TBD` fields resolved or marked, fixtures load in the app |
+| **Gate 1 (01:00)** | Real Gale terrain in 3D, at least 4 layers, live envelope, backend answering. If the envelope is missing, everyone helps until it is there |
+| **Gate 2 (Sun 12:00): feature freeze** | Every feature merged at least at must-ship depth (plan section 7.1). After this, fixes only |
 
-At each checkpoint, all three open the latest `main` on their own machine and click through it together (10 minutes). Anything broken gets an owner right then.
+Each check takes 5 minutes: what works, what is blocked, who fixes it.
 
-## 6. Changing a contract
+---
 
-Contracts are frozen, not carved in stone. If you need a change:
+## 9. What exists right now and what is still missing
 
-1. Post in the team chat: what field, why, who is affected.
-2. The other two say OK (or suggest a better shape).
-3. The person asking makes the change in one small PR that also updates the sample files and any code that reads the field.
-4. Everyone pulls `main`.
+Checked on `main` at about 23:00 KST Saturday.
 
-Adding a new optional field is cheap. Renaming or removing a field is expensive; avoid it after Gate 1.
+| Item | Status |
+|---|---|
+| Repo layout, folder READMEs, licence, AI co-author hook and CI check | Done |
+| Starter contracts (all three) | Drafted. Still `TBD`: manifest `siteHash`, `crs.proj4`, elevation range, sha256 values, target coordinates |
+| `frontend/` app scaffold | Not yet (README only) |
+| `backend/` FastAPI scaffold, Cloud Run deploy | Not yet (README only) |
+| `fixtures/` fake bundle and fake API responses | Not yet (README only) |
+| CI that tests and **auto-deploys** on merge (plan file 23, section 3) | Not yet. Only the AI co-author check runs. Until this exists, "every merge deploys itself" is not true |
+| Bucket for bundles | Not confirmed |
 
-## 7. Your first hour, concretely
+The 21:30 to 23:00 block in the PDF assumed the scaffolds and fixtures were in. The fastest catch-up order:
 
-**Harishik**
-1. Scaffold `app/` (Vite, React, R3F, worker) and push to `main`.
-2. Write `contracts/mission_state.schema.ts`.
-3. Write a script that makes fake `height_750.bin` and a sample `site_manifest.json` so others can test.
-4. Add science stubs in `app/src/science/` with the signatures above (Sahej then replaces the insides).
-5. Time the reverse Dijkstra on the fake 750 x 750 grid and post the number.
+1. **Harishik:** frontend scaffold + fake 750 x 750 bundle in `fixtures/bundle/`, so the app renders something.
+2. **Naomi:** backend `/health` + fixture responses in `fixtures/api/`, deploy to Cloud Run, post the URL; then the deploy workflow.
+3. **Sahaj:** a 500 m real crop in the manifest format, sent to Harishik as soon as it exists; create the bucket with Naomi.
 
-**Sahej**
-1. Confirm the USGS DEM and orthophoto cover the boxwork box; choose the product.
-2. Write `contracts/oracle_test_cases.json` (start with 10 cases, reach 25 by Gate 2).
-3. Start the bake script; first output is real `height_750.bin` plus manifest file entries.
-4. Replace the science stubs with real functions, TS and Python, until the oracle passes.
+---
 
-**Naomi**
-1. Work through the verification list in the master plan (section 9) and fill `data/sources_registry.json`.
-2. Write the `layers` part of the manifest (product IDs, dates, resolution, tag, credit) with Sahej.
-3. Build the layer drawer and layer card in `app/src/panels/` against the sample manifest.
+## 10. Quick answers
 
-## 8. Rules everyone follows
+**"What if my part is not ready at a checkpoint?"** The others keep using fixtures. Say so in chat, give an honest time, keep going.
 
-- Every number on screen comes from the manifest, the store or a science function, and carries a provenance tag.
-- No file names, sizes or product IDs typed directly into UI code.
-- Raw NASA downloads never go into Git. Only baked files under `public/data/` (keep each under about 20 MB).
-- No PRC-origin models, tools, code or data. No em-dashes in docs or UI text.
-- Backend is not touched.
-- Stuck for more than 20 minutes? Say so in the team chat. Silence is the most expensive bug.
+**"What if the backend breaks during the demo?"** The app still runs on the bundle; panels say CACHED. That is by design.
+
+**"What if I break `main`?"** Revert your PR on GitHub (one button) and say so in chat. Fix on your branch.
+
+**"Who decides a contract change?"** The contract's owner, after the other two say OK in the "contracts" thread.
+
+**"Stuck for 20 minutes?"** Say it in chat. Silence is the most expensive bug.
