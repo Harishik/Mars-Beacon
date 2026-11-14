@@ -76,10 +76,10 @@ for (let r = 0; r < N; r++) {
     const scarp = Math.tanh((y - 1650 - 140 * Math.sin(x / 420)) / 22);
     z += scarp * 9;
     z -= Math.exp(-(((x - 2150 - 90 * Math.sin(y / 300)) / 60) ** 2)) * 14;
-    // Boxwork ridges: about 5 m wide, 1 to 2.5 m high, in the middle band.
+    // Boxwork ridges: about 6 to 8 m wide, 0.8 to 1.8 m high, in the middle band.
     const band = Math.exp(-(((y - 1500) / 900) ** 2));
     const e = voronoiEdge(x, y);
-    z += band * (1.0 + 1.5 * (0.5 + 0.5 * n2(x / 90, y / 90))) * Math.exp(-((e / 4.5) ** 2));
+    z += band * (0.8 + 1.0 * (0.5 + 0.5 * n2(x / 90, y / 90))) * Math.exp(-((e / 7) ** 2));
     // Small-scale roughness.
     z += fbm(x / 40, y / 40) * 0.8;
     height[r * N + c] = z;
