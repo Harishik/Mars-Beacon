@@ -1,2 +1,4 @@
 .githooks/* text eol=lf
 *.yml text eol=lf
+models/**/*.pt filter=lfs diff=lfs merge=lfs -text
+models/**/*.onnx filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,39 @@
+{
+  "data": "C:/Users/sahaj/MarsBeaconData/ai4mars",
+  "out": "C:/Users/sahaj/MarsBeaconData/runs/m1_run1",
+  "arch": "Unet",
+  "encoder": "resnet50",
+  "epochs": 15,
+  "batch": 8,
+  "lr": 0.0003,
+  "wd": 0.0001,
+  "crop": 512,
+  "workers": 6,
+  "patience": 5,
+  "limit": 0,
+  "seed": 42,
+  "resume": false,
+  "class_weights": [
+    0.6530982268923445,
+    0.4805414289104379,
+    2.1329385720175233,
+    5.0
+  ],
+  "class_freq": [
+    0.37263619602989745,
+    0.5064454889037101,
+    0.11409988177617089,
+    0.006818433290221517
+  ],
+  "classes": [
+    "soil",
+    "bedrock",
+    "sand",
+    "big_rock"
+  ],
+  "n_train": 15274,
+  "n_val": 790,
+  "torch": "2.11.0+cu128",
+  "gpu": "NVIDIA GeForce RTX 3060",
+  "dataset": "AI4Mars MSL (Swan et al. 2021), zenodo.org/records/15995036, CC-BY-4.0"
+}

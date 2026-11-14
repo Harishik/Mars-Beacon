@@ -1,0 +1,46 @@
+{
+ "assumptions": {
+  "v0": 0.7,
+  "slopeLimitDeg": 20.0,
+  "mRestW": 100.0,
+  "bodyMassKg": 80.0,
+  "loadKg": 121.0,
+  "fMob": 1.0,
+  "kG": 0.78,
+  "kGTag": "DERIVED",
+  "rer": 0.85,
+  "reserveM": 0.25,
+  "etaSubstrate": 1.2
+ },
+ "budgetTimeS": 6428.571428571429,
+ "budgetO2G": 196.17732473347547,
+ "radiusM": 2000.0,
+ "haven": {
+  "id": "hab",
+  "type": "habitat",
+  "x": -30.0,
+  "y": 422.0,
+  "note": "ASSUMPTION: flattest cell near the campaign entry point"
+ },
+ "calibration": "budgets make the flat-ground envelope equal the circle",
+ "cases": {
+  "median": {
+   "circleAreaInBoxKm2": 8.551776,
+   "envelopeAreaKm2": 2.471232,
+   "circleNotReturnableKm2": 6.080544,
+   "circleNotReturnableFrac": 0.7110270428037404,
+   "returnableOutsideCircleKm2": 0.0,
+   "blockedFracInCircle": 0.2497988721874848,
+   "maxTimeToHavenInsideS": 3080.8514030704914
+  },
+  "p90": {
+   "circleAreaInBoxKm2": 8.551776,
+   "envelopeAreaKm2": 2.28712,
+   "circleNotReturnableKm2": 6.264656,
+   "circleNotReturnableFrac": 0.7325561380466467,
+   "returnableOutsideCircleKm2": 0.0,
+   "blockedFracInCircle": 0.28377918224237864,
+   "maxTimeToHavenInsideS": 3075.449417764637
+  }
+ }
+}

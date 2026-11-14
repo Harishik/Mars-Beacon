@@ -1,0 +1,185 @@
+{
+  "method": "constant added to the big_rock logit, chosen by max mIoU on the sol-held-out validation split",
+  "grid": [
+    0.0,
+    -0.25,
+    -0.5,
+    -0.75,
+    -1.0,
+    -1.25,
+    -1.5,
+    -1.75,
+    -2.0,
+    -2.5,
+    -3.0,
+    -3.5,
+    -4.0,
+    -5.0
+  ],
+  "val_mIoU_by_bias": [
+    0.7545,
+    0.7575,
+    0.7602,
+    0.7628,
+    0.7648,
+    0.7665,
+    0.7675,
+    0.7678,
+    0.7671,
+    0.7599,
+    0.7464,
+    0.7309,
+    0.7178,
+    0.6966
+  ],
+  "big_rock_logit_bias": -1.75,
+  "val": {
+    "before": {
+      "mIoU": 0.7545,
+      "pixel_accuracy": 0.9571,
+      "IoU": {
+        "soil": 0.937,
+        "bedrock": 0.93,
+        "sand": 0.835,
+        "big_rock": 0.317
+      },
+      "recall": {
+        "soil": 0.965,
+        "bedrock": 0.957,
+        "sand": 0.936,
+        "big_rock": 0.672
+      }
+    },
+    "after": {
+      "mIoU": 0.7678,
+      "pixel_accuracy": 0.9598,
+      "IoU": {
+        "soil": 0.936,
+        "bedrock": 0.935,
+        "sand": 0.835,
+        "big_rock": 0.365
+      },
+      "recall": {
+        "soil": 0.965,
+        "bedrock": 0.964,
+        "sand": 0.938,
+        "big_rock": 0.496
+      }
+    }
+  },
+  "test": {
+    "test_min1": {
+      "before": {
+        "mIoU": 0.6633,
+        "pixel_accuracy": 0.9181,
+        "IoU": {
+          "soil": 0.906,
+          "bedrock": 0.8,
+          "sand": 0.856,
+          "big_rock": 0.09
+        },
+        "recall": {
+          "soil": 0.931,
+          "bedrock": 0.913,
+          "sand": 0.9,
+          "big_rock": 0.729
+        }
+      },
+      "after": {
+        "mIoU": 0.6737,
+        "pixel_accuracy": 0.9227,
+        "IoU": {
+          "soil": 0.906,
+          "bedrock": 0.811,
+          "sand": 0.857,
+          "big_rock": 0.12
+        },
+        "recall": {
+          "soil": 0.931,
+          "bedrock": 0.928,
+          "sand": 0.902,
+          "big_rock": 0.626
+        }
+      }
+    },
+    "test_min2": {
+      "before": {
+        "mIoU": 0.7055,
+        "pixel_accuracy": 0.9563,
+        "IoU": {
+          "soil": 0.951,
+          "bedrock": 0.879,
+          "sand": 0.924,
+          "big_rock": 0.068
+        },
+        "recall": {
+          "soil": 0.966,
+          "bedrock": 0.938,
+          "sand": 0.957,
+          "big_rock": 0.863
+        }
+      },
+      "after": {
+        "mIoU": 0.7163,
+        "pixel_accuracy": 0.9596,
+        "IoU": {
+          "soil": 0.951,
+          "bedrock": 0.889,
+          "sand": 0.924,
+          "big_rock": 0.1
+        },
+        "recall": {
+          "soil": 0.966,
+          "bedrock": 0.949,
+          "sand": 0.958,
+          "big_rock": 0.828
+        }
+      }
+    },
+    "test_min3": {
+      "before": {
+        "mIoU": 0.7711,
+        "pixel_accuracy": 0.9792,
+        "IoU": {
+          "soil": 0.974,
+          "bedrock": 0.944,
+          "sand": 0.953,
+          "big_rock": 0.214
+        },
+        "recall": {
+          "soil": 0.98,
+          "bedrock": 0.975,
+          "sand": 0.981,
+          "big_rock": 0.979
+        }
+      },
+      "after": {
+        "mIoU": 0.8057,
+        "pixel_accuracy": 0.9804,
+        "IoU": {
+          "soil": 0.974,
+          "bedrock": 0.948,
+          "sand": 0.954,
+          "big_rock": 0.347
+        },
+        "recall": {
+          "soil": 0.98,
+          "bedrock": 0.98,
+          "sand": 0.981,
+          "big_rock": 0.972
+        }
+      }
+    }
+  },
+  "logit_bias": [
+    0.0,
+    0.0,
+    0.0,
+    -1.75
+  ],
+  "onnx": {
+    "fp32": "m1_terrain_cal.onnx",
+    "fp16": "m1_terrain_cal_fp16.onnx",
+    "fp16_MB": 65.0
+  }
+}

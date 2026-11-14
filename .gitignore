@@ -28,3 +28,7 @@ data/
 frontend/node_modules/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
+
+# Trained model weights are kept, via Git LFS (see models/README.md)
+!models/**/*.pt
+!models/**/*.onnx

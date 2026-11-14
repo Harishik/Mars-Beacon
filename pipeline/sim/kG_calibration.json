@@ -1,0 +1,32 @@
+{
+ "source": "NASA/TM-2010-216138 Fig. 10, IST-1, 0.32 g fit, read by eye",
+ "gravityLevel_g": 0.32,
+ "points": [
+  {
+   "speed": 0.7,
+   "vo2_ml_min_kg": 14.0,
+   "power_W": 375.2,
+   "kG": 0.7824
+  },
+  {
+   "speed": 1.0,
+   "vo2_ml_min_kg": 18.5,
+   "power_W": 495.8,
+   "kG": 0.7877
+  },
+  {
+   "speed": 1.2,
+   "vo2_ml_min_kg": 21.0,
+   "power_W": 562.8,
+   "kG": 0.7675
+  }
+ ],
+ "kG_leastSquares": 0.777,
+ "kG_range_points": [
+  0.7675,
+  0.7877
+ ],
+ "maxRelativeFitError": 0.011,
+ "readingError": "+/- 6 percent in VO2",
+ "note": "0.32 g is the closest tested level to Mars (0.38 g); Mars cost is expected to be slightly higher. Previous ASSUMPTION default 0.6 underestimated suited walking cost by about 25 percent."
+}

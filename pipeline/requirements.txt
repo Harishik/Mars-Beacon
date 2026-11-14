@@ -1,0 +1,14 @@
+# Mars BEACON pipeline (Sahaj). Windows note: rasterio/GDAL and pyarrow DLLs are blocked by Smart App Control on
+# Sahaj's machine; build_site.py reads GeoTIFFs over HTTP with tifffile + imagecodecs instead, and polars reads parquet.
+torch==2.11.0  # install from https://download.pytorch.org/whl/cu128
+torchvision==0.26.0
+segmentation-models-pytorch==0.6.0
+numpy
+scipy
+pillow
+tifffile
+imagecodecs
+polars
+matplotlib
+onnx
+pytest
