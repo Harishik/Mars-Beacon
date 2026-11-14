@@ -1,0 +1,124 @@
+// Instrument strip, time bar, view switch, HUD overlay and tablet cards.
+import { useMemo } from "react";
+import { useStore, type View } from "../store/store";
+import { sampleHeight, toCell } from "../data/bundle";
+import { formatLmst, sunAt } from "../engine/sun";
+import { Tag } from "./Tag";
+
+export function InstrumentStrip() {
+  const cursor = useStore((s) => s.cursor);
+  const bundle = useStore((s) => s.bundle);
+  const envVersion = useStore((s) => s.envelope.version);
+  const info = useMemo(() => {
+    if (!cursor || !bundle) return null;
+    const m = bundle.manifest;
+    const [c, r] = toCell(m, cursor.x, cursor.y);
+    const i = r * m.grid.cols + c;
+    const t = useStore.getState().envelope.timeToHaven?.[i];
+    const mg = useStore.getState().envelope.margin?.[i];
+    return {
+      e: sampleHeight(bundle, cursor.x, cursor.y), slope: bundle.slopeDeg[i],
+      t: t !== undefined && Number.isFinite(t) ? t : null, margin: mg ?? null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor, bundle, envVersion]);
+  const lim = useStore((s) => s.slopeLimitDeg);
+  const o = bundle?.manifest.crs.origin;
+
+  return (
+    <div className="strip" aria-live="off">
+      <span><i>Site</i> {bundle?.manifest.siteId ?? "loading"}</span>
+      <span><i>Origin</i> {o ? `${Math.abs(o.lat).toFixed(2)}° S, ${o.lon.toFixed(2)}° E` : ""}</span>
+      {info && cursor ? (
+        <>
+          <span><i>E</i> {cursor.x.toFixed(0)} m</span>
+          <span><i>N</i> {cursor.y.toFixed(0)} m</span>
+          <span><i>Elev</i> {info.e.toFixed(1)} m</span>
+          <span className={info.slope > lim ? "warn" : ""}><i>Slope</i> {info.slope.toFixed(1)}°</span>
+          <span className={info.margin !== null && info.margin < 0 ? "warn" : "home"}>
+            <i>Walk home</i> {info.t !== null ? `${Math.round(info.t / 60)} min` : "no path in budget"}
+          </span>
+        </>
+      ) : (
+        <span className="hint">Point at the terrain to read elevation, slope and walk-home time</span>
+      )}
+      <span className="strip-right"><i>Frame</i> local ENU, 4 m grid</span>
+    </div>
+  );
+}
+
+export function TimeBar() {
+  const lmst = useStore((s) => s.lmstHours);
+  const set = useStore((s) => s.set);
+  const lat = useStore((s) => s.bundle?.manifest.crs.origin.lat ?? -4.86);
+  const sun = sunAt(lmst, lat);
+  const pct = ((lmst - 5) / 14) * 100;
+  return (
+    <div className="pane timebar">
+      <div className="time-readout">
+        <span className="time-big">{formatLmst(lmst)}</span>
+        <span className="time-unit">LMST</span>
+        <Tag t="PREDICTED" />
+      </div>
+      <div className="time-track">
+        <input aria-label="Local mean solar time" type="range" min={5} max={19} step={1 / 12} value={lmst}
+          onChange={(e) => set({ lmstHours: Number(e.target.value) })} style={{ ["--p" as string]: `${pct}%` }} />
+        <div className="time-ticks" aria-hidden>
+          {[6, 8, 10, 12, 14, 16, 18].map((h) => <span key={h} style={{ left: `${((h - 5) / 14) * 100}%` }}>{String(h).padStart(2, "0")}</span>)}
+        </div>
+      </div>
+      <div className="sun-readout">
+        <span><b>{sun.elevationDeg.toFixed(0)}°</b> sun elevation</span>
+        <span><b>{sun.azimuthDeg.toFixed(0)}°</b> azimuth</span>
+        <Tag t="ASSUMPTION" />
+      </div>
+    </div>
+  );
+}
+
+const VIEWS: { id: View; label: string; hint: string }[] = [
+  { id: "console", label: "Habitat console", hint: "Full 3D map and analysis" },
+  { id: "tablet", label: "Field tablet", hint: "Top-down map for walking crew" },
+  { id: "hud", label: "Helmet display", hint: "First-person view at eye height" },
+];
+
+export function ViewSwitch() {
+  const view = useStore((s) => s.view);
+  const set = useStore((s) => s.set);
+  return (
+    <div className="viewswitch" role="tablist" aria-label="Display">
+      {VIEWS.map((v) => (
+        <button key={v.id} role="tab" aria-selected={view === v.id} title={v.hint} onClick={() => set({ view: v.id })}>{v.label}</button>
+      ))}
+    </div>
+  );
+}
+
+export function HudOverlay() {
+  const crew = useStore((s) => s.crew);
+  const tLeft = useStore((s) => s.timeBudgetS - s.timeSpentS);
+  const tBudget = useStore((s) => s.timeBudgetS);
+  const arc = (frac: number, r: number) => {
+    const a = Math.max(0, Math.min(1, frac)) * Math.PI * 0.9;
+    const x = 100 - r * Math.cos(a + Math.PI * 0.05), y = 100 - r * Math.sin(a + Math.PI * 0.05);
+    return `M ${100 - r * Math.cos(Math.PI * 0.05)} ${100 - r * Math.sin(Math.PI * 0.05)} A ${r} ${r} 0 0 1 ${x} ${y}`;
+  };
+  const o2 = (crew[0].o2BudgetG - crew[0].o2SpentG) / crew[0].o2BudgetG;
+  return (
+    <div className="hud" aria-label="Helmet display overlay">
+      <div className="hud-horizon" />
+      <div className="hud-heading" aria-hidden>
+        {["W", "NW", "N", "NE", "E"].map((d) => <span key={d}>{d}</span>)}
+      </div>
+      <svg className="hud-arcs hud-left" viewBox="0 0 200 110" aria-hidden>
+        <path d={arc(1, 80)} className="track" /><path d={arc(o2, 80)} className="o2" />
+      </svg>
+      <svg className="hud-arcs hud-right" viewBox="0 0 200 110" aria-hidden>
+        <path d={arc(1, 80)} className="track" /><path d={arc(tLeft / tBudget, 80)} className="time" />
+      </svg>
+      <div className="hud-read hud-read-left"><b>{Math.round(crew[0].o2BudgetG - crew[0].o2SpentG)}</b> g O₂</div>
+      <div className="hud-read hud-read-right"><b>{Math.round(tLeft / 60)}</b> min left</div>
+      <div className="hud-next">Next stop: Ridge A. The blue line on the ground is the edge of safe return.</div>
+    </div>
+  );
+}
