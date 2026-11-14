@@ -34,6 +34,17 @@ function Lights({ lat }: { lat: number }) {
   );
 }
 
+/** Flags the first rendered frame so the UI can lift its loading veil. */
+function FirstFrame() {
+  const done = useRef(false);
+  useFrame(() => {
+    if (done.current) return;
+    done.current = true;
+    requestAnimationFrame(() => useStore.getState().set({ sceneReady: true }));
+  });
+  return null;
+}
+
 function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
   const { camera } = useThree();
   const controls = useRef<OrbitControlsImpl>(null);
@@ -130,12 +141,17 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
       {mode !== "hero" && <RouteHome bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
+      <FirstFrame />
     </>
   );
 }
 
 export function Scene({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
+  const ready = useStore((s) => s.sceneReady);
+  useEffect(() => () => useStore.getState().set({ sceneReady: false }), []);
   return (
+    <>
+    {!ready && <div className="scene-veil" role="status"><span className="loading-ring" aria-hidden />Preparing Gale terrain</div>}
     <Canvas
       className="scene"
       dpr={[1, 2]}
@@ -147,5 +163,6 @@ export function Scene({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
         <World bundle={bundle} mode={mode} />
       </Suspense>
     </Canvas>
+    </>
   );
 }

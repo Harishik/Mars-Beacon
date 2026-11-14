@@ -5,7 +5,9 @@ import { useStore } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
 import { sunAt } from "../engine/sun";
 
-export const VERT_EXAG = 1.6; // vertical exaggeration, labelled in the legend
+/** Vertical exaggeration. Set from the manifest (display.verticalExaggeration); 1.0 for real terrain. */
+export let VERT_EXAG = 1.6;
+export function setVertExag(v: number) { VERT_EXAG = v; }
 
 /** Envelope draw-in progress (0..1). Kept outside the store so it does not re-render React. */
 export const anim = { reveal: 0 };
@@ -55,6 +57,14 @@ const frag = /* glsl */ `
   uniform vec3 uFogColor;
   uniform float uFogNear;
   uniform float uFogFar;
+  uniform sampler2D uOrtho;    // HiRISE greyscale, observed
+  uniform float uHasOrtho;
+  uniform sampler2D uNormalMap; // 1 m DEM normals, tangent space x east, y north, z up
+  uniform float uHasNormal;
+  uniform sampler2D uHeight;   // scene-unit heights for cast shadows
+  uniform float uHasHeight;
+  uniform float uExtent;
+  uniform float uShadows;
 
   vec3 marsRamp(float t) {
     vec3 a = vec3(0.13, 0.065, 0.04);
@@ -68,23 +78,79 @@ const frag = /* glsl */ `
 
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
+  // HiRISE is greyscale. This grade maps its brightness onto Mars surface colours
+  // (dark basaltic sand to bright dust). Visualisation, not measured colour.
+  vec3 marsGrade(float g) {
+    vec3 dark = vec3(0.075, 0.040, 0.024);
+    vec3 mid = vec3(0.30, 0.15, 0.075);
+    vec3 dust = vec3(0.62, 0.40, 0.24);
+    return g < 0.5 ? mix(dark, mid, g * 2.0) : mix(mid, dust, (g - 0.5) * 2.0);
+  }
+
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+  }
+
+  // Cast shadow by marching toward the sun through the height field. Soft penumbra.
+  float castShadow(vec3 p, vec3 L) {
+    if (uHasHeight < 0.5 || uShadows < 0.5 || L.y <= 0.0) return L.y <= 0.0 ? 0.0 : 1.0;
+    vec2 dir = normalize(L.xz);
+    float tanEl = L.y / max(length(L.xz), 1e-4);
+    float lit = 1.0;
+    float t = 6.0;
+    for (int i = 0; i < 48; i++) {
+      vec2 q = p.xz + dir * t;
+      vec2 uv = vec2(q.x / uExtent + 0.5, q.y / uExtent + 0.5);
+      if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) break;
+      float hTerrain = texture2D(uHeight, uv).r;
+      float hRay = p.y + t * tanEl;
+      lit = min(lit, clamp(1.0 + (hRay - hTerrain) / (0.02 * t + 1.5), 0.0, 1.0));
+      if (lit <= 0.0) break;
+      t *= 1.11;
+    }
+    return lit;
+  }
+
   void main() {
     vec3 n = normalize(vNormal);
+    if (uHasNormal > 0.5) {
+      vec3 tn = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
+      vec3 wn = normalize(vec3(tn.x, tn.z, -tn.y));   // east, up, south
+      n = normalize(mix(n, wn, 0.85));
+    }
     float elev = vElev / uExag;
     float t = clamp((elev - uZMin) / max(1.0, uZMax - uZMin), 0.0, 1.0);
-    // Albedo: elevation ramp plus fine grain so flat ground does not look plastic.
-    float grain = (hash(floor(vWorld.xz * 0.25)) - 0.5) * 0.025;
-    vec3 albedo = marsRamp(t * 0.85 + 0.1) + grain;
+    float camDist = length(vWorld - cameraPosition);
 
-    // Sun and sky light (visual approximation of a dusty Mars sky).
+    vec3 albedo;
+    if (uHasOrtho > 0.5) {
+      float g = texture2D(uOrtho, vUv).r;
+      // HiRISE has the orbital sun baked in; soften its contrast so our own sun does the shading.
+      g = clamp(0.5 + (g - 0.5) * 0.9, 0.0, 1.0);
+      albedo = marsGrade(g);
+    } else {
+      albedo = marsGrade(0.42 + 0.08 * (vnoise(vWorld.xz / 400.0) - 0.5) + 0.1 * (t - 0.5));
+    }
+    // Close-range grain so the ground does not go soft when the camera is near (procedural, labelled).
+    float near = 1.0 - smoothstep(30.0, 260.0, camDist);
+    albedo *= 1.0 + near * (vnoise(vWorld.xz * 1.7) - 0.5) * 0.22 + near * (vnoise(vWorld.xz * 7.3) - 0.5) * 0.12;
+
+    // Cavity term from the smoothed surface: hollows darker, crests a touch lighter.
+    float cavity = clamp(1.0 + (elev - vSmooth) * 0.035, 0.72, 1.12);
+
+    // Sun and dusty sky light (visual approximation of Mars illumination).
+    vec3 L = normalize(uSunDir);
     float day = smoothstep(-4.0, 8.0, uSunElev);
-    float lambert = max(dot(n, normalize(uSunDir)), 0.0) * day;
-    vec3 sunCol = mix(vec3(1.0, 0.72, 0.5), vec3(1.0, 0.92, 0.82), smoothstep(5.0, 35.0, uSunElev));
-    vec3 skyCol = mix(vec3(0.08, 0.12, 0.24), vec3(0.55, 0.40, 0.30), day);
-    float hemi = 0.5 + 0.5 * n.y;
-    // Slope darkening reads as relief even under flat light.
-    float steepShade = 1.0 - 0.35 * smoothstep(0.75, 0.25, n.y);
-    vec3 col = albedo * steepShade * (sunCol * lambert * 1.05 + skyCol * hemi * 0.32);
+    float sh = castShadow(vWorld, L);
+    float lambert = max(dot(n, L), 0.0) * day * sh;
+    vec3 sunCol = mix(vec3(1.0, 0.66, 0.45), vec3(1.0, 0.9, 0.78), smoothstep(4.0, 30.0, uSunElev)) * 2.0;
+    vec3 skyCol = mix(vec3(0.05, 0.08, 0.16), vec3(0.62, 0.42, 0.30), day);
+    float hemi = 0.55 + 0.45 * n.y;
+    // Light bounced off the red ground fills the shadows warm.
+    vec3 bounce = vec3(0.35, 0.18, 0.09) * day * (0.5 - 0.5 * n.y);
+    vec3 col = albedo * cavity * (sunCol * lambert + skyCol * hemi * 0.36 + bounce * 0.4);
 
     // Contours every 10 m, index contour every 50 m.
     if (uShowContours > 0.5) {
@@ -109,7 +175,7 @@ const frag = /* glsl */ `
       col = mix(col, vec3(0.75, 0.85, 1.0), max(gl.x, gl.y) * 0.35);
     }
 
-    float slope = texture2D(uSlope, vUv).r * 60.0;
+    float slope = texture2D(uSlope, vUv).r * 64.0;
     if (uShowSlope > 0.5) {
       float steep = smoothstep(uSlopeLimit * 0.5, uSlopeLimit, slope);
       col = mix(col, vec3(0.96, 0.78, 0.45), steep * 0.35);
@@ -140,7 +206,7 @@ const frag = /* glsl */ `
       col = mix(col, vec3(lum) * 0.45, (1.0 - inside) * (1.0 - nogo) * 0.55 * uReveal);
       // No-go ground: fine diagonal hatch in hazard colour, always legible.
       float hatch = step(0.62, fract((vWorld.x - vWorld.z) / 5.0));
-      col = mix(col, vec3(1.0, 0.45, 0.34), nogo * (0.18 + 0.22 * hatch) * uReveal);
+      col = mix(col, vec3(1.0, 0.45, 0.34), nogo * uShowSlope * (0.18 + 0.22 * hatch) * uReveal);
       // Boundary line with a slow pulse.
       float pulse = 0.85 + 0.15 * sin(uTime * 1.6);
       col += home * glow * 0.18 * step(-0.95, m);
@@ -148,9 +214,9 @@ const frag = /* glsl */ `
     }
 
     // Distance haze.
-    float dist = length(vWorld - cameraPosition);
-    float fog = smoothstep(uFogNear, uFogFar, dist);
-    col = mix(col, uFogColor, fog * 0.6);
+    // Aerial perspective: suspended dust scatters light into the line of sight.
+    float fog = 1.0 - exp(-max(camDist - uFogNear * 0.15, 0.0) / uFogFar * 1.6);
+    col = mix(col, uFogColor, clamp(fog, 0.0, 0.85));
 
     gl_FragColor = vec4(col, 1.0);
     #include <tonemapping_fragment>
@@ -212,12 +278,21 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uFogColor: { value: new THREE.Color("#c9a27c") },
       uFogNear: { value: 3500 },
       uFogFar: { value: 16000 },
+      uOrtho: { value: null },
+      uHasOrtho: { value: 0 },
+      uNormalMap: { value: null },
+      uHasNormal: { value: 0 },
+      uHeight: { value: null },
+      uHasHeight: { value: 0 },
+      uExtent: { value: 3000 },
+      uShadows: { value: 1 },
     },
   });
 }
 
 /** Per-frame sun, haze and layer uniforms. `site` = false for the surrounding ground (no data overlays). */
 export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, site: boolean) {
+  material.uniforms.uExag.value = VERT_EXAG;
   useFrame((state, dt) => {
     const s = useStore.getState();
     const u = material.uniforms;
@@ -236,7 +311,7 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
       u.uReveal.value = 1 - Math.pow(1 - anim.reveal, 3);
     }
     const day = Math.max(0, Math.min(1, (sun.elevationDeg + 4) / 14));
-    (u.uFogColor.value as THREE.Color).setRGB(0.1 + 0.55 * day, 0.14 + 0.38 * day, 0.25 + 0.18 * day);
+    (u.uFogColor.value as THREE.Color).setRGB(0.06 + 0.62 * day, 0.09 + 0.40 * day, 0.18 + 0.20 * day);
   });
 }
 
@@ -285,7 +360,7 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
 
   const slopeTex = useMemo(() => {
     const data = new Uint8Array(cols * rows);
-    for (let i = 0; i < data.length; i++) data[i] = Math.min(255, Math.round((slopeDeg[i] / 60) * 255));
+    for (let i = 0; i < data.length; i++) data[i] = Math.min(255, Math.round((slopeDeg[i] / 64) * 255));
     const t = new THREE.DataTexture(data, cols, rows, THREE.RedFormat, THREE.UnsignedByteType);
     t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.unpackAlignment = 1; t.needsUpdate = true;
     return t;
@@ -293,10 +368,35 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
 
   const marginTex = useRef<THREE.DataTexture | null>(null);
 
+  // Height field for cast shadows, in scene units (metres above the site mid elevation, exaggerated).
+  const heightTex = useMemo(() => {
+    const data = new Float32Array(cols * rows);
+    for (let i = 0; i < data.length; i++) data[i] = (height[i] - zMid) * VERT_EXAG;
+    const t = new THREE.DataTexture(data, cols, rows, THREE.RedFormat, THREE.FloatType);
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
+    return t;
+  }, [cols, rows, height, zMid]);
+
   const material = useMemo(() => makeTerrainMaterial(slopeTex, zMin - zMid, zMax - zMid), [slopeTex, zMin, zMax, zMid]);
   useTerrainUniforms(material, manifest.crs.origin.lat, true);
 
-  useEffect(() => () => { material.dispose(); geometry.dispose(); slopeTex.dispose(); }, [material, geometry, slopeTex]);
+  useEffect(() => () => { material.dispose(); geometry.dispose(); slopeTex.dispose(); heightTex.dispose(); }, [material, geometry, slopeTex, heightTex]);
+
+  useEffect(() => {
+    const u = material.uniforms;
+    u.uHeight.value = heightTex; u.uHasHeight.value = 1; u.uExtent.value = extentM;
+    const loader = new THREE.TextureLoader();
+    const disposers: THREE.Texture[] = [];
+    if (bundle.orthoUrl) loader.load(bundle.orthoUrl, (t) => {
+      t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
+      u.uOrtho.value = t; u.uHasOrtho.value = 1; disposers.push(t);
+    });
+    if (bundle.normalUrl) loader.load(bundle.normalUrl, (t) => {
+      t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8;
+      u.uNormalMap.value = t; u.uHasNormal.value = 1; disposers.push(t);
+    });
+    return () => disposers.forEach((t) => t.dispose());
+  }, [material, heightTex, extentM, bundle.orthoUrl, bundle.normalUrl]);
 
   // Push the newest margin field into the texture (no geometry rebuild).
   const envelopeVersion = useStore((s) => s.envelope.version);

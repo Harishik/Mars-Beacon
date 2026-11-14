@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { SiteBundle } from "../data/bundle";
+import { setVertExag } from "../render/Terrain";
 
 export type View = "console" | "tablet" | "hud";
 export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens";
@@ -36,6 +37,7 @@ interface State {
   panel: "mission" | "layers";
   ledger: boolean;                  // equations and assumptions sheet open
   tour: boolean;
+  sceneReady: boolean;
   setBundle: (b: SiteBundle) => void;
   setError: (e: string) => void;
   set: (p: Partial<State>) => void;
@@ -48,7 +50,7 @@ export const useStore = create<State>((set) => ({
   bundle: null,
   loadError: null,
   view: "console",
-  layers: { terrain: true, contours: true, slope: false, envelope: true, grid: false, targets: true, havens: true },
+  layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true },
   provenance: null,
   lmstHours: 15.6,
   v0: 0.7, slopeLimitDeg: 20, reserveM: 0.25, kG: 0.76, mRestW: 100, bodyMassKg: 80,
@@ -64,7 +66,9 @@ export const useStore = create<State>((set) => ({
   panel: "mission",
   ledger: false,
   tour: false,
+  sceneReady: false,
   setBundle: (b) => {
+    setVertExag(b.manifest.display?.verticalExaggeration ?? 1.6);
     // Start with the first ridge selected so the turn-back card and route are visible at once.
     const t = b.manifest.targets.find((x) => x.type === "ridge") ?? b.manifest.targets[0];
     set({ bundle: b, loadError: null, selected: t ? { x: t.x, y: t.y, label: t.name } : null });

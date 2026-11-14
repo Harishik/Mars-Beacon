@@ -2,7 +2,6 @@
 // code (no Blender). No NASA logos, flags or mission marks.
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { sampleHeight, type SiteBundle } from "../data/bundle";
 import { VERT_EXAG } from "./Terrain";
@@ -127,12 +126,39 @@ export function TargetPins({ bundle }: { bundle: SiteBundle }) {
               <octahedronGeometry args={[2.6]} />
               <meshBasicMaterial color={col} />
             </mesh>
-            <Html position={[0, 34, 0]} center distanceFactor={1600} zIndexRange={[10, 0]}>
-              <div className="pin-label"><span className="pin-dot" style={{ background: col }} />{t.name}</div>
-            </Html>
+            <Label text={t.name} color={col} y={36} />
           </group>
         );
       })}
     </>
+  );
+}
+
+/** Text label drawn into a canvas texture and shown as a sprite (no DOM, so it cannot
+ *  break React when the canvas unmounts). Constant size on screen. */
+export function Label({ text, color, y }: { text: string; color: string; y: number }) {
+  const tex = useMemo(() => {
+    const c = document.createElement("canvas");
+    const ctx = c.getContext("2d")!;
+    const font = "500 30px Archivo, Helvetica, Arial, sans-serif";
+    ctx.font = font;
+    const w = Math.ceil(ctx.measureText(text).width) + 70, h = 52;
+    c.width = w * 2; c.height = h * 2;
+    ctx.scale(2, 2);
+    ctx.font = font;
+    ctx.fillStyle = "rgba(8,15,28,0.82)";
+    ctx.strokeStyle = "rgba(173,201,236,0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(1, 1, w - 2, h - 2, (h - 2) / 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(26, h / 2, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ece5d8"; ctx.textBaseline = "middle"; ctx.fillText(text, 42, h / 2 + 1);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    return { t, aspect: w / h };
+  }, [text, color]);
+  return (
+    <sprite position={[0, y, 0]} scale={[0.026 * tex.aspect, 0.026, 1]} renderOrder={10}>
+      <spriteMaterial map={tex.t} depthTest={false} sizeAttenuation={false} transparent />
+    </sprite>
   );
 }

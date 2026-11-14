@@ -5,6 +5,7 @@ import { CrewPanel } from "../panels/CrewPanel";
 import { HudOverlay, InstrumentStrip, TimeBar, ViewSwitch } from "../panels/Chrome";
 import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
+import { VERT_EXAG } from "../render/Terrain";
 
 export function Console() {
   const bundle = useStore((s) => s.bundle);
@@ -34,7 +35,7 @@ export function Console() {
         <div className="legend" aria-hidden>
           <span><i className="lg-home" /> Edge of safe return</span>
           <span><i className="lg-dim" /> Outside: no certified way home</span>
-          <span className="lg-note">Vertical scale 1.6x</span>
+          <span className="lg-note">{VERT_EXAG === 1 ? "True vertical scale" : `Vertical scale ${VERT_EXAG}x`}</span>
         </div>
       )}
     </div>
