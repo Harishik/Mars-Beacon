@@ -1,0 +1,1303 @@
+{
+  "siteId": "gale-boxwork",
+  "name": "Gale crater, Mount Sharp boxwork unit",
+  "body": "Mars",
+  "version": "0.2.0",
+  "crs": {
+    "proj4": "+proj=eqc +lat_ts=-4.8031 +lat_0=-4.8031 +lon_0=137.384 +x_0=0 +y_0=0 +R=3396190 +units=m +no_defs",
+    "origin": {
+      "lat": -4.8031,
+      "lon": 137.384
+    },
+    "datum": "sphere R=3396190 m (Mars 2000, IAU)",
+    "lonDomain": "-180..180",
+    "axes": "x east, y north, metres; rasters north-up, row 0 = north edge; cell centre x=-extent/2+cell*(c+0.5), y=extent/2-cell*(r+0.5)",
+    "source": "USGS equirectangular clon 0, lat_ts 0 (E=R*lon, N=R*lat), resampled bilinear to true local metres"
+  },
+  "grid": {
+    "liveM": 4.0,
+    "cols": 750,
+    "rows": 750,
+    "extentM": 3000.0
+  },
+  "elevation": {
+    "min": -4033.90380859375,
+    "max": -3332.38818359375,
+    "note": "USGS merged DEM heights (relative to the Mars areoid per USGS product description; VERIFY). Relative relief is what the engine uses.",
+    "nodataFraction": 0.0
+  },
+  "files": [
+    {
+      "name": "height_4m",
+      "path": "height_4m.f32",
+      "dtype": "float32",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "sha256": "8aa621ddd02bbc1ac1e9e106feaa19a664a128780cc039829dbd8d6446060590",
+      "units": "m",
+      "datum": "DEM heights as stored by USGS (see manifest.elevation.note)"
+    },
+    {
+      "name": "slope_4m",
+      "path": "slope_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "sha256": "3ec6b6c05fca1c247e9a4b3b138bec0a6cb63672a82bac57107dd2dbdb966aae",
+      "nodata": 255,
+      "units": "deg",
+      "method": "Horn 1981 on 4 m grid"
+    },
+    {
+      "name": "slopeMax1m_4m",
+      "path": "slopeMax1m_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "sha256": "b3ae991556bcc823e605385ca210ddbd74a9f395994bd6cff501fc7fa8a92880",
+      "nodata": 255,
+      "units": "deg",
+      "method": "max Horn slope of 1 m DEM inside each 4 m cell"
+    },
+    {
+      "name": "rough_4m",
+      "path": "rough_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.01,
+      "offset": 0.0,
+      "sha256": "125188002ebe2da7ead03dab24412b8e573a19cc6b40db4e8bd813af7f9f3893",
+      "nodata": 255,
+      "units": "m",
+      "method": "RMS residual of plane fit to 1 m DEM in 4x4 block"
+    },
+    {
+      "name": "relief_4m",
+      "path": "relief_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.1,
+      "offset": -12.7,
+      "sha256": "1b64bd9753bd85482a335c2a9c9f9a03eef744c1c6fd4194df2297f4d69c26f9",
+      "nodata": 255,
+      "units": "m",
+      "method": "1 m DEM minus Gaussian(sigma 15 m), block mean"
+    },
+    {
+      "name": "horizon_32az",
+      "path": "horizon_32az.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.5,
+      "offset": 0.0,
+      "sha256": "640f27696914e9b662b0c213f75fca31490769d17ab1fbb233797fadcff281e3",
+      "bands": 32,
+      "layout": "band-major [band][row][col]",
+      "nodata": 255,
+      "units": "deg",
+      "azimuths": "32, k*11.25 deg clockwise from north",
+      "method": "max elevation angle; local 4 m DEM to box+margin, plus 32 m ring to 15 km"
+    },
+    {
+      "name": "svf",
+      "path": "svf.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "sha256": "3e9133ab7f648070405951b229da5903f61b19cf86a21a89d5cc4475508357b8",
+      "nodata": 255,
+      "units": "fraction",
+      "method": "SVF = mean cos^2(h_k) (Dozier and Frew 1990 style)"
+    },
+    {
+      "name": "viewshed_hab",
+      "path": "viewshed_hab.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "sha256": "541caa162a39cba4b90c5e045f9c24f037437502b9e537783c5bde77d158e64c",
+      "nodata": 255,
+      "units": "0/1",
+      "method": "line of sight from habitat antenna 3 m (ASSUMPTION) to 1.7 m eye height"
+    },
+    {
+      "name": "normal_2048",
+      "path": "normal_2048.png",
+      "dtype": "image",
+      "cols": 2048,
+      "rows": 2048,
+      "scale": 1,
+      "offset": 0,
+      "sha256": "290ad26ff6f905f9d8294369350a3cf201c2418513e0b732b396d2ecba39d72c",
+      "encoding": "RGB = (n*0.5+0.5)*255, x east, y north, z up"
+    },
+    {
+      "name": "ortho_4096",
+      "path": "ortho_4096.jpg",
+      "dtype": "image",
+      "cols": 4096,
+      "rows": 4096,
+      "scale": 1,
+      "offset": 0,
+      "sha256": "b7176be6f31fbada8eeab651029e25095561ce85d217ae91881931648732bdfe",
+      "units": "greyscale DN",
+      "resolutionM": 0.732421875
+    },
+    {
+      "name": "ridgeHollow_1m",
+      "path": "ridgeHollow_1m.u8",
+      "dtype": "uint8",
+      "cols": 3000,
+      "rows": 3000,
+      "scale": 1,
+      "offset": 0,
+      "sha256": "b94f331d83971b2fbf79d75113c48611b1aa00a5c463f0b6d3b22f0ce602d8bb",
+      "classes": {
+        "0": "none",
+        "1": "ridge",
+        "2": "hollow",
+        "3": "excluded (regional slope)"
+      },
+      "resolutionM": 1.0
+    },
+    {
+      "name": "ridgeFrac",
+      "path": "ridgeFrac.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "ef9067a6ced0e493ea1f08bfc6d433d02bca9a6c553b6bd036e6fac142f01464",
+      "method": "M3 local relief sigma 12.0 m, t 0.5 m, regional slope < 15.0 deg (ASSUMPTION thresholds)",
+      "units": "fraction of 4 m cell"
+    },
+    {
+      "name": "hollowFrac",
+      "path": "hollowFrac.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "94108a56306b93cfdf3c8bd62583696029bb61e35deb6faa04740aa6a486774a",
+      "method": "M3 local relief sigma 12.0 m, t 0.5 m, regional slope < 15.0 deg (ASSUMPTION thresholds)",
+      "units": "fraction of 4 m cell"
+    },
+    {
+      "name": "rhContrast",
+      "path": "rhContrast.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "e8de5571eea3ae63c5a22b45e9308d32fa4c2436964a16ab5a1da767933ee453",
+      "method": "M3 local relief sigma 12.0 m, t 0.5 m, regional slope < 15.0 deg (ASSUMPTION thresholds)",
+      "units": "0-1, ridge and hollow both within 20 m"
+    },
+    {
+      "name": "rocks",
+      "path": "rocks.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "1f4786872263ec41040754dbd22912789d01bdb1ce50735682083847d20ffb6c",
+      "method": "M2 shadow baseline, sun az 310.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "cumulative fractional area of detected rocks D>=Dmin"
+    },
+    {
+      "name": "rockCount",
+      "path": "rockCount.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "4e5c96a09f220d32cd4f93abb735a49955a8c0467fabad169ba6f8387d3edd2a",
+      "method": "M2 shadow baseline, sun az 310.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "rocks per 4 m cell"
+    },
+    {
+      "name": "rockBig",
+      "path": "rockBig.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "a8c2afd7d51185fe226e426623da785fec4ab78cf6fe8110a43d1443fc3aabae",
+      "method": "M2 shadow baseline, sun az 310.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "1 if a rock with D >= 2.0 m (hard block, ASSUMPTION)"
+    },
+    {
+      "name": "golombekK",
+      "path": "golombekK.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.002,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "a9a2f2b0f219611478c412a01c013d71d054b197a38ac8cb548af0147b57d017",
+      "method": "M2 shadow baseline, sun az 310.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "Golombek k per 100 m block (fraction)"
+    },
+    {
+      "name": "roverContext",
+      "path": "roverContext.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "a35bf53de8a1f7b504783aad5e3c8ae995ec4403adf206fc209b194d89bf48cb",
+      "units": "0-1",
+      "method": "exp(-d^2/(2*150.0^2)) to nearest drill target"
+    },
+    {
+      "name": "science",
+      "path": "science.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "5b8ea31d4643528ea3cc95a213f26d517ad53c41704b48512f045a06d20c6802",
+      "units": "0-1",
+      "formula": "S = w1*rhContrast + w2*spectralIndex + w3*nearContact + w4*roverContext, normalised by sum of weights",
+      "weights": {
+        "w1": 0.6,
+        "w2": 0.0,
+        "w3": 0.0,
+        "w4": 0.4
+      },
+      "note": "w2 (CRISM) and w3 (USGS contacts) are 0 until those layers are added; weights are ASSUMPTION sliders"
+    },
+    {
+      "name": "slope4P50",
+      "path": "slope4P50.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "2587e1faa0583e321ee980fce1ca5a8a59d8049fa1e8cb4a2ef5501ff684748f",
+      "units": "deg",
+      "method": "4 m Horn slope over 16 DEM realisations, sigma_z 0.25 m, L 5.0 m (ASSUMPTION), seed 7",
+      "use": "hard no-go limit for the envelope (median and P90 boundaries)"
+    },
+    {
+      "name": "slope4P90",
+      "path": "slope4P90.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "fd55e1fc6d2f1a55b17c4454954b69f75e4d1f0c1cd42bedc6a4edf361e85f5c",
+      "units": "deg",
+      "method": "4 m Horn slope over 16 DEM realisations, sigma_z 0.25 m, L 5.0 m (ASSUMPTION), seed 7",
+      "use": "hard no-go limit for the envelope (median and P90 boundaries)"
+    },
+    {
+      "name": "slopeP50",
+      "path": "slopeP50.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "1684d6dc9573e10bf6555cf78e4a0f96719d8a9c4adf2eb9e6c5d5fdb023d4a9",
+      "units": "deg",
+      "method": "max 1 m slope per 4 m cell over 16 DEM realisations, sigma_z 0.25 m, L 5.0 m (ASSUMPTION), seed 7"
+    },
+    {
+      "name": "slopeP90",
+      "path": "slopeP90.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "1b069df42f7178343701f768a3ca1af84367382b04339cdcbdc0740a80e054e8",
+      "units": "deg",
+      "method": "max 1 m slope per 4 m cell over 16 DEM realisations, sigma_z 0.25 m, L 5.0 m (ASSUMPTION), seed 7"
+    }
+  ],
+  "orthoTiles": {
+    "path": "ortho/{level}/{row}_{col}.jpg",
+    "tileSize": 512,
+    "maxLevel": 5,
+    "tileExtentM": "3000.0/2^level",
+    "nativeResolutionM": 0.25,
+    "count": 1365,
+    "note": "greyscale HiRISE orthophoto; colour mosaic not used yet"
+  },
+  "layers": [
+    {
+      "id": "ortho",
+      "kind": "optical",
+      "mission": "MRO",
+      "instrument": "HiRISE",
+      "productId": "MSL_Gale_Orthophoto_Mosaic_25cm_v3",
+      "resolutionM": 0.25,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "NASA/JPL/University of Arizona; USGS Astrogeology",
+      "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_orthophoto_mosaic_25cm"
+    },
+    {
+      "id": "dem",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "HiRISE (+CTX, HRSC, MOLA)",
+      "productId": "MSL_Gale_DEM_Mosaic_1m_v3",
+      "resolutionM": 1,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "USGS Astrogeology; NASA/JPL/University of Arizona",
+      "url": "https://astrogeology.usgs.gov/search/map/mars_msl_gale_merged_dem_1m"
+    },
+    {
+      "id": "slope",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE DEM",
+      "productId": "slope_4m, slopeMax1m_4m",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "roughness",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE DEM",
+      "productId": "rough_4m",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "relief",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE DEM",
+      "productId": "relief_4m",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "illumination",
+      "kind": "illumination",
+      "mission": "MRO",
+      "instrument": "horizon map from HiRISE DEM",
+      "productId": "horizon_32az, svf",
+      "resolutionM": 4,
+      "acquired": "n/a",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "rover_route",
+      "kind": "rover",
+      "mission": "MSL",
+      "instrument": "localized waypoints",
+      "productId": "MSL_waypoints.json",
+      "resolutionM": 1,
+      "acquired": "sols 4400-4900",
+      "tag": "HISTORICAL",
+      "attribution": "NASA/JPL-Caltech",
+      "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json"
+    },
+    {
+      "id": "ridge_hollow",
+      "kind": "geomorphology",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE DEM (M3)",
+      "productId": "ridgeHollow_1m, ridgeFrac, hollowFrac, rhContrast",
+      "resolutionM": 1,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/ml/m3_ridge_hollow.py",
+      "url": "",
+      "limits": "DEM effective resolution is coarser than 1 m; narrow (~5 m) boxwork ridges often unresolved. Thresholds are ASSUMPTION."
+    },
+    {
+      "id": "rocks",
+      "kind": "geophysical",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE 25 cm ortho (M2)",
+      "productId": "rocks, rockCount, rockBig, golombekK",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/ml/m2_rocks.py",
+      "url": "",
+      "limits": "Shadow baseline; rocks under ~1 m not detected; precision/recall vs hand labels pending."
+    },
+    {
+      "id": "science",
+      "kind": "operations",
+      "mission": "MRO + MSL",
+      "instrument": "derived (M3 + rover context)",
+      "productId": "science, roverContext, rhContrast",
+      "resolutionM": 4,
+      "acquired": "n/a",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/ml/science_value.py",
+      "url": ""
+    }
+  ],
+  "patches": [
+    {
+      "id": "l1_sol120",
+      "kind": "stereo",
+      "x0": -201.77,
+      "y0": -321.66,
+      "size": 64.0,
+      "res": 0.25,
+      "cols": 256,
+      "rows": 256,
+      "height": "l1_sol120_height.f32",
+      "mask": "l1_sol120_mask.u8",
+      "validation": {
+        "verticalOffsetM": 0.694,
+        "rmseM": 0.262,
+        "madM": 0.096,
+        "points": 4351549,
+        "coverage": 0.318,
+        "horizontalShiftM": [
+          4.5,
+          0.75
+        ],
+        "rmse1mBeforeM": 0.45,
+        "rmse1mAfterM": 0.292
+      },
+      "source": "MSL Navcam XYZ RDR, PDS Imaging Node; site origin from PDS PLACES",
+      "products": [
+        {
+          "file": "NLB_819358454XYZ_F1200538NCAM00274M1.IMG",
+          "site": 120,
+          "points": 613213
+        },
+        {
+          "file": "NLB_819358540XYZ_F1200538NCAM00274M1.IMG",
+          "site": 120,
+          "points": 841536
+        },
+        {
+          "file": "NLB_819359218XYZ_F1200538NCAM00275M1.IMG",
+          "site": 120,
+          "points": 852724
+        },
+        {
+          "file": "NLB_819359365XYZ_F1200538NCAM00275M1.IMG",
+          "site": 120,
+          "points": 292764
+        },
+        {
+          "file": "NLB_819359474XYZ_F1200538NCAM00354M1.IMG",
+          "site": 120,
+          "points": 689121
+        },
+        {
+          "file": "NLB_819359556XYZ_F1200538NCAM00354M1.IMG",
+          "site": 120,
+          "points": 671394
+        },
+        {
+          "file": "NLB_819362161XYZ_F1200538NCAM00353M1.IMG",
+          "site": 120,
+          "points": 630457
+        }
+      ],
+      "tag": "DERIVED"
+    }
+  ],
+  "splats": [],
+  "havens": [
+    {
+      "id": "hab",
+      "type": "habitat",
+      "x": -30.0,
+      "y": 422.0,
+      "note": "ASSUMPTION: flattest cell near the campaign entry point"
+    },
+    {
+      "id": "rover",
+      "type": "rover",
+      "x": -252,
+      "y": 180,
+      "note": "ASSUMPTION: support rover parking spot on flat ground"
+    }
+  ],
+  "targets": [
+    {
+      "id": "altadena",
+      "name": "Altadena drill site (approx.)",
+      "type": "drill",
+      "x": -27.1,
+      "y": 192.8,
+      "sol": 4565,
+      "source": "MSL_waypoints.json, last localized waypoint at or before sol 4565 (sol 4560, site 116 drive 1944); VERIFY with PDS PLACES"
+    },
+    {
+      "id": "valle_de_la_luna",
+      "name": "Valle de la Luna drill, Monte Grande hollow",
+      "type": "hollow",
+      "x": -175.1,
+      "y": -280.9,
+      "sol": 4708,
+      "source": "MSL_waypoints.json, last localized waypoint at or before sol 4708 (sol 4687, site 119 drive 1722); VERIFY with PDS PLACES"
+    },
+    {
+      "id": "nevado_sajama",
+      "name": "Nevado Sajama drill, boxwork ridge",
+      "type": "ridge",
+      "x": -177.0,
+      "y": -290.9,
+      "sol": 4718,
+      "source": "MSL_waypoints.json, last localized waypoint at or before sol 4718 (sol 4711, site 120 drive 82); VERIFY with PDS PLACES"
+    }
+  ],
+  "povImages": [],
+  "route": {
+    "source": "NASA/JPL MSL_waypoints.json (mars.nasa.gov MMGIS), sols 4400-4900 inside the box",
+    "points": [
+      [
+        766.5,
+        1158.6
+      ],
+      [
+        760.7,
+        1135.9
+      ],
+      [
+        748.4,
+        1100.1
+      ],
+      [
+        716.4,
+        1081.9
+      ],
+      [
+        698.5,
+        1103.2
+      ],
+      [
+        677.8,
+        1075.6
+      ],
+      [
+        661.3,
+        1055.7
+      ],
+      [
+        638.2,
+        1035.4
+      ],
+      [
+        625.7,
+        1018.3
+      ],
+      [
+        621.7,
+        1017.7
+      ],
+      [
+        587.7,
+        1007.9
+      ],
+      [
+        572.2,
+        977.8
+      ],
+      [
+        538.9,
+        958.8
+      ],
+      [
+        509.2,
+        940.9
+      ],
+      [
+        486.6,
+        912.5
+      ],
+      [
+        460.9,
+        884.5
+      ],
+      [
+        442.1,
+        841.6
+      ],
+      [
+        431.1,
+        818.1
+      ],
+      [
+        438.0,
+        799.2
+      ],
+      [
+        444.0,
+        765.4
+      ],
+      [
+        433.4,
+        749.4
+      ],
+      [
+        428.4,
+        727.2
+      ],
+      [
+        429.0,
+        727.1
+      ],
+      [
+        407.8,
+        719.8
+      ],
+      [
+        393.3,
+        700.0
+      ],
+      [
+        395.0,
+        682.5
+      ],
+      [
+        401.8,
+        652.0
+      ],
+      [
+        397.5,
+        633.7
+      ],
+      [
+        405.9,
+        610.8
+      ],
+      [
+        386.8,
+        591.7
+      ],
+      [
+        356.2,
+        563.4
+      ],
+      [
+        348.8,
+        562.7
+      ],
+      [
+        329.6,
+        565.0
+      ],
+      [
+        299.9,
+        577.1
+      ],
+      [
+        287.6,
+        586.2
+      ],
+      [
+        252.6,
+        548.6
+      ],
+      [
+        247.4,
+        496.0
+      ],
+      [
+        249.8,
+        477.5
+      ],
+      [
+        231.2,
+        436.5
+      ],
+      [
+        231.3,
+        419.8
+      ],
+      [
+        228.7,
+        415.0
+      ],
+      [
+        221.3,
+        396.5
+      ],
+      [
+        219.5,
+        368.4
+      ],
+      [
+        207.1,
+        348.9
+      ],
+      [
+        181.2,
+        337.3
+      ],
+      [
+        156.5,
+        332.1
+      ],
+      [
+        143.9,
+        325.0
+      ],
+      [
+        129.9,
+        314.9
+      ],
+      [
+        113.4,
+        313.2
+      ],
+      [
+        113.8,
+        313.2
+      ],
+      [
+        98.3,
+        304.7
+      ],
+      [
+        59.6,
+        286.6
+      ],
+      [
+        2.7,
+        255.3
+      ],
+      [
+        -25.2,
+        227.0
+      ],
+      [
+        -33.2,
+        200.7
+      ],
+      [
+        -29.6,
+        194.9
+      ],
+      [
+        -27.1,
+        192.8
+      ],
+      [
+        -59.8,
+        159.6
+      ],
+      [
+        -87.6,
+        114.8
+      ],
+      [
+        -111.4,
+        70.6
+      ],
+      [
+        -135.5,
+        69.3
+      ],
+      [
+        -162.4,
+        45.9
+      ],
+      [
+        -162.3,
+        44.7
+      ],
+      [
+        -174.1,
+        31.6
+      ],
+      [
+        -189.6,
+        21.6
+      ],
+      [
+        -201.1,
+        39.7
+      ],
+      [
+        -209.7,
+        35.0
+      ],
+      [
+        -210.8,
+        8.1
+      ],
+      [
+        -231.9,
+        -30.0
+      ],
+      [
+        -250.7,
+        -54.3
+      ],
+      [
+        -254.8,
+        -64.6
+      ],
+      [
+        -258.5,
+        -75.1
+      ],
+      [
+        -262.4,
+        -79.0
+      ],
+      [
+        -276.4,
+        -97.2
+      ],
+      [
+        -277.9,
+        -109.4
+      ],
+      [
+        -268.9,
+        -124.8
+      ],
+      [
+        -264.3,
+        -139.5
+      ],
+      [
+        -263.7,
+        -142.0
+      ],
+      [
+        -265.1,
+        -137.2
+      ],
+      [
+        -241.2,
+        -141.3
+      ],
+      [
+        -250.5,
+        -163.5
+      ],
+      [
+        -268.1,
+        -171.3
+      ],
+      [
+        -252.6,
+        -181.8
+      ],
+      [
+        -255.5,
+        -199.0
+      ],
+      [
+        -288.4,
+        -193.0
+      ],
+      [
+        -275.4,
+        -203.8
+      ],
+      [
+        -276.6,
+        -204.7
+      ],
+      [
+        -274.4,
+        -212.8
+      ],
+      [
+        -271.0,
+        -219.1
+      ],
+      [
+        -247.4,
+        -224.7
+      ],
+      [
+        -245.6,
+        -224.8
+      ],
+      [
+        -242.4,
+        -235.9
+      ],
+      [
+        -242.4,
+        -241.1
+      ],
+      [
+        -232.7,
+        -258.0
+      ],
+      [
+        -225.1,
+        -268.4
+      ],
+      [
+        -221.6,
+        -286.0
+      ],
+      [
+        -206.3,
+        -291.8
+      ],
+      [
+        -184.1,
+        -293.5
+      ],
+      [
+        -161.3,
+        -306.5
+      ],
+      [
+        -143.6,
+        -332.9
+      ],
+      [
+        -136.4,
+        -332.7
+      ],
+      [
+        -162.6,
+        -306.5
+      ],
+      [
+        -176.1,
+        -291.1
+      ],
+      [
+        -175.1,
+        -280.9
+      ],
+      [
+        -174.3,
+        -290.4
+      ],
+      [
+        -177.0,
+        -290.9
+      ],
+      [
+        -176.4,
+        -276.4
+      ],
+      [
+        -170.1,
+        -285.0
+      ],
+      [
+        -177.6,
+        -292.3
+      ],
+      [
+        -177.6,
+        -290.8
+      ],
+      [
+        -152.4,
+        -280.8
+      ],
+      [
+        -147.4,
+        -263.1
+      ],
+      [
+        -137.7,
+        -251.9
+      ],
+      [
+        -121.7,
+        -262.3
+      ],
+      [
+        -84.9,
+        -284.7
+      ],
+      [
+        -78.5,
+        -277.7
+      ],
+      [
+        -81.0,
+        -283.5
+      ],
+      [
+        -67.7,
+        -298.3
+      ],
+      [
+        -79.6,
+        -339.2
+      ],
+      [
+        -76.9,
+        -381.9
+      ],
+      [
+        -97.0,
+        -392.2
+      ],
+      [
+        -126.3,
+        -403.8
+      ],
+      [
+        -132.5,
+        -434.0
+      ],
+      [
+        -137.2,
+        -440.8
+      ],
+      [
+        -139.1,
+        -444.6
+      ],
+      [
+        -129.3,
+        -501.0
+      ],
+      [
+        -115.9,
+        -528.4
+      ],
+      [
+        -109.4,
+        -577.9
+      ],
+      [
+        -127.3,
+        -596.8
+      ],
+      [
+        -155.3,
+        -600.3
+      ],
+      [
+        -177.2,
+        -633.6
+      ],
+      [
+        -135.5,
+        -661.9
+      ],
+      [
+        -128.0,
+        -672.5
+      ],
+      [
+        -141.6,
+        -662.7
+      ],
+      [
+        -142.9,
+        -669.6
+      ]
+    ],
+    "sols": [
+      4414,
+      4417,
+      4425,
+      4429,
+      4432,
+      4435,
+      4437,
+      4439,
+      4442,
+      4444,
+      4446,
+      4449,
+      4450,
+      4452,
+      4456,
+      4459,
+      4462,
+      4464,
+      4466,
+      4469,
+      4471,
+      4473,
+      4478,
+      4480,
+      4483,
+      4484,
+      4487,
+      4489,
+      4491,
+      4493,
+      4496,
+      4498,
+      4500,
+      4503,
+      4505,
+      4507,
+      4510,
+      4512,
+      4514,
+      4516,
+      4518,
+      4523,
+      4526,
+      4527,
+      4530,
+      4532,
+      4534,
+      4537,
+      4539,
+      4541,
+      4544,
+      4546,
+      4548,
+      4552,
+      4554,
+      4558,
+      4560,
+      4571,
+      4573,
+      4575,
+      4578,
+      4580,
+      4582,
+      4585,
+      4587,
+      4588,
+      4591,
+      4594,
+      4596,
+      4598,
+      4600,
+      4602,
+      4605,
+      4609,
+      4612,
+      4614,
+      4616,
+      4618,
+      4621,
+      4623,
+      4625,
+      4628,
+      4629,
+      4633,
+      4634,
+      4636,
+      4639,
+      4641,
+      4643,
+      4647,
+      4650,
+      4653,
+      4655,
+      4660,
+      4662,
+      4664,
+      4667,
+      4669,
+      4671,
+      4673,
+      4677,
+      4680,
+      4684,
+      4687,
+      4709,
+      4711,
+      4741,
+      4748,
+      4752,
+      4789,
+      4805,
+      4810,
+      4813,
+      4816,
+      4818,
+      4820,
+      4823,
+      4827,
+      4830,
+      4834,
+      4837,
+      4839,
+      4841,
+      4844,
+      4845,
+      4848,
+      4851,
+      4855,
+      4857,
+      4861,
+      4865,
+      4868,
+      4889,
+      4891,
+      4893
+    ]
+  },
+  "build": {
+    "script": "pipeline/build_site.py",
+    "args": {
+      "site": "gale",
+      "out": "C:/Users/sahaj/MarsBeaconData/bundles/gale",
+      "extent": 3000.0,
+      "margin": 500.0,
+      "ring_km": 15.0,
+      "live_cell": 4.0,
+      "no_ortho": false,
+      "work": null,
+      "hab_x": null,
+      "hab_y": null
+    },
+    "seconds": 62
+  },
+  "siteHash": "fbb0693edc3ecce3",
+  "display": {
+    "verticalExaggeration": 1.0
+  }
+}

@@ -2,8 +2,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useStore } from "../store/store";
-import { declinationDeg } from "../engine/environment";
-import { sunAt } from "../engine/sun";
+import { sunMars24 } from "../engine/sun";
 
 // Mars sky, visual approximation: butterscotch by day, a blue glow around the
 // sun near sunrise and sunset (dust forward scattering), deep blue-black at night.
@@ -51,7 +50,7 @@ export function Sky() {
   const ref = useRef<THREE.Mesh>(null);
   useFrame(({ camera }) => {
     const s = useStore.getState();
-    const sun = sunAt(s.lmstHours, s.bundle?.manifest.crs.origin.lat ?? -4.86, declinationDeg(s.lsDeg));
+    const sun = sunMars24(s.lsDeg, s.lmstHours, s.bundle?.manifest.crs.origin.lat ?? -4.8, s.bundle?.manifest.crs.origin.lon ?? 137.38);
     mat.uniforms.uSun.value.set(...sun.dir);
     mat.uniforms.uElev.value = sun.elevationDeg;
     // Keep the dome centred on the camera.

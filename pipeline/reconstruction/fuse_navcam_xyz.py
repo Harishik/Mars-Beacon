@@ -74,6 +74,8 @@ def main():
     man = json.load(open(os.path.join(a.bundle, "manifest.json")))
     lat0, lon0 = man["crs"]["origin"]["lat"], man["crs"]["origin"]["lon"]
     cx, cy = R * math.radians(lon0), R * math.radians(lat0)
+    # Bundles in true local metres (pipeline L0, proj4 with lat_ts) scale east offsets by cos(lat).
+    kx = math.cos(math.radians(lat0)) if "lat_ts" in man["crs"].get("proj4", "") else 1.0
     g = man["grid"]
     h4 = np.fromfile(os.path.join(a.bundle, "height_4m.f32"), dtype=np.float32).reshape(g["rows"], g["cols"])
 
@@ -96,7 +98,7 @@ def main():
         E = float(so["easting"]) + Y[ok]
         Nn = float(so["northing"]) + X[ok]
         H = float(so["elevation"]) - Z[ok]
-        pts.append(np.stack([E - cx, Nn - cy, H], 1))
+        pts.append(np.stack([(E - cx) * kx, Nn - cy, H], 1))
         meta.append({"file": os.path.basename(f), "site": lab["site"], "points": int(ok.sum())})
     if not pts:
         raise SystemExit("no usable XYZ products")
@@ -107,7 +109,7 @@ def main():
         P[:, 0] += reg["dx"]; P[:, 1] += reg["dy"]
     # Rover position = site origin of the first product, in the bundle frame.
     so = sites[meta[0]["site"]]
-    rx, ry = float(so["easting"]) - cx + (reg["dx"] if reg else 0), float(so["northing"]) - cy + (reg["dy"] if reg else 0)
+    rx, ry = (float(so["easting"]) - cx) * kx + (reg["dx"] if reg else 0), float(so["northing"]) - cy + (reg["dy"] if reg else 0)
     near = np.hypot(P[:, 0] - rx, P[:, 1] - ry) < a.max_range
     P = P[near]
 

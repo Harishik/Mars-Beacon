@@ -4,8 +4,8 @@ import { useShallow } from "zustand/react/shallow";
 import { reportAt } from "../engine/query";
 import { useStore, type View } from "../store/store";
 import { sampleHeight, toCell } from "../data/bundle";
-import { formatLmst, sunAt } from "../engine/sun";
-import { declinationDeg, directIrradiance, tauAtElevation } from "../engine/environment";
+import { formatLmst, sunMars24 } from "../engine/sun";
+import { directIrradiance, tauAtElevation } from "../engine/environment";
 import { Tag } from "./Tag";
 
 export function InstrumentStrip() {
@@ -59,7 +59,8 @@ export function TimeBar() {
   const tauRef = useStore((s) => s.tau);
   const storm = useStore((s) => s.storm);
   const elevKm = useStore((s) => s.bundle ? (s.bundle.manifest.elevation.min + s.bundle.manifest.elevation.max) / 2000 : -3.6);
-  const sun = sunAt(lmst, lat, declinationDeg(ls));
+  const lon = useStore.getState().bundle?.manifest.crs.origin.lon ?? 137.38;
+  const sun = sunMars24(ls, lmst, lat, lon);
   const tau = tauAtElevation(storm ? Math.max(tauRef, 3) : tauRef, elevKm);
   const irr = directIrradiance(ls, sun.elevationDeg, tau);
   const pct = ((lmst - 5) / 14) * 100;

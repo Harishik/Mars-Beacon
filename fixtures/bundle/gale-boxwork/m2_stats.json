@@ -1,0 +1,19 @@
+{
+ "n_rocks": 42685,
+ "n_big": 6729,
+ "D_percentiles_m": [
+  1.21,
+  2.26,
+  3.42
+ ],
+ "golombek_k_median": 0.10138763599353999,
+ "golombek_k_p90": 0.12569090728902066,
+ "params": {
+  "bundle": "C:/Users/sahaj/MarsBeaconData/bundles/gale",
+  "sun_az": 310.0,
+  "k": 1.5,
+  "d_min": 0.75,
+  "d_big": 2.0,
+  "tile": 2000
+ }
+}

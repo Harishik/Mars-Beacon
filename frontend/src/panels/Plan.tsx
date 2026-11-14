@@ -3,8 +3,8 @@ import { useMemo } from "react";
 import { useStore } from "../store/store";
 import type { Plan } from "../engine/planner";
 import { activePlanOf, MARS_HOUR_S } from "../engine/useMission";
-import { declinationDeg, directIrradiance, tauAtElevation } from "../engine/environment";
-import { formatLmst, sunAt } from "../engine/sun";
+import { directIrradiance, tauAtElevation } from "../engine/environment";
+import { formatLmst, sunMars24 } from "../engine/sun";
 import { Tag } from "./Tag";
 
 const PLAN_LABEL: Record<Plan["id"], { name: string; hint: string }> = {
@@ -55,7 +55,7 @@ export function MissionTimeline() {
   const targets = s.bundle?.manifest.targets ?? [];
   const lat = s.bundle?.manifest.crs.origin.lat ?? -4.86;
   const elevKm = s.bundle ? (s.bundle.manifest.elevation.min + s.bundle.manifest.elevation.max) / 2000 : -3.6;
-  const sun = sunAt(s.lmstHours, lat, declinationDeg(s.lsDeg));
+  const sun = sunMars24(s.lsDeg, s.lmstHours, lat, s.bundle?.manifest.crs.origin.lon ?? 137.38);
   const tau = tauAtElevation(s.storm ? Math.max(s.tau, 3) : s.tau, elevKm);
   const irr = directIrradiance(s.lsDeg, sun.elevationDeg, tau);
   const total = plan?.totalS ?? s.timeBudgetS;
@@ -79,7 +79,8 @@ export function MissionTimeline() {
         </select>
         <div className="tl-clock">
           <span className="tl-met">{hm(s.playheadS)}<small>since egress</small></span>
-          <span className="tl-lmst">{formatLmst(s.lmstHours)}<small>LMST</small></span>
+          <span className="tl-lmst">{formatLmst(s.lmstHours)}<small>LMST</small> {formatLmst(sun.ltstH)}<small>LTST</small></span>
+          <span className="tl-date" title="First date from 15 Nov 2026 at this season (Mars24)">{new Date(sun.utcMs).toISOString().slice(0, 10)} UTC</span>
         </div>
       </div>
 

@@ -77,7 +77,9 @@ function dijkstraFrom(height: Float32Array, blocked: Uint8Array, p: PlanInput, s
       if (vc < 0 || vr < 0 || vc >= cols || vr >= rows) continue;
       const v = vr * cols + vc;
       if (done[v] || blocked[v]) continue;
-      if (k >= 8) {
+      if (k >= 4 && k < 8) {
+        if (blocked[ur * cols + vc] || blocked[vr * cols + uc]) continue;
+      } else if (k >= 8) {
         const ac = Math.abs(dc) === 2 ? uc + dc / 2 : uc, ar = Math.abs(dr) === 2 ? ur + dr / 2 : ur;
         const bc = Math.abs(dc) === 2 ? uc + dc / 2 : uc + dc, br = Math.abs(dr) === 2 ? ur + dr / 2 : ur + dr;
         if (blocked[ar * cols + ac] || blocked[br * cols + bc]) continue;

@@ -1,0 +1,41 @@
+{
+ "ridge_area_frac": 0.10173844444444445,
+ "hollow_area_frac": 0.11179344444444445,
+ "excluded_frac": 0.29367533333333334,
+ "drill_sites": {
+  "altadena": {
+   "type": "drill",
+   "relief_at_point_m": -0.73,
+   "relief_min_max_within_10m": [
+    -1.03,
+    0.73
+   ],
+   "class_at_point": "none"
+  },
+  "valle_de_la_luna": {
+   "type": "hollow",
+   "relief_at_point_m": -0.74,
+   "relief_min_max_within_10m": [
+    -1.91,
+    1.06
+   ],
+   "class_at_point": "hollow"
+  },
+  "nevado_sajama": {
+   "type": "ridge",
+   "relief_at_point_m": 0.4,
+   "relief_min_max_within_10m": [
+    -1.63,
+    0.89
+   ],
+   "class_at_point": "none"
+  }
+ },
+ "params": {
+  "bundle": "C:/Users/sahaj/MarsBeaconData/bundles/gale",
+  "sigma": 12.0,
+  "t": 0.5,
+  "max_regional_slope": 15.0
+ },
+ "note": "Drill coordinates are end-of-drive waypoints (+/- tens of m); PDS PLACES needed for a real check."
+}

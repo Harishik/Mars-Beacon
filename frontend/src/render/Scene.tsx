@@ -5,8 +5,7 @@ import { OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useStore, type View } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
-import { declinationDeg } from "../engine/environment";
-import { sunAt } from "../engine/sun";
+import { sunMars24 } from "../engine/sun";
 import { Terrain } from "./Terrain";
 import { Sky } from "./Sky";
 import { Surroundings } from "./Surroundings";
@@ -23,7 +22,7 @@ function Lights({ lat }: { lat: number }) {
   const sun = useRef<THREE.DirectionalLight>(null);
   const hemi = useRef<THREE.HemisphereLight>(null);
   useFrame(() => {
-    const s = sunAt(useStore.getState().lmstHours, lat, declinationDeg(useStore.getState().lsDeg));
+    const s = sunMars24(useStore.getState().lsDeg, useStore.getState().lmstHours, lat, useStore.getState().bundle?.manifest.crs.origin.lon ?? 137.38);
     const day = Math.max(0, Math.min(1, (s.elevationDeg + 3) / 12));
     if (sun.current) {
       sun.current.position.set(s.dir[0] * 3000, s.dir[1] * 3000, s.dir[2] * 3000);

@@ -27,8 +27,8 @@ export interface EnvelopeOut {
   insideCells: number;
 }
 
-// 8 neighbours plus 8 knight moves. For knight moves, the two cells the edge
-// passes over are checked so no edge cuts a blocked corner.
+// 8 neighbours plus 8 knight moves. Diagonal and knight edges check the cells they
+// pass beside, so no edge cuts a blocked corner (same rule as pipeline/sim/envelope.py).
 const NB: [number, number][] = [
   [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1],
   [2, 1], [2, -1], [-2, 1], [-2, -1], [1, 2], [1, -2], [-1, 2], [-1, -2],
@@ -106,7 +106,10 @@ export function computeEnvelope(height: Float32Array, slopeDeg: Float32Array, p:
       if (uc < 0 || ur < 0 || uc >= cols || ur >= rows) continue;
       const u = ur * cols + uc;
       if (done[u] || blocked[u]) continue;
-      if (k >= 8) {
+      if (k >= 4 && k < 8) {
+        // Diagonal: no corner cutting past a blocked orthogonal neighbour.
+        if (blocked[vr * cols + uc] || blocked[ur * cols + vc]) continue;
+      } else if (k >= 8) {
         // Cells crossed by a knight move.
         const ac = Math.abs(dc) === 2 ? vc + dc / 2 : vc;
         const ar = Math.abs(dr) === 2 ? vr + dr / 2 : vr;

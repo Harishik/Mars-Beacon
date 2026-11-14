@@ -3,8 +3,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useStore } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
-import { declinationDeg } from "../engine/environment";
-import { sunAt } from "../engine/sun";
+import { sunMars24 } from "../engine/sun";
 import { beamTransmission, tauAtElevation } from "../engine/environment";
 
 /** Vertical exaggeration. Set from the manifest (display.verticalExaggeration); 1.0 for real terrain. */
@@ -304,7 +303,7 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
   useFrame((state, dt) => {
     const s = useStore.getState();
     const u = material.uniforms;
-    const sun = sunAt(s.lmstHours, lat, declinationDeg(s.lsDeg));
+    const sun = sunMars24(s.lsDeg, s.lmstHours, lat, s.bundle?.manifest.crs.origin.lon ?? 137.38);
     u.uSunDir.value.set(...sun.dir);
     u.uSunElev.value = sun.elevationDeg;
     const tau = tauAtElevation(s.storm ? Math.max(s.tau, 3) : s.tau, -3.6);
