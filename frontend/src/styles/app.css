@@ -442,7 +442,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .tl-bar { position: absolute; left: 0; right: 0; top: 24px; height: 8px; border-radius: 999px; background: rgba(173, 201, 236, 0.14); overflow: hidden; }
 .tl-done { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(143, 188, 240, 0.35), rgba(143, 188, 240, 0.6)); }
 .tl-stay { position: absolute; top: 0; bottom: 0; background: rgba(226, 173, 110, 0.75); }
-.tl-marker { position: absolute; top: 0; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--dust-2); white-space: nowrap; pointer-events: none; }
+.tl-marker span { overflow: hidden; text-overflow: ellipsis; }
+.tl-track { container-type: inline-size; }
+.tl-marker { position: absolute; top: 0; transform: translateX(-8.5px); display: flex; align-items: center; gap: 4px; font-size: 0.6875rem; color: var(--dust-2); white-space: nowrap; pointer-events: none; }
 .tl-marker i { font-style: normal; display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--dust); color: var(--night); font-weight: 700; font-size: 0.625rem; }
 .tl-track input[type="range"] { position: absolute; left: 0; right: 0; top: 19px; margin: 0; }
 .tl-track input[type="range"]::-webkit-slider-runnable-track { background: transparent; }
@@ -502,3 +504,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .lf-note { position: absolute; right: 16px; bottom: 620px; width: 400px; margin: 0; font-size: 0.75rem; color: var(--dust-2); padding: 8px 10px; border-radius: 8px; background: rgba(8, 15, 28, 0.7); }
 @media (max-width: 1100px) { .lf, .lf-note { display: none; } }
 .tl-date { font-size: 0.6875rem; color: var(--dust-3); }
+.valid-row { display: grid; gap: 3px; padding: 10px 0; border-top: 1px solid var(--line, rgba(236, 229, 216, 0.08)); }
+.valid-row:first-of-type { border-top: 0; }
+.valid-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.valid-result { font-size: 0.9375rem; font-weight: 600; color: var(--dust); }
+.p90-note { display: block; margin-top: 4px; font-size: 0.6875rem; color: var(--sun, #e2ad6e); }
+.valid-row .layer-source { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.4; }

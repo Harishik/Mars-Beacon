@@ -23,8 +23,17 @@ const GROUPS: Group[] = [
   ] },
 ];
 
+/** Validation of the pipeline outputs (pipeline/VALIDATION.md, Sahaj). Every figure is reproducible from a script. */
+const VALIDATION: { name: string; result: string; detail: string; tag: TagT }[] = [
+  { name: "2 km walk-back rule vs Return Envelope", result: "71% of the circle is not returnable", detail: "73% with P90 slopes. Budgets calibrated so flat ground gives the full circle; the difference is terrain alone. Curiosity's traverse lies inside the envelope.", tag: "DERIVED" },
+  { name: "Slope no-go, 4 m grid", result: "1.5% of Curiosity's route above 20°", detail: "The 1 m slope flags 21.6% of ground the rover actually drove (DEM noise), so it is a cost term only. 16 DEM realisations give the P90 band.", tag: "DERIVED" },
+  { name: "M1 terrain classes, rover images", result: "mIoU 0.806, pixel accuracy 98.0%", detail: "AI4Mars, 322 expert-labelled test images never used in training. Soil 0.97, bedrock 0.95, sand 0.95. Big rock IoU 0.35 (about 35% precision, 97% recall): a soft cost, never a hard block.", tag: "DERIVED" },
+  { name: "M2 boulders, HiRISE shadows", result: "Precision not yet measured", detail: "42,685 rocks of 0.75 m or more. Big rocks add only 0.1% of the map as no-go; the rest is already too steep. Jezero rocks are unreliable (ripples).", tag: "ASSUMPTION" },
+  { name: "M3 ridges and hollows", result: "Hollow site found; ridge site +0.4 m", detail: "The 1 m DEM does not resolve single 5 m ridges seen in the 25 cm orthophoto, so the layer captures larger structure only.", tag: "DERIVED" },
+  { name: "Suit walking cost, k_g", result: "0.78, fit error 1.1%", detail: "Fitted to NASA/TM-2010-216138 Fig. 10 (suited, 0.32 g, the level closest to Mars).", tag: "DERIVED" },
+];
+
 const PENDING = [
-  { kind: "Optical", name: "HiRISE 25 cm orthophoto", who: "Sahaj, bundle" },
   { kind: "Spectral", name: "CRISM hydrated minerals", who: "Sahaj, bundle" },
   { kind: "Thermal", name: "THEMIS thermal inertia", who: "Sahaj, bundle" },
   { kind: "Geophysical", name: "USGS geologic units", who: "Sahaj, bundle" },
@@ -80,8 +89,20 @@ export function LayerDrawer() {
           </section>
         ))}
         <ReconstructionGroup />
+        {!synthetic && (
+          <section className="layer-group">
+            <h3>Validation</h3>
+            {VALIDATION.map((v) => (
+              <div key={v.name} className="valid-row">
+                <span className="valid-top"><span className="layer-name">{v.name}</span><Tag t={v.tag} /></span>
+                <b className="valid-result">{v.result}</b>
+                <span className="layer-source">{v.detail}</span>
+              </div>
+            ))}
+          </section>
+        )}
         <section className="layer-group pending">
-          <h3>Arriving with the real bundle</h3>
+          <h3>Not yet in the bundle</h3>
           {PENDING.map((p) => (
             <div key={p.name} className="pending-row">
               <span className="layer-name">{p.name}</span>

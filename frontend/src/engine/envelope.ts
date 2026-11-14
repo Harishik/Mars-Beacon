@@ -15,6 +15,7 @@ export interface EnvelopeParams {
   timeBudgetS: number; timeSpentS: number;
   crew: [CrewParams, CrewParams];
   havens: [number, number][]; // [col, row]
+  p90?: boolean;              // worker only: also certify on the P90 slope for the uncertainty band
 }
 export interface EnvelopeOut {
   timeToHaven: Float32Array;  // seconds; Infinity when no path or beyond the time reach

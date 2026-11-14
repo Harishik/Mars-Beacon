@@ -95,10 +95,12 @@ export function MissionTimeline() {
         </div>
         {plan?.events.filter((e) => e.kind === "arrive").map((e, i, arr) => {
           const nextT = arr[i + 1]?.t ?? Infinity;
-          const roomy = (nextT - e.t) / total > 0.16;
+          // Label runs right from the marker and stops before the next one.
+          const gap = Math.min(nextT, total) - e.t;
+          const roomy = gap / total > 0.07;
           return (
             <span key={e.stop} className="tl-marker" style={{ left: pct(e.t) }} title={name(e.stop)}>
-              <i>{stopIdx.get(e.stop)}</i>{roomy && <span>{name(e.stop)}</span>}
+              <i>{stopIdx.get(e.stop)}</i>{roomy && <span style={{ maxWidth: `calc(${((gap / total) * 100).toFixed(2)}cqw - 26px)` }}>{name(e.stop).split(",")[0]}</span>}
             </span>
           );
         })}

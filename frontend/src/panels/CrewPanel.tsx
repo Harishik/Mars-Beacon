@@ -32,7 +32,10 @@ export function CrewPanel() {
           <p className="no-return">No verified return path from the crew's position. Reduce load, restore pace or bring the rover closer.</p>
         ) : (
           <>
-            <Reading label="Reachable and returnable" value={areaKm2.toFixed(2)} unit="km²" tag="DERIVED" />
+            <div>
+              <Reading label="Reachable and returnable" value={areaKm2.toFixed(2)} unit="km²" tag="DERIVED" />
+              {env.insideP90 && <span className="p90-note" title="Same certification on the 90th percentile slope from 16 DEM realisations. The striped amber band is the difference.">{((env.p90Cells * cell * cell) / 1e6).toFixed(2)} km² on P90 slopes</span>}
+            </div>
             <Reading label="EVA time left" value={fmtMin(tBudget - tSpent)} unit="min" tag="SCENARIO" />
             <Reading label="Dose this EVA" value={dose.toFixed(2)} unit="mSv" tag={storm ? "SCENARIO" : "HISTORICAL"} />
           </>

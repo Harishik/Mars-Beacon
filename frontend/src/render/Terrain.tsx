@@ -192,7 +192,7 @@ const frag = /* glsl */ `
 
     // Return Envelope: margin field from the worker. Boundary at 0.5.
     if (uShowEnvelope > 0.5 && uHasMargin > 0.5) {
-      vec2 mt = texture2D(uMargin, vUv).rg;
+      vec3 mt = texture2D(uMargin, vUv).rgb;
       float m = mt.r * 2.0 - 1.0;                           // -1..1
       float nogo = smoothstep(0.35, 0.65, mt.g);           // steep ground: an obstacle, not 'outside'
       float threshold = 1.0 - uReveal;                      // grows outward on reveal
@@ -216,6 +216,10 @@ const frag = /* glsl */ `
       float pulse = 0.85 + 0.15 * sin(uTime * 1.6);
       col += home * glow * 0.18 * step(-0.95, m);
       col = mix(col, vec3(0.82, 0.91, 1.0), edge * pulse * step(-0.95, m));
+      // Uncertainty band: returnable on the median slope but not on the P90 slope. Amber stripes.
+      float band = smoothstep(0.35, 0.65, mt.b) * inside;
+      float stripe = step(0.55, fract((vWorld.x + vWorld.z) / 4.0));
+      col = mix(col, vec3(0.89, 0.68, 0.43), band * (0.22 + 0.28 * stripe) * uReveal);
     }
 
     // Distance haze.
@@ -232,8 +236,8 @@ const frag = /* glsl */ `
 // Display copy of the margin field. Small blocked cells (steep ridge flanks)
 // take the best neighbouring value so they do not each get an outline; the
 // slope layer shows them. The engine's own inside/outside result is unchanged.
-function marginToTexture(margin: Float32Array, slope: Float32Array, limit: number, cols: number, rows: number, tex?: THREE.DataTexture) {
-  const data = (tex?.image.data as Uint8Array | undefined) ?? new Uint8Array(cols * rows * 2);
+function marginToTexture(margin: Float32Array, slope: Float32Array, limit: number, cols: number, rows: number, tex?: THREE.DataTexture, insideP90?: Uint8Array | null) {
+  const data = (tex?.image.data as Uint8Array | undefined) ?? new Uint8Array(cols * rows * 4);
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
     const i = r * cols + c;
     let m = margin[i];
@@ -249,11 +253,14 @@ function marginToTexture(margin: Float32Array, slope: Float32Array, limit: numbe
       m = best;
     }
     m = Math.max(-1, Math.min(1, m));
-    data[2 * i] = Math.round((m * 0.5 + 0.5) * 255);
-    data[2 * i + 1] = nogo ? 255 : 0;
+    data[4 * i] = Math.round((m * 0.5 + 0.5) * 255);
+    data[4 * i + 1] = nogo ? 255 : 0;
+    // B: inside the median envelope but not certified on the P90 slope (uncertainty band).
+    data[4 * i + 2] = insideP90 && !nogo && margin[i] >= 0 && !insideP90[i] ? 255 : 0;
+    data[4 * i + 3] = 255;
   }
   if (tex) { tex.needsUpdate = true; return tex; }
-  const t = new THREE.DataTexture(data, cols, rows, THREE.RGFormat, THREE.UnsignedByteType);
+  const t = new THREE.DataTexture(data, cols, rows, THREE.RGBAFormat, THREE.UnsignedByteType);
   t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter;
   t.unpackAlignment = 1; // rows are 750 bytes, not a multiple of 4
   t.flipY = false; t.needsUpdate = true;
@@ -413,7 +420,7 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
   useEffect(() => {
     const m = useStore.getState().envelope.margin;
     if (!m) return;
-    marginTex.current = marginToTexture(m, slopeDeg, useStore.getState().slopeLimitDeg, cols, rows, marginTex.current ?? undefined);
+    marginTex.current = marginToTexture(m, slopeDeg, useStore.getState().slopeLimitDeg, cols, rows, marginTex.current ?? undefined, useStore.getState().envelope.insideP90);
     material.uniforms.uMargin.value = marginTex.current;
     material.uniforms.uHasMargin.value = 1;
   }, [envelopeVersion, cols, rows, material, slopeDeg]);

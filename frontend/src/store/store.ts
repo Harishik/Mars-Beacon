@@ -16,6 +16,8 @@ export interface EnvelopeState {
   o2B: Float32Array | null;
   ms: number;
   insideCells: number;
+  insideP90: Uint8Array | null; // certified on the P90 slope too (null: not computed, e.g. while playing)
+  p90Cells: number;
   computing: boolean;
   version: number;
 }
@@ -78,7 +80,7 @@ export const useStore = create<State>((set) => ({
     { label: "EV2", loadKg: 104, fMob: 1, o2BudgetG: 1000, o2SpentG: 0 },
   ],
   roverActive: false,
-  envelope: { margin: null, timeToHaven: null, parent: null, o2A: null, o2B: null, ms: 0, insideCells: 0, computing: false, version: 0 },
+  envelope: { margin: null, timeToHaven: null, parent: null, o2A: null, o2B: null, ms: 0, insideCells: 0, insideP90: null, p90Cells: 0, computing: false, version: 0 },
   cursor: null,
   selected: null,
   panel: "mission",
