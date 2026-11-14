@@ -1,0 +1,48 @@
+/* Mars BEACON design tokens. Rationale in docs/design/Design_System.md.
+   Colour carries meaning: blue = the way home (Mars sunset glow),
+   butterscotch = sun and time (Mars daytime sky), flare = hazard only. */
+:root {
+  /* Ground: the blue hour after a Martian sunset */
+  --night: #0a1322;
+  --dusk: #101d33;
+  --dusk-2: #172843;
+  --line: rgba(173, 201, 236, 0.14);
+  --line-strong: rgba(173, 201, 236, 0.28);
+  --glass: rgba(12, 22, 40, 0.72);
+
+  /* Meaning */
+  --home: #8fbcf0;          /* Return Envelope, primary actions */
+  --home-deep: #3f74b8;
+  --sun: #e2ad6e;           /* time, sun, illumination */
+  --regolith: #b8673d;      /* terrain accent, used rarely in UI */
+  --flare: #ff7357;         /* hazards, storm, no-go: nothing else */
+  --crew-a: #6fd6e6;
+  --crew-b: #f4c552;
+
+  /* Text */
+  --dust: #ece5d8;
+  --dust-2: #b9b3a8;
+  --dust-3: #7f8797;
+
+  /* Provenance tag colours */
+  --tag-observed: #8fbcf0;
+  --tag-derived: #b5a6f2;
+  --tag-historical: #c9b18a;
+  --tag-predicted: #e2ad6e;
+  --tag-scenario: #ff9b84;
+  --tag-assumption: #9aa3b5;
+
+  /* Type: one family, Archivo, using its width axis for hierarchy */
+  --font: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2.25rem;
+  --step-4: clamp(2.6rem, 6vw, 5.25rem);
+
+  --r-s: 6px;
+  --r-m: 12px;
+  --r-l: 20px;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
