@@ -76,10 +76,10 @@ export function TimeBar() {
   );
 }
 
-const VIEWS: { id: View; label: string; hint: string }[] = [
-  { id: "console", label: "Habitat console", hint: "Full 3D map and analysis" },
-  { id: "tablet", label: "Field tablet", hint: "Top-down map for walking crew" },
-  { id: "hud", label: "Helmet display", hint: "First-person view at eye height" },
+const VIEWS: { id: View; label: string; short: string; hint: string }[] = [
+  { id: "console", label: "Habitat console", short: "Console", hint: "Full 3D map and analysis" },
+  { id: "tablet", label: "Field tablet", short: "Tablet", hint: "Top-down map for walking crew" },
+  { id: "hud", label: "Helmet display", short: "Helmet", hint: "First-person view at eye height" },
 ];
 
 export function ViewSwitch() {
@@ -88,7 +88,7 @@ export function ViewSwitch() {
   return (
     <div className="viewswitch" role="tablist" aria-label="Display">
       {VIEWS.map((v) => (
-        <button key={v.id} role="tab" aria-selected={view === v.id} title={v.hint} onClick={() => set({ view: v.id })}>{v.label}</button>
+        <button key={v.id} role="tab" aria-selected={view === v.id} title={v.hint} onClick={() => set({ view: v.id })}><span className="vs-long">{v.label}</span><span className="vs-short">{v.short}</span></button>
       ))}
     </div>
   );
