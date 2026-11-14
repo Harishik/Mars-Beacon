@@ -1,0 +1,65 @@
+# Backend API contract (draft). Owner: Naomi. Frozen after the 21:15 team meeting.
+openapi: 3.1.0
+info:
+  title: Mars BEACON API
+  version: 0.1.0
+paths:
+  /health:
+    get: { summary: Service status, responses: { "200": { description: "{ status, version }" } } }
+  /sites:
+    get: { summary: List sites, responses: { "200": { description: "[{ siteId, name, manifestUrl }]" } } }
+  /sites/{siteId}/manifest:
+    get:
+      summary: Site manifest (see contracts/site_manifest.example.json)
+      parameters: [ { name: siteId, in: path, required: true, schema: { type: string } } ]
+      responses: { "200": { description: Manifest JSON } }
+  /sites/{siteId}/targets:
+    get:
+      summary: Science targets as GeoJSON
+      parameters: [ { name: siteId, in: path, required: true, schema: { type: string } } ]
+      responses: { "200": { description: GeoJSON FeatureCollection } }
+  /datasets:
+    get: { summary: Provenance registry, responses: { "200": { description: "[{ id, name, mission, instrument, productId, resolutionM, acquired, licence, credit, url, tag }]" } } }
+  /conditions:
+    get:
+      summary: Mars24 time and sun for a site and UTC, plus REMS band and light-time
+      parameters:
+        - { name: site, in: query, required: true, schema: { type: string } }
+        - { name: utc, in: query, required: true, schema: { type: string, format: date-time } }
+      responses: { "200": { description: "{ lmst, ltst, ls, sunElevDeg, sunAzDeg, lightTimeS, remsBand, tags }" } }
+  /spaceweather:
+    get:
+      summary: DONKI events (cached)
+      parameters:
+        - { name: kind, in: query, schema: { type: string, enum: [CME, FLR, SEP, notifications] } }
+        - { name: start, in: query, schema: { type: string, format: date } }
+        - { name: end, in: query, schema: { type: string, format: date } }
+      responses: { "200": { description: "{ events: [...], cached: bool, fetchedAt }" } }
+  /rover-images:
+    get:
+      summary: Rover images near a point or sol
+      parameters:
+        - { name: site, in: query, required: true, schema: { type: string } }
+        - { name: near, in: query, schema: { type: string, description: "x,y in site metres" } }
+        - { name: radius, in: query, schema: { type: number } }
+        - { name: sol, in: query, schema: { type: integer } }
+      responses: { "200": { description: "[{ id, mission, instrument, sol, x, y, z, headingDeg, pitchDeg, url, credit }]" } }
+  /plans:
+    post: { summary: Save a plan (MissionState subset), responses: { "201": { description: "{ shareId }" } } }
+  /plans/{shareId}:
+    get:
+      summary: Load a shared plan
+      parameters: [ { name: shareId, in: path, required: true, schema: { type: string } } ]
+      responses: { "200": { description: Plan JSON } }
+  /jobs/generate-site:
+    post: { summary: Start a Site Generator job (L0 only), responses: { "202": { description: "{ jobId }" } } }
+  /jobs/{jobId}:
+    get:
+      summary: Job status
+      parameters: [ { name: jobId, in: path, required: true, schema: { type: string } } ]
+      responses: { "200": { description: "{ status, log, resultSiteId }" } }
+  /trek/layers:
+    get:
+      summary: Mars Trek WMTS endpoints for the regional inset
+      parameters: [ { name: site, in: query, required: true, schema: { type: string } } ]
+      responses: { "200": { description: "[{ name, wmtsUrl, attribution }]" } }
