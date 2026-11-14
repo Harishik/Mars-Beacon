@@ -20,7 +20,7 @@ export function useEngine() {
       const d = e.data;
       if (d.type !== "envelope" || d.id !== reqId.current) return;
       useStore.getState().setEnvelope({
-        margin: d.margin, timeToHaven: d.timeToHaven, ms: d.ms, insideCells: d.insideCells,
+        margin: d.margin, timeToHaven: d.timeToHaven, parent: d.parent, o2A: d.o2A, o2B: d.o2B, ms: d.ms, insideCells: d.insideCells,
         computing: false, version: d.id,
       });
     };

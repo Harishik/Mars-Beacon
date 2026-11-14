@@ -10,6 +10,26 @@ const STEPS = [
   { title: "Carry it outside", body: "The same mission state drives the habitat console, a field tablet and a helmet display, and updates when pace, load, the rover or space weather change." },
 ];
 
+const LINEAGE = [
+  ["Apollo lunar traverse maps", "Planned stops on photo maps, with a walk-back limit on how far the crew could go from the lunar module.", "We replace the fixed distance limit with a boundary computed from terrain, suits, pace and consumables."],
+  ["NASA Worldview (Earth)", "A time slider and a layer drawer over daily satellite imagery, with shareable views.", "Our layer drawer and time bar follow the same pattern."],
+  ["JPL Mars Trek", "Global and regional Mars layers in the browser.", "Trek works at regional scale; we go to the few square kilometres of one Marswalk."],
+  ["Artemis surface planning", "Walk-back distance limits and paired crew operations for the lunar south pole.", "Two-person crew rules and a moving rover haven are built into the engine."],
+];
+
+const BRIEF = [
+  ["Map, tool or interface a Mars astronaut could use", "Habitat console, field tablet and helmet display from one mission state"],
+  ["Start from science goals and a location", "Ridge against hollow in the Mount Sharp boxwork, where Curiosity worked in 2025"],
+  ["Details of routes and destinations", "Every stop shows whether it is reachable now, the route home and the time to turn back"],
+  ["Updates on current conditions", "Sun and shadows by local solar time, radiation dose, space weather feed"],
+  ["At least three kinds of data", "Seven: topographic, optical, spectral, thermal, geophysical, atmospheric, radiation"],
+  ["Astronaut safety, radiation, space weather", "The Return Envelope; storm shelter scenario; RAD and DONKI context"],
+  ["Suits and equipment affect mobility", "Suit load and pace change speed, oxygen use and the envelope live"],
+  ["Avoid large rock formations", "Steep ground and buttes are no-go; routes go around them"],
+  ["Rovers or paired astronauts", "Park the rover to add a second haven; the pair walks at the slower member's pace"],
+  ["Look at how other worlds were mapped", "Lineage from Apollo, Worldview, Mars Trek and Artemis planning"],
+];
+
 const DATA = [
   ["Topographic", "MRO HiRISE 1 m elevation model (USGS merged DEM)"],
   ["Optical", "MRO HiRISE 25 cm orthophoto"],
@@ -100,6 +120,31 @@ export function Landing() {
           <dl className="data-list">
             {DATA.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
           </dl>
+        </div>
+      </section>
+
+      <section className="band lineage">
+        <div className="wrap">
+          <h2 className="section-title">Built on how NASA mapped other worlds</h2>
+          <div className="lineage-list">
+            {LINEAGE.map(([name, what, ours]) => (
+              <div key={name} className="lineage-row">
+                <h3>{name}</h3>
+                <p>{what}</p>
+                <p className="ours">{ours}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="band brief">
+        <div className="wrap">
+          <h2 className="section-title">What the challenge asks, and where it is in Mars BEACON</h2>
+          <table className="brief-table">
+            <thead><tr><th scope="col">From the challenge</th><th scope="col">In the app</th></tr></thead>
+            <tbody>{BRIEF.map(([a, b]) => <tr key={a}><td>{a}</td><td>{b}</td></tr>)}</tbody>
+          </table>
         </div>
       </section>
 

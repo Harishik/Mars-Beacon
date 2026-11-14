@@ -42,7 +42,8 @@ export function InstrumentStrip() {
       ) : (
         <span className="hint">Point at the terrain to read elevation, slope and walk-home time</span>
       )}
-      <span className="strip-right"><i>Frame</i> local ENU, 4 m grid</span>
+      <span className="strip-right" title="Curiosity RAD surface average, Hassler et al., Science 2014"><i>Radiation</i> 0.21 mGy/day <Tag t="HISTORICAL" /></span>
+      <span title="Live DONKI space weather arrives with the backend"><i>Space weather</i> feed not connected</span>
     </div>
   );
 }
@@ -96,6 +97,7 @@ export function ViewSwitch() {
 
 export function HudOverlay() {
   const crew = useStore((s) => s.crew);
+  const selected = useStore((s) => s.selected);
   const tLeft = useStore((s) => s.timeBudgetS - s.timeSpentS);
   const tBudget = useStore((s) => s.timeBudgetS);
   const arc = (frac: number, r: number) => {
@@ -118,7 +120,7 @@ export function HudOverlay() {
       </svg>
       <div className="hud-read hud-read-left"><b>{Math.round(crew[0].o2BudgetG - crew[0].o2SpentG)}</b> g O₂</div>
       <div className="hud-read hud-read-right"><b>{Math.round(tLeft / 60)}</b> min left</div>
-      <div className="hud-next">Next stop: Ridge A. The blue line on the ground is the edge of safe return.</div>
+      <div className="hud-next">{selected?.label ? `Next stop: ${selected.label}.` : "No stop selected."} The blue line on the ground is the edge of safe return.</div>
     </div>
   );
 }
