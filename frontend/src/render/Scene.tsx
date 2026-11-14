@@ -11,6 +11,7 @@ import { Terrain } from "./Terrain";
 import { Sky } from "./Sky";
 import { Surroundings } from "./Surroundings";
 import { RouteHome } from "./RouteHome";
+import { PlanRoute } from "./PlanRoute";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
 type Mode = "hero" | View;
@@ -52,6 +53,7 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
   const m = bundle.manifest;
   const hab = m.havens.find((h) => h.type === "habitat")!;
   const habP = useMemo(() => toScene(bundle, hab.x, hab.y), [bundle, hab.x, hab.y]);
+  const livePos = useStore((s) => s.crewPos);
   const goal = m.targets.find((t) => t.type === "ridge") ?? m.targets[0];
   const goalP = useMemo(() => toScene(bundle, goal.x, goal.y), [bundle, goal.x, goal.y]);
 
@@ -63,10 +65,14 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       c?.target.set(0, 0, 0);
       cam.fov = 40;
     } else if (mode === "hud") {
-      const dir = goalP.clone().sub(habP).setY(0).normalize();
-      const eye = toScene(bundle, hab.x + dir.x * 40, hab.y - dir.z * 40, 1.7);
+      // EV1's eye, 1.7 m above the ground, looking along the walking direction.
+      const h = livePos ? (livePos.heading * Math.PI) / 180 : Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
+      const dx = Math.sin(h), dy = Math.cos(h);
+      const bx = livePos ? livePos.x + Math.cos(h) * 1.5 : hab.x + dx * 30, by = livePos ? livePos.y - Math.sin(h) * 1.5 : hab.y + dy * 30;
+      const eye = toScene(bundle, bx, by, 1.7);
+      const ahead = toScene(bundle, bx + dx * 40, by + dy * 40, 1.7);
       cam.position.copy(eye);
-      c?.target.copy(eye.clone().add(dir.multiplyScalar(0.5)));
+      c?.target.copy(eye.clone().add(ahead.sub(eye).normalize().multiplyScalar(0.5)));
       cam.fov = 70;
     } else if (mode === "hero") {
       cam.position.set(habP.x - 900, habP.y + 520, habP.z + 1250);
@@ -80,7 +86,7 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
     cam.near = mode === "hud" ? 0.1 : 1;
     cam.updateProjectionMatrix();
     c?.update();
-  }, [mode, camera, habP, goalP, bundle, hab.x, hab.y]);
+  }, [mode, camera, habP, goalP, bundle, hab.x, hab.y, mode === "hud" ? livePos : null]);
 
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
@@ -117,6 +123,13 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
     return [toScene(bundle, hab.x + ux * 60 - uy * 2, hab.y + uy * 60 + ux * 2), toScene(bundle, hab.x + ux * 57 + uy * 2, hab.y + uy * 57 - ux * 2)];
   }, [bundle, goal.x, goal.y, hab.x, hab.y]);
   const habP = useMemo(() => toScene(bundle, hab.x, hab.y), [bundle, hab.x, hab.y]);
+  const livePos = useStore((s) => s.crewPos);
+  const crewAt = useMemo(() => {
+    if (!livePos) return null;
+    // Side by side, 3 m apart, across the walking direction.
+    const h = (livePos.heading * Math.PI) / 180, px = Math.cos(h) * 1.5, py = -Math.sin(h) * 1.5;
+    return [toScene(bundle, livePos.x + px, livePos.y + py), toScene(bundle, livePos.x - px, livePos.y - py)];
+  }, [bundle, livePos]);
 
   const onClick = (e: { point: THREE.Vector3; delta: number }) => {
     if (mode === "hero" || mode === "hud" || e.delta > 6) return; // ignore drags
@@ -137,10 +150,11 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       </group>
       {showHavens && <Habitat position={habP} />}
       {showHavens && rover && <Rover bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
-      <Astronaut position={crewPos[0]} color="#6fd6e6" />
-      <Astronaut position={crewPos[1]} color="#f4c552" phase={1.4} />
+      {mode !== "hud" && <Astronaut position={(crewAt ?? crewPos)[0]} color="#6fd6e6" />}
+      <Astronaut position={(crewAt ?? crewPos)[1]} color="#f4c552" phase={1.4} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
-      {mode !== "hero" && <RouteHome bundle={bundle} />}
+      {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
+      {mode !== "hero" && <PlanRoute bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
       <FirstFrame />
     </>

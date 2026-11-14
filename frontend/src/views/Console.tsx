@@ -2,7 +2,8 @@ import { useStore } from "../store/store";
 import { Scene } from "../render/Scene";
 import { LayerDrawer } from "../panels/LayerDrawer";
 import { CrewPanel } from "../panels/CrewPanel";
-import { HudOverlay, InstrumentStrip, TimeBar, ViewSwitch } from "../panels/Chrome";
+import { HudOverlay, InstrumentStrip, ViewSwitch } from "../panels/Chrome";
+import { MissionTimeline, PlanCharts } from "../panels/Plan";
 import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
 import { VERT_EXAG } from "../render/Terrain";
@@ -29,9 +30,10 @@ export function Console() {
       {view !== "hud" && <LayerDrawer />}
       {view !== "hud" && <CrewPanel />}
       {view === "hud" && <HudOverlay />}
-      <TimeBar />
+      <MissionTimeline />
+      {view === "console" && <PlanCharts />}
       <Ledger />
-      {view === "console" && (
+      {false && (
         <div className="legend" aria-hidden>
           <span><i className="lg-home" /> Edge of safe return</span>
           <span><i className="lg-dim" /> Outside: no certified way home</span>

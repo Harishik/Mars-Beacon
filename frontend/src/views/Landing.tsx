@@ -46,7 +46,7 @@ export function Landing() {
   // blue glow Mars shows around a low sun.
   useEffect(() => {
     useStore.getState().set({ lmstHours: 7.5 });
-    return () => useStore.getState().set({ lmstHours: 15.6 });
+    return () => useStore.getState().set({ lmstHours: useStore.getState().evaStartLmst });
   }, []);
   return (
     <div className="landing">

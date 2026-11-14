@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
 import { reportAt, type PointReport } from "../engine/query";
 import { Tag } from "./Tag";
+import { PlanCards } from "./Plan";
 
 const TYPE_LABEL = { ridge: "Ridge", hollow: "Hollow", drill: "Drill site" } as const;
 const WHY = {
@@ -89,6 +90,10 @@ export function MissionPanel() {
         <h3>Science objective</h3>
         <p>Sample one boxwork ridge and the hollow beside it, to test whether mineral-rich groundwater cemented the ridges.</p>
         <span className="obj-src">Follows Curiosity's 2025 to 2026 boxwork campaign <Tag t="HISTORICAL" /></span>
+      </section>
+      <section>
+        <h3 className="list-h">EVA plan</h3>
+        <PlanCards />
       </section>
       <SelectedCard />
       <section>

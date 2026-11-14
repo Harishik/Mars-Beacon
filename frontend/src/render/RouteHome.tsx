@@ -7,7 +7,7 @@ import type { SiteBundle } from "../data/bundle";
 import { toScene } from "./Assets";
 
 /** The certified route home from the selected point, drawn on the ground, plus a marker. */
-export function RouteHome({ bundle }: { bundle: SiteBundle }) {
+export function RouteHome({ bundle, marker = true }: { bundle: SiteBundle; marker?: boolean }) {
   const s = useStore(useShallow((st) => ({
     selected: st.selected, envelope: st.envelope, timeSpentS: st.timeSpentS, timeBudgetS: st.timeBudgetS, reserveM: st.reserveM, crew: st.crew,
   })));
@@ -32,7 +32,7 @@ export function RouteHome({ bundle }: { bundle: SiteBundle }) {
           <Line points={data.pts} color={col} lineWidth={2.5} dashed dashSize={14} gapSize={7} />
         </>
       )}
-      <group position={p}>
+      {marker && <group position={p}>
         <mesh position={[0, 9, 0]}>
           <cylinderGeometry args={[0.4, 0.4, 18, 6]} />
           <meshBasicMaterial color={col} />
@@ -41,7 +41,7 @@ export function RouteHome({ bundle }: { bundle: SiteBundle }) {
           <ringGeometry args={[7, 9, 40]} />
           <meshBasicMaterial color={col} transparent opacity={0.85} />
         </mesh>
-      </group>
+      </group>}
     </group>
   );
 }

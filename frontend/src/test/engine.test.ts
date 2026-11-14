@@ -79,3 +79,26 @@ describe("environment", () => {
     expect(evaDoseMsv(88775.2)).toBeCloseTo(0.66, 1);
   });
 });
+
+import { planEVA } from "../engine/planner";
+describe("planner", () => {
+  it("flat grid: plans stay inside budgets and max science visits more stops", () => {
+    const n = 101, h = new Float32Array(n * n), s = new Float32Array(n * n);
+    const plans = planEVA(h, s, {
+      cols: n, rows: n, cellM: 4, slopeLimitDeg: 20, v0: 0.7, kG: 0.76, mRestW: 100, bodyMassKg: 80, reserveM: 0.25,
+      timeBudgetS: 3600, o2BudgetG: [400, 400], fMob: [1, 1], loadKg: [104, 104], workPowerW: 250, dwellS: 600,
+      home: [50, 50], stops: [
+        { id: "a", cell: [60, 50], science: 1 }, { id: "b", cell: [50, 62], science: 1 }, { id: "c", cell: [95, 95], science: 1 },
+      ],
+    });
+    expect(plans.length).toBe(3);
+    const sci = plans.find((p) => p.id === "maxScience")!;
+    expect(sci.order.length).toBeGreaterThanOrEqual(2);
+    for (const p of plans) {
+      expect(p.minMargin).toBeGreaterThanOrEqual(0);
+      expect(p.totalS).toBeLessThanOrEqual(3600);
+      expect(p.events[0].kind).toBe("depart");
+      expect(p.events[p.events.length - 1].kind).toBe("return");
+    }
+  });
+});

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useStore } from "../store/store";
 import { loadSite } from "../data/bundle";
 import { useEngine } from "../engine/useEngine";
+import { useMission } from "../engine/useMission";
 import { anim } from "../render/Terrain";
 import { Landing } from "../views/Landing";
 import { Console } from "../views/Console";
@@ -21,6 +22,7 @@ export function App() {
   const bundle = useStore((s) => s.bundle);
   const error = useStore((s) => s.loadError);
   useEngine();
+  useMission();
 
   useEffect(() => {
     loadSite().then((b) => useStore.getState().setBundle(b)).catch((e: Error) => useStore.getState().setError(e.message));

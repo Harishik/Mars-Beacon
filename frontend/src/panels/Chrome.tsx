@@ -1,5 +1,7 @@
 // Instrument strip, time bar, view switch, HUD overlay and tablet cards.
 import { useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { reportAt } from "../engine/query";
 import { useStore, type View } from "../store/store";
 import { sampleHeight, toCell } from "../data/bundle";
 import { formatLmst, sunAt } from "../engine/sun";
@@ -111,7 +113,20 @@ export function ViewSwitch() {
 
 export function HudOverlay() {
   const crew = useStore((s) => s.crew);
-  const selected = useStore((s) => s.selected);
+  const nav = useStore(useShallow((s) => {
+    const plan = s.plans.find((p) => p.id === s.activePlan) ?? s.plans[0];
+    const pos = s.crewPos;
+    if (!plan || !pos || !s.bundle) return null;
+    const next = plan.events.find((e) => e.kind === "arrive" && e.t > s.playheadS);
+    const tgt = next ? s.bundle.manifest.targets.find((t) => t.id === next.stop) : null;
+    const hab = s.bundle.manifest.havens.find((h) => h.type === "habitat")!;
+    const goal = tgt ?? { name: "Habitat airlock", x: hab.x, y: hab.y };
+    const dx = goal.x - pos.x, dy = goal.y - pos.y;
+    const bearing = ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
+    const rel = ((bearing - pos.heading + 540) % 360) - 180;
+    const r = reportAt(s.bundle, s, pos.x, pos.y);
+    return { name: goal.name, dist: Math.hypot(dx, dy), rel, stay: r?.stayMin ?? null, limit: r?.limitedBy ?? "" };
+  }));
   const tLeft = useStore((s) => s.timeBudgetS - s.timeSpentS);
   const tBudget = useStore((s) => s.timeBudgetS);
   const arc = (frac: number, r: number) => {
@@ -123,9 +138,7 @@ export function HudOverlay() {
   return (
     <div className="hud" aria-label="Helmet display overlay">
       <div className="hud-horizon" />
-      <div className="hud-heading" aria-hidden>
-        {["W", "NW", "N", "NE", "E"].map((d) => <span key={d}>{d}</span>)}
-      </div>
+      <Compass />
       <svg className="hud-arcs hud-left" viewBox="0 0 200 110" aria-hidden>
         <path d={arc(1, 80)} className="track" /><path d={arc(o2, 80)} className="o2" />
       </svg>
@@ -134,7 +147,40 @@ export function HudOverlay() {
       </svg>
       <div className="hud-read hud-read-left"><b>{Math.round(crew[0].o2BudgetG - crew[0].o2SpentG)}</b> g O₂</div>
       <div className="hud-read hud-read-right"><b>{Math.round(tLeft / 60)}</b> min left</div>
-      <div className="hud-next">{selected?.label ? `Next stop: ${selected.label}.` : "No stop selected."} The blue line on the ground is the edge of safe return.</div>
+      {nav ? (
+        <>
+          <div className="hud-next">
+            <span className="hud-chev" style={{ transform: `rotate(${nav.rel}deg)` }} aria-hidden>▲</span>
+            Next: <b>{nav.name}</b>, {nav.dist < 1000 ? `${Math.round(nav.dist)} m` : `${(nav.dist / 1000).toFixed(2)} km`}
+          </div>
+          {nav.stay !== null && (
+            <div className={`hud-turn ${nav.stay < 10 ? "tight" : ""} ${nav.stay < 0 ? "bad" : ""}`}>
+              {nav.stay < 0 ? "Turn back now" : <>Turn back within <b>{Math.floor(nav.stay)}</b> min</>}
+              <small>limited by {nav.limit}</small>
+            </div>
+          )}
+        </>
+      ) : <div className="hud-next">Choose a plan to see the next waypoint.</div>}
+    </div>
+  );
+}
+
+/** Heading tape for the helmet display, centred on the crew's walking direction. */
+function Compass() {
+  const heading = useStore((s) => s.crewPos?.heading ?? 0);
+  const h = (heading + 360) % 360;
+  const marks = [] as { deg: number; label: string }[];
+  const names: Record<number, string> = { 0: "N", 45: "NE", 90: "E", 135: "SE", 180: "S", 225: "SW", 270: "W", 315: "NW" };
+  for (let d = Math.floor((h - 60) / 15) * 15; d <= h + 60; d += 15) {
+    const n = ((d % 360) + 360) % 360;
+    marks.push({ deg: d, label: names[n] ?? String(n).padStart(3, "0") });
+  }
+  return (
+    <div className="hud-compass" aria-label={`Heading ${Math.round(h)} degrees`}>
+      {marks.map((m) => (
+        <span key={m.deg} style={{ left: `${50 + ((m.deg - h) / 120) * 100}%` }} className={m.label.length <= 2 ? "card" : ""}>{m.label}</span>
+      ))}
+      <b>{String(Math.round(h)).padStart(3, "0")}°</b>
     </div>
   );
 }
