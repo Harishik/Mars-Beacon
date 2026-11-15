@@ -21,10 +21,11 @@ import { VisorAnchors } from "./VisorAnchors";
 import { Patches } from "./Patches";
 import { TargetPins, toScene } from "./Assets";
 import { CrewPair } from "./Crew";
+import { StoryCamera } from "./StoryCamera";
 import { liveCrewPose, isLive } from "../engine/useMission";
 import { meshHeightAt, VERT_EXAG as EXAG } from "./Terrain";
 
-type Mode = "hero" | View;
+type Mode = "hero" | "story" | View;
 
 function Lights({ lat }: { lat: number }) {
   const sun = useRef<THREE.DirectionalLight>(null);
@@ -214,8 +215,10 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   }, [bundle, goal.x, goal.y, hab.x, hab.y]);
   const habP = useMemo(() => toScene(bundle, hab.x, hab.y), [bundle, hab.x, hab.y]);
 
+  const storyChapter = useStore((s) => s.storyChapter);
   const onClick = (e: { point: THREE.Vector3; delta: number }) => {
     if (mode === "hero" || mode === "hud" || mode === "rover" || mode === "eva" || e.delta > 6) return; // ignore drags
+    if (mode === "story" && storyChapter !== 4) return; // on the landing page only the "pick a point" chapter
     useStore.getState().set({ selected: { x: e.point.x, y: -e.point.z } });
   };
   const onMove = (e: { point: THREE.Vector3 }) => {
@@ -238,12 +241,12 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       {showHavens && rover && mode !== "rover" && <RoverModel bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
       <CrewPair bundle={bundle} standby={crewPos} showEv1={mode !== "hud"} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
-      {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
+      {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud" && mode !== "story"} />}
       {(mode === "hud" || mode === "eva") && <VisorPath bundle={bundle} />}
       {(mode === "hud" || mode === "eva") && <VisorAnchors />}
-      {mode !== "hero" && mode !== "hud" && mode !== "eva" && <PlanRoute bundle={bundle} />}
+      {mode !== "hero" && mode !== "hud" && mode !== "eva" && (mode !== "story" || storyChapter >= 5) && <PlanRoute bundle={bundle} />}
       {mode !== "hero" && <CuriosityTraverse bundle={bundle} />}
-      <CameraRig mode={mode} bundle={bundle} />
+      {mode === "story" ? <StoryCamera bundle={bundle} /> : <CameraRig mode={mode} bundle={bundle} />}
       {mode === "linked" && quality === "high" && <LinkedViews bundle={bundle} />}
       <FirstFrame />
     </>

@@ -292,7 +292,10 @@ const frag = /* glsl */ `
       float inside = step(threshold * 0.999, m) * step(0.0, m);
       // Derivative clamped: 8-bit plateaus give fwidth = 0, and smoothstep(0, 0, x) is undefined.
       float fw = clamp(fwidth(m), 0.0035, 0.04);
-      float edge = 1.0 - smoothstep(fw * 0.6, fw * 2.0, abs(m - max(threshold, 0.0)));
+      // Wider at site scale so the boundary still reads as a line from kilometres away.
+      float far = smoothstep(700.0, 3200.0, camDist);
+      float wide = 1.0 + 3.0 * far;
+      float edge = 1.0 - smoothstep(fw * 0.6 * wide, fw * 2.0 * wide, abs(m - max(threshold, 0.0)));
       float glow = 1.0 - smoothstep(0.0, fw * 12.0, abs(m - max(threshold, 0.0)));
       vec3 home = vec3(0.56, 0.74, 0.94);
       // Inside: cool tint, slightly stronger near the boundary (less margin).
@@ -302,17 +305,16 @@ const frag = /* glsl */ `
         // Eye level: natural ground; only a thin, quiet boundary line (the visor ribbon carries the route).
         col = mix(col, vec3(0.82, 0.91, 1.0), edge * 0.45 * step(-0.95, m) * (1.0 - smoothstep(60.0, 220.0, camDist)));
       } else {
-      col = mix(col, col * 0.92 + home * 0.10, inside * (0.35 + 0.4 * nearEdge));
+      col = mix(col, col * (0.92 - 0.1 * far) + home * (0.10 + 0.16 * far), inside * (0.35 + 0.4 * nearEdge + 0.25 * far));
       // Outside: dim and desaturate so the reachable ground reads first.
       float lum = dot(col, vec3(0.3, 0.59, 0.11));
       col = mix(col, vec3(lum) * 0.45, (1.0 - inside) * (1.0 - nogo) * 0.55 * uReveal);
       // No-go ground: fine diagonal hatch in hazard colour, always legible.
       float hatch = step(0.62, fract((vWorld.x - vWorld.z) / 5.0));
       col = mix(col, vec3(1.0, 0.45, 0.34), nogo * uShowSlope * (0.18 + 0.22 * hatch) * uReveal);
-      // Boundary line with a slow pulse.
-      float pulse = 0.85 + 0.15 * sin(uTime * 1.6);
-      col += home * glow * 0.18 * step(-0.95, m);
-      col = mix(col, vec3(0.82, 0.91, 1.0), edge * pulse * step(-0.95, m));
+      // Boundary line in the Return Envelope blue, with a soft halo of the same hue.
+      col += home * glow * 0.16 * step(-0.95, m);
+      col = mix(col, vec3(0.66, 0.82, 1.0), edge * step(-0.95, m));
       // Uncertainty band: returnable on the median slope but not on the P90 slope. Amber stripes.
       float band = smoothstep(0.35, 0.65, mt.b) * inside;
       float stripe = step(0.55, fract((vWorld.x + vWorld.z) / 4.0));

@@ -55,6 +55,7 @@ export interface State {
   ledger: boolean;                  // equations and assumptions sheet open
   tour: boolean;
   sceneReady: boolean;
+  storyChapter: number;             // landing page chapter in view (-1 outside the landing)
   // Shared EVA plan and timeline: every display reads the same moment of the EVA.
   plans: Plan[];
   activePlan: Plan["id"];
@@ -123,6 +124,7 @@ export const useStore = create<State>((set) => ({
   ledger: false,
   tour: false,
   sceneReady: false,
+  storyChapter: -1,
   plans: [],
   activePlan: "balanced",
   planMs: 0,
