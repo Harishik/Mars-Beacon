@@ -19,8 +19,10 @@ import { VisorPath } from "./VisorPath";
 import { HabitatModel, RoverModel } from "./Models";
 import { VisorAnchors } from "./VisorAnchors";
 import { Patches } from "./Patches";
-import { Astronaut, TargetPins, toScene } from "./Assets";
-import { liveCrewPose } from "../engine/useMission";
+import { TargetPins, toScene } from "./Assets";
+import { CrewPair } from "./Crew";
+import { liveCrewPose, isLive } from "../engine/useMission";
+import { meshHeightAt, VERT_EXAG as EXAG } from "./Terrain";
 
 type Mode = "hero" | View;
 
@@ -97,12 +99,14 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       cam.position.copy(eye);
       c?.target.copy(eye.clone().add(ahead.sub(eye).normalize().multiplyScalar(0.5)));
     } else if (mode === "eva") {
-      // Third person: 4.5 m behind and 2.4 m above EV1, looking at a point 10 m ahead of the pair.
+      // Third person: start 7 m behind and 3 m above the pair, looking at their chests. Drag to orbit, scroll to
+      // zoom; the camera then keeps that offset while it follows them (see the frame loop below).
       const h = pose ? (pose.heading * Math.PI) / 180 : Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
       const dx = Math.sin(h), dy = Math.cos(h);
       const px = pose?.x ?? hab.x + dx * 20, py = pose?.y ?? hab.y + dy * 20;
-      const eye = toScene(bundle, px - dx * 4.5, py - dy * 4.5, 2.4);
-      const look = toScene(bundle, px + dx * 10, py + dy * 10, 0.9);
+      const look = toScene(bundle, px, py, 1.25);
+      const eye = toScene(bundle, px - dx * 7, py - dy * 7, 0);
+      eye.y = Math.max(eye.y, look.y) + 3;
       cam.position.copy(eye);
       c?.target.copy(look);
     } else if (mode === "rover") {
@@ -116,11 +120,30 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       c?.target.copy(eye.clone().add(look.sub(eye).normalize().multiplyScalar(0.5)));
     }
   };
-  // While a rehearsal plays, follow the live clock every frame (the shared state updates at 20 Hz).
+  // Third person: carry the camera with the crew every frame, keeping the orbit the user dragged to, and keep it
+  // above the ground. Visor and rover cab: re-aim every frame while the crew is moving.
   useFrame(() => {
-    if (!(mode === "hud" || mode === "eva" || mode === "rover") || !useStore.getState().playing) return;
+    const c = controls.current;
+    if (mode === "eva" && c) {
+      const pose = liveCrewPose();
+      const fallbackH = Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
+      const px = pose?.x ?? hab.x + Math.sin(fallbackH) * 20, py = pose?.y ?? hab.y + Math.cos(fallbackH) * 20;
+      const want = toScene(bundle, px, py, 1.25);
+      const delta = want.sub(c.target);
+      c.target.add(delta); camera.position.add(delta);
+      const zMid = (bundle.manifest.elevation.min + bundle.manifest.elevation.max) / 2;
+      const E = bundle.manifest.grid.extentM / 2;
+      const cx = camera.position.x, cy = -camera.position.z;
+      if (Math.abs(cx) < E && Math.abs(cy) < E) {
+        const ground = (meshHeightAt(bundle, cx, cy) - zMid) * EXAG + 0.6;
+        if (camera.position.y < ground) camera.position.y = ground;
+      }
+      c.update();
+      return;
+    }
+    if (!(mode === "hud" || mode === "rover") || !isLive()) return;
     placeFollow(liveCrewPose());
-    controls.current?.update();
+    c?.update();
   });
 
   useEffect(() => {
@@ -150,7 +173,7 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
     c?.update();
     // Development only: lets automated checks frame the camera.
     if (import.meta.env.DEV) (window as unknown as { __cam?: unknown }).__cam = { cam, controls: c };
-  }, [mode, camera, habP, goalP, focus, bundle, hab.x, hab.y, mode === "hud" || mode === "eva" ? livePos : null, mode === "rover" ? (livePos ? Math.round(livePos.x / 10) * 1000 + Math.round(livePos.y / 10) : 0) : 0]);
+  }, [mode, camera, habP, goalP, focus, bundle, hab.x, hab.y, mode === "hud" ? livePos : null, mode === "rover" ? (livePos ? Math.round(livePos.x / 10) * 1000 + Math.round(livePos.y / 10) : 0) : 0]);
 
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
@@ -166,38 +189,14 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       enablePan={mode === "console" || mode === "tablet" || mode === "linked"}
       enableZoom={mode !== "hud" && mode !== "rover"}
       screenSpacePanning={mode === "tablet" || topView}
-      maxPolarAngle={mode === "hud" || mode === "rover" ? Math.PI * 0.62 : Math.PI * 0.47}
-      minDistance={mode === "hud" || mode === "rover" ? 0.1 : topView ? 25 : 60}
-      maxDistance={7000}
+      maxPolarAngle={mode === "hud" || mode === "rover" ? Math.PI * 0.62 : mode === "eva" ? Math.PI * 0.53 : Math.PI * 0.47}
+      minDistance={mode === "hud" || mode === "rover" ? 0.1 : mode === "eva" ? 2.5 : topView ? 25 : 60}
+      maxDistance={mode === "eva" ? 80 : 7000}
       rotateSpeed={mode === "hud" || mode === "rover" ? -0.35 : 0.6}
     />
   );
 }
 
-
-const ORIGIN = new THREE.Vector3();
-
-/**
- * EV1 and EV2, side by side 3 m apart across the walking direction. Placed every frame from the live mission
- * clock, so they glide during a rehearsal instead of stepping at the 20 Hz rate of the shared state.
- * `standby` is where they wait by the airlock before there is a crew position.
- */
-function CrewPair({ bundle, standby, showEv1 }: { bundle: SiteBundle; standby: THREE.Vector3[]; showEv1: boolean }) {
-  const a = useRef<THREE.Group>(null), b = useRef<THREE.Group>(null);
-  useFrame(() => {
-    const pose = liveCrewPose();
-    if (!pose) { a.current?.position.copy(standby[0]); b.current?.position.copy(standby[1]); return; }
-    const h = (pose.heading * Math.PI) / 180, px = Math.cos(h) * 1.5, py = -Math.sin(h) * 1.5;
-    a.current?.position.copy(toScene(bundle, pose.x + px, pose.y + py));
-    b.current?.position.copy(toScene(bundle, pose.x - px, pose.y - py));
-  });
-  return (
-    <>
-      {showEv1 && <group ref={a} position={standby[0]}><Astronaut position={ORIGIN} color="#6fd6e6" layer={2} /></group>}
-      <group ref={b} position={standby[1]}><Astronaut position={ORIGIN} color="#f4c552" phase={1.4} /></group>
-    </>
-  );
-}
 
 function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   const m = bundle.manifest;

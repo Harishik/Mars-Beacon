@@ -16,6 +16,10 @@ export function activePlanOf(s: { plans: Plan[]; activePlan: Plan["id"] }): Plan
  * stays smooth while the panels (text, charts) re-render only as often as anyone can read them.
  */
 export const liveClock = { t: 0 };
+/** Walking by hand in the eye-level views: -1 back, 0 stand, +1 forward along the planned route; fast = hold Shift. */
+export const walkInput = { dir: 0, fast: false };
+/** Real seconds of mission time per real second when walking by hand: true pace, or a brisk 4x with Shift. */
+const WALK_RATE = 1, WALK_FAST = 4;
 const UI_HZ = 20;
 let loopCommitT = NaN; // last playhead the play loop itself wrote; any other change is a seek
 
@@ -43,10 +47,13 @@ export function crewPoseAt(plan: Plan, b: SiteBundle, tIn: number): CrewPose | n
   };
 }
 
+/** True while the 3D view should follow the live clock: a rehearsal playing or a hand walk in progress. */
+export function isLive() { return useStore.getState().playing || walkInput.dir !== 0; }
+
 /** Crew pose for the 3D view this frame: from the live clock while playing, otherwise the shared state. */
 export function liveCrewPose(): { x: number; y: number; heading: number } | null {
   const s = useStore.getState();
-  if (s.playing && s.bundle) {
+  if ((s.playing || walkInput.dir !== 0) && s.bundle) {
     const plan = activePlanOf(s);
     if (plan) return crewPoseAt(plan, s.bundle, liveClock.t);
   }
@@ -92,11 +99,17 @@ export function useMission() {
       const dt = Math.min(0.25, (now - last) / 1000); last = now; // a hidden tab resumes without a jump
       const s = useStore.getState();
       // Paused between two commits: write the exact live time so the panels and the 3D view agree.
-      if (wasPlaying && !s.playing && s.playheadS === loopCommitT && liveClock.t !== s.playheadS) {
+      if (wasPlaying && !s.playing && walkInput.dir === 0 && s.playheadS === loopCommitT && liveClock.t !== s.playheadS) {
         loopCommitT = liveClock.t; s.set({ playheadS: liveClock.t });
       }
-      wasPlaying = s.playing;
-      if (s.playing) {
+      wasPlaying = s.playing || walkInput.dir !== 0;
+      if (walkInput.dir !== 0 && !s.playing) {
+        const plan = activePlanOf(s);
+        if (plan) {
+          liveClock.t = Math.max(0, Math.min(plan.totalS, liveClock.t + dt * walkInput.dir * (walkInput.fast ? WALK_FAST : WALK_RATE)));
+          if (now - lastCommit >= 1000 / UI_HZ) { loopCommitT = liveClock.t; s.set({ playheadS: liveClock.t }); lastCommit = now; }
+        }
+      } else if (s.playing) {
         const plan = activePlanOf(s);
         if (!plan) s.set({ playing: false });
         else {
@@ -110,4 +123,32 @@ export function useMission() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
+}
+
+/** Hold W or the up arrow to walk forward along the route at true pace, S or down to step back, Shift for 4x. */
+export function useWalkKeys(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled) return;
+    const keys = new Set<string>();
+    const update = (e: KeyboardEvent) => {
+      const f = keys.has("w") || keys.has("arrowup"), b = keys.has("s") || keys.has("arrowdown");
+      walkInput.dir = f && !b ? 1 : b && !f ? -1 : 0;
+      walkInput.fast = e.shiftKey;
+      if (walkInput.dir !== 0 && useStore.getState().playing) useStore.getState().set({ playing: false });
+    };
+    const down = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
+      const k = e.key.toLowerCase();
+      if (!["w", "s", "arrowup", "arrowdown", "shift"].includes(k)) return;
+      if (k !== "shift") { keys.add(k); e.preventDefault(); }
+      update(e);
+    };
+    const up = (e: KeyboardEvent) => { keys.delete(e.key.toLowerCase()); update(e); };
+    const blur = () => { keys.clear(); walkInput.dir = 0; };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", blur);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); window.removeEventListener("blur", blur); blur(); };
+  }, [enabled]);
 }

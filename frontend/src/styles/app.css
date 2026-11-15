@@ -824,3 +824,18 @@ body > .sheet-backdrop { z-index: 40; }
 .scene-fallback { background: #0a1322 center / contain no-repeat; }
 .scene-fallback p { position: absolute; left: 50%; bottom: 140px; transform: translateX(-50%); background: rgba(10, 19, 34, 0.9); color: #e8eef6; padding: 10px 14px; border-radius: 8px; max-width: 560px; font-size: 13px; }
 .seg .seg-2d { margin-left: 6px; border-left: 1px solid rgba(255,255,255,0.18); }
+
+/* Walking controls hint in the eye-level views */
+.walk-hint {
+  position: absolute; z-index: 5; left: 50%; bottom: 120px; transform: translateX(-50%);
+  display: flex; gap: 16px; align-items: center; margin: 0; padding: 8px 14px; border-radius: 12px;
+  background: rgba(8, 15, 28, 0.72); border: 1px solid var(--line); color: var(--dust-2); font-size: 0.8125rem;
+  white-space: nowrap; pointer-events: none;
+}
+.walk-hint span { display: inline-flex; align-items: center; gap: 6px; }
+.walk-hint kbd {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px;
+  font: 500 0.75rem var(--font); color: var(--dust); background: var(--dusk-2);
+  border: 1px solid var(--line-strong); border-bottom-width: 2px;
+}
+@media (max-width: 720px) { .walk-hint { display: none; } }

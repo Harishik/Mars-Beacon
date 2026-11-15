@@ -1,7 +1,7 @@
 // Helmet visor (after NASA SUITS patterns and the team's reference designs 01 to 03).
 // Default: an open walking sightline with a heading tape, home cue, the next stop and nearby hazards
 // labelled where they are, a heading-up local map and one compact status card. The suit detail panel opens
-// on request (S). At the turn-back point a single RETURN NOW state takes over.
+// on request (I). At the turn-back point a single RETURN NOW state takes over.
 // Timing semantics are kept separate: turn back in, return ETA, resource-limited time left.
 import { radioCoverage } from "../engine/radio";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -29,7 +29,7 @@ export function Visor({ thirdPerson = false }: { thirdPerson?: boolean }) {
   const crew = useStore((s) => s.crew);
   const [detail, setDetail] = useState(false);
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "s" || e.key === "S") setDetail((d) => !d); };
+    const k = (e: KeyboardEvent) => { if (e.key === "i" || e.key === "I") setDetail((d) => !d); }; // S walks back
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, []);
@@ -117,7 +117,7 @@ export function Visor({ thirdPerson = false }: { thirdPerson?: boolean }) {
         <div className="vz-row"><span>TIME LEFT</span><b>{fmtT(timeLeftS)}</b><em>EST</em></div>
         <div className="vz-sub">limited by {limitedBy}</div>
         {comm !== null && <div className={`vz-row ${comm ? "" : "vz-comm-lost"}`}><span>COMM</span><b>{comm ? "LINE OF SIGHT" : "RADIO SHADOW"}</b><em>DEM</em></div>}
-        <button className="vz-suit-btn" onClick={() => setDetail((d) => !d)} aria-pressed={detail}>SUIT {detail ? "▾" : "▸"} <kbd>S</kbd></button>
+        <button className="vz-suit-btn" onClick={() => setDetail((d) => !d)} aria-pressed={detail}>Suit {detail ? "▾" : "▸"} <kbd>I</kbd></button>
       </section>
 
       {detail && (

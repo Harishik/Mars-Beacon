@@ -1,4 +1,6 @@
+import { useEffect, useRef } from "react";
 import { useStore } from "../store/store";
+import { useWalkKeys } from "../engine/useMission";
 import { Scene } from "../render/Scene";
 import { LayerDrawer } from "../panels/LayerDrawer";
 import { CrewPanel } from "../panels/CrewPanel";
@@ -20,6 +22,16 @@ export function Console() {
   const bundle = useStore((s) => s.bundle);
   const view = useStore((s) => s.view);
   const phase = useStore((s) => s.phase);
+  const eyeLevel = view === "eva" || view === "hud";
+  useWalkKeys(eyeLevel);
+  // Eye-level views run at true pace by default (time-lapse made the crew sprint); the map keeps its time-lapse.
+  const mapSpeed = useRef<number | null>(null);
+  useEffect(() => {
+    const s = useStore.getState();
+    if (eyeLevel || view === "rover") {
+      if (s.speed >= 60) { mapSpeed.current = s.speed; s.set({ speed: 1 }); }
+    } else if (mapSpeed.current !== null) { s.set({ speed: mapSpeed.current }); mapSpeed.current = null; }
+  }, [eyeLevel, view]);
   if (!bundle) return null;
   const synthetic = bundle.manifest.synthetic;
 
@@ -47,6 +59,12 @@ export function Console() {
       {view === "control" && <MissionControl />}
       {view === "eva" && <Visor thirdPerson />}
       {view === "rover" && <RoverCockpit />}
+      {eyeLevel && (
+        <p className="walk-hint" aria-label="Walking controls">
+          <span><kbd>W</kbd> walk</span><span><kbd>S</kbd> back</span><span><kbd>Shift</kbd> faster</span>
+          {view === "eva" && <span>Drag to look around</span>}
+        </p>
+      )}
       <MissionTimeline />
       {view === "console" && (phase === "plan" || phase === "rehearse") && <PlanCharts />}
       {view === "console" && phase === "debrief" && <DebriefPanel />}
