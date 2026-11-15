@@ -6,7 +6,7 @@
 // Every value carries its source, the time it was fetched and whether it is live or a snapshot.
 import { useEffect, useState } from "react";
 import { earthMarsSeparationDeg } from "./lighttime";
-import { backendSpaceWeather } from "../data/api";
+import { backendSpaceWeather, backendRems } from "../data/api";
 
 export type FeedState = "live" | "snapshot" | "unavailable";
 
@@ -61,6 +61,16 @@ export async function fetchRems(): Promise<RemsFeed> {
     return { state, fetchedAt: now, latest, recent: recent.slice(0, 14), ageDays, source, note };
   };
   try {
+    // Team backend first: one cached fetch for every visitor.
+    const r = await backendRems();
+    if (r) {
+      const recent = r.soles.map((x) => x as unknown as RemsSol).sort((a, b) => b.sol - a.sol);
+      const latest = recent[0];
+      return { state: r.badge === "LIVE" ? "live" : "snapshot", fetchedAt: r.fetchedAt ? Date.parse(r.fetchedAt) : now, latest, recent,
+        ageDays: (now - Date.parse(latest.date + "T12:00:00Z")) / 86400000, source: `NASA/JPL Mars weather feed via the team backend${r.badge === "STALE" ? " (last good copy)" : ""}` };
+    }
+  } catch { /* fall through to the direct feed */ }
+  try {
     return build(await getJson(REMS_URL), "live", "NASA/JPL Mars weather feed (Curiosity REMS)");
   } catch (e) {
     try {
@@ -114,12 +124,12 @@ export async function fetchDonki(): Promise<DonkiFeed> {
   const errs: string[] = [];
   type Raw = [RawFlare[], RawSep[], RawCme[]];
   const sources: [string, () => Promise<Raw | null>][] = [
-    ["NASA CCMC DONKI", async () => (await Promise.all(["FLR", "SEP", "CME"].map((t) => getJson(`${CCMC}/${t}?${q}`)))) as Raw],
-    // Team backend's server-side DONKI cache: no browser rate limit. Skipped while it only holds seed data.
-    ["Team backend DONKI cache", async () => {
+    // Team backend: fetches DONKI on the server once per 15 min for everyone (no browser rate limit, no key in the page).
+    ["NASA DONKI via the team backend", async () => {
       const r = await Promise.all((["FLR", "SEP", "CME"] as const).map((k) => backendSpaceWeather(k, d0, d1)));
       return r.every(Boolean) ? (r.map((x) => x!.events) as Raw) : null;
     }],
+    ["NASA CCMC DONKI", async () => (await Promise.all(["FLR", "SEP", "CME"].map((t) => getJson(`${CCMC}/${t}?${q}`)))) as Raw],
     [`api.nasa.gov DONKI${key === "DEMO_KEY" ? " (demo key)" : ""}`, async () => (await Promise.all(["FLR", "SEP", "CME"].map((t) => getJson(`${APOD}/${t}?${q}&api_key=${key}`)))) as Raw],
   ];
   for (const [name, get] of sources) {

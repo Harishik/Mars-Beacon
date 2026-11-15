@@ -120,9 +120,16 @@ export function shareUrl(id: string, siteId: string) {
   return `${window.location.origin}${window.location.pathname}#/app?site=${encodeURIComponent(siteId)}&plan=${encodeURIComponent(id)}`;
 }
 
-/** Server-side DONKI cache. Returns null when it only holds seed data. */
+/** Server-side DONKI cache. Null when the server only holds seed data or has nothing (UNAVAILABLE). */
 export async function backendSpaceWeather(kind: "FLR" | "SEP" | "CME", start: string, end: string) {
-  const r = await call<{ events: unknown[]; sourceUrl?: string; badge?: string; fetchedAt?: string }>(`/spaceweather?kind=${kind}&start=${start}&end=${end}`);
-  if (!r || r.sourceUrl === "seed") return null;
+  const r = await call<{ events: unknown[]; sourceUrl?: string | null; badge?: string; fetchedAt?: string | null }>(`/spaceweather?kind=${kind}&start=${start}&end=${end}`);
+  if (!r || r.sourceUrl === "seed" || r.badge === "UNAVAILABLE" || !Array.isArray(r.events)) return null;
+  return r;
+}
+
+/** Server-side cache of the Curiosity REMS feed. */
+export async function backendRems() {
+  const r = await call<{ soles: Record<string, unknown>[]; badge: string; fetchedAt: string | null }>("/weather/rems");
+  if (!r || r.badge === "UNAVAILABLE" || !r.soles?.length) return null;
   return r;
 }
