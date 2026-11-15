@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useStore } from "../store/store";
+import { visualCrewPose } from "./habitatFootprint";
 import type { SiteBundle } from "../data/bundle";
 import { toScene } from "./Assets";
 
@@ -18,8 +18,7 @@ export function LinkedViews({ bundle }: { bundle: SiteBundle }) {
 
   // Priority 1: this callback takes over rendering for the whole canvas.
   useFrame(() => {
-    const s = useStore.getState();
-    const pos = s.crewPos;
+    const pos = visualCrewPose(); // every frame from the live clock while a rehearsal plays
     const hab = bundle.manifest.havens.find((h) => h.type === "habitat")!;
     const px = pos?.x ?? hab.x, py = pos?.y ?? hab.y;
     const heading = ((pos?.heading ?? 0) * Math.PI) / 180;

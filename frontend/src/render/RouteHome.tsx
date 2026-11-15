@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Line } from "@react-three/drei";
+import { GroundLine } from "./GroundLine";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
 import { reportAt } from "../engine/query";
@@ -16,23 +16,25 @@ export function RouteHome({ bundle, marker = true }: { bundle: SiteBundle; marke
     const r = reportAt(bundle, s, s.selected.x, s.selected.y);
     if (!r) return null;
     // Thin the polyline (every 3rd cell) and lift it just above the ground.
-    const pts = r.route.filter((_, k) => k % 3 === 0 || k === r.route.length - 1).map(([x, y]) => toScene(bundle, x, y, 2.2));
+    // Every 4 m cell, half a metre above the drawn surface: it hugs the ground and passes under the crew's knees.
+    const pts = r.route.map(([x, y]) => toScene(bundle, x, y, 0.5));
     return { pts, ok: r.reachable && r.inside && r.stayMin >= 0, reachable: r.reachable };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bundle, s.selected, s.envelope.version, s.timeSpentS, s.timeBudgetS, s.reserveM, s.crew]);
 
   if (!s.selected) return null;
+  const isCrew = s.selected.label === "Crew position"; // the astronauts themselves mark it
   const p = toScene(bundle, s.selected.x, s.selected.y);
   const col = !data?.reachable ? "#ff7357" : data.ok ? "#cfe1ff" : "#f4c552";
   return (
     <group>
       {data && data.pts.length > 1 && (
         <>
-          <Line points={data.pts} color="#3f74b8" lineWidth={7} transparent opacity={0.45} />
-          <Line points={data.pts} color={col} lineWidth={2.5} dashed dashSize={14} gapSize={7} />
+          <GroundLine points={data.pts} color="#3f74b8" lineWidth={7} transparent opacity={0.45} />
+          <GroundLine points={data.pts} color={col} lineWidth={2.5} dashed dashSize={14} gapSize={7} />
         </>
       )}
-      {marker && <group position={p} ref={(g) => g?.traverse((o) => o.layers.set(1))}>
+      {marker && !isCrew && <group position={p} ref={(g) => g?.traverse((o) => o.layers.set(1))}>
         <mesh position={[0, 9, 0]}>
           <cylinderGeometry args={[0.4, 0.4, 18, 6]} />
           <meshBasicMaterial color={col} />

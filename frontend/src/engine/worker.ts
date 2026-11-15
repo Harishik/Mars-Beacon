@@ -2,6 +2,7 @@
 // Engine worker: holds the terrain once, recomputes the envelope on request.
 import { computeEnvelope, type EnvelopeParams } from "./envelope";
 import { planEVA, type PlanInput } from "./planner";
+import { envelopeDisplay } from "./envelopeDisplay";
 
 let height: Float32Array | null = null;
 let slope: Float32Array | null = null;
@@ -32,10 +33,11 @@ self.onmessage = (e: MessageEvent) => {
       insideP90 = new Uint8Array(p.margin.length);
       for (let i = 0; i < p.margin.length; i++) if (p.margin[i] >= 0 && slopeP90[i] <= msg.params.slopeLimitDeg) { insideP90[i] = 1; p90Cells++; }
     }
-    const bufs: Transferable[] = [out.margin.buffer, out.timeToHaven.buffer, out.parent.buffer, out.o2A.buffer, out.o2B.buffer];
+    const display = envelopeDisplay(out.margin, slope, msg.params.slopeLimitDeg, msg.params.cols, msg.params.rows, insideP90);
+    const bufs: Transferable[] = [out.margin.buffer, out.timeToHaven.buffer, out.parent.buffer, out.o2A.buffer, out.o2B.buffer, display.buffer];
     if (insideP90) bufs.push(insideP90.buffer);
     (self as unknown as Worker).postMessage(
-      { type: "envelope", id: msg.id, margin: out.margin, timeToHaven: out.timeToHaven, parent: out.parent, o2A: out.o2A, o2B: out.o2B, ms: out.ms, insideCells: out.insideCells, insideP90, p90Cells },
+      { type: "envelope", id: msg.id, margin: out.margin, timeToHaven: out.timeToHaven, parent: out.parent, o2A: out.o2A, o2B: out.o2B, ms: out.ms, insideCells: out.insideCells, insideP90, p90Cells, display },
       bufs,
     );
   }

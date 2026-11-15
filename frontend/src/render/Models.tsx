@@ -8,6 +8,7 @@ import { Habitat as HabitatBlock, Rover as RoverBlock } from "./Assets";
 import { meshHeightAt, VERT_EXAG } from "./Terrain";
 import { ContactShadow } from "./ContactShadow";
 import { useStore } from "../store/store";
+import { setHabitatFootprint } from "./habitatFootprint";
 
 const HAB_URL = "./models/habitat.glb";
 const ROVER_URL = "./models/rover.glb";
@@ -20,6 +21,11 @@ function offset(x: number, y: number, heading: number, lx: number, lz: number) {
 function HabitatGLB({ bundle, x, y, heading }: { bundle: SiteBundle; x: number; y: number; heading: number }) {
   const { scene } = useGLTF(HAB_URL);
   const obj = useMemo(() => scene.clone(true), [scene]);
+  // Footprint in the model's own frame (modules, stairs and solar array) so the crew is drawn outside it.
+  useMemo(() => {
+    const b = new THREE.Box3().setFromObject(scene);
+    setHabitatFootprint({ x, y, heading, minX: b.min.x, maxX: b.max.x, minZ: b.min.z, maxZ: b.max.z });
+  }, [scene, x, y, heading]);
   // Rest on the footpads: the model's base is at y = 0; sit on the highest of the four footprint corners
   // (the landing legs are height adjustable), so no part goes into the ground.
   const { min, max } = bundle.manifest.elevation, zMid = (min + max) / 2;

@@ -1,0 +1,114 @@
+/* Mars BEACON Guide. Sits outside instruments: above the timeline on the map, bottom right on the landing. */
+.guide-root { position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: flex-end; gap: 12px; pointer-events: none; font-family: var(--font); }
+.guide-root > * { pointer-events: auto; }
+.guide-map { bottom: 116px; }
+/* Eye-level views: the visor's cards own the bottom corners, so Bop waits top right under the home readout
+   and the panel opens downward. */
+.guide-eye { bottom: auto; top: 104px; flex-direction: column-reverse; }
+.guide-eye .guide-panel, .guide-eye .guide-invite { transform-origin: calc(100% - 32px) 0; }
+.guide-eye .guide-peek { bottom: auto; top: 4px; }
+
+.guide-launcher { width: 64px; height: 64px; padding: 0; border: 0; border-radius: 20px; background: none; cursor: pointer; display: grid; place-items: center; }
+.guide-launcher:hover { background: rgba(102, 224, 228, 0.08); }
+.guide-launcher:active .ga-img { transform: scale(0.96); }
+.guide-launcher:focus-visible, .guide-root button:focus-visible, .guide-root input:focus-visible, .guide-root summary:focus-visible { outline: 2px solid #66e0e4; outline-offset: 2px; }
+.ga-img { display: block; width: 100%; height: 100%; aspect-ratio: 1; object-fit: contain; transform-origin: 50% 90%; user-select: none; transition: transform 100ms ease-out; }
+.ga-wave { animation: ga-sway 0.55s ease-in-out 2; }
+.ga-celebrate { animation: ga-hop 0.6s ease-in-out 2; }
+.ga-alert { animation: ga-sway 0.4s ease-in-out 2; }
+@keyframes ga-sway { 50% { transform: rotate(4deg); } }
+@keyframes ga-hop { 50% { transform: translateY(-10px) rotate(-3deg); } }
+
+.guide-invite, .guide-panel { width: min(360px, calc(100vw - 32px)); color: #e9f2f3; background: #14242d; border: 1px solid #46616c; border-radius: 16px; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.32); }
+.guide-invite { padding: 14px; font-size: 0.875rem; }
+.guide-invite p { margin: 0 0 10px; }
+.guide-panel { display: flex; flex-direction: column; max-height: min(600px, calc(100vh - 220px)); overflow: hidden; }
+.guide-landing .guide-panel { max-height: min(600px, calc(100vh - 128px)); }
+.guide-head { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; border-bottom: 1px solid rgba(233, 242, 243, 0.1); }
+.guide-face { width: 44px; height: 44px; flex: none; }
+.guide-head h2 { flex: 1; margin: 0; font-size: 1rem; font-weight: 600; display: flex; flex-direction: column; line-height: 1.2; }
+.guide-head h2 span { font-size: 0.75rem; font-weight: 400; color: #8a9da5; }
+.guide-head h2:focus { outline: none; }
+.guide-body { padding: 12px 14px; overflow-y: auto; font-size: 0.875rem; line-height: 1.5; }
+.guide-body p { margin: 0 0 8px; }
+.guide-lead { color: #a9bcc4; }
+.guide-answer h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 600; }
+.guide-live { color: #8fdde2; }
+.guide-steps { margin: 4px 0 10px; padding-left: 20px; }
+.guide-steps li { margin-bottom: 2px; }
+.guide-answer details { margin: 0 0 10px; color: #c4d2d8; }
+.guide-answer summary { cursor: pointer; color: #8fdde2; min-height: 32px; display: flex; align-items: center; }
+.guide-fine { color: #8a9da5; font-size: 0.8125rem; }
+.guide-note { color: #c4d2d8; font-size: 0.8125rem; }
+.guide-note.warn { color: #ffc89a; }
+.guide-step { color: #8fdde2; font-size: 0.8125rem; }
+.guide-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.guide-tour-nav { margin-top: 14px; }
+.guide-helpful { display: flex; align-items: center; gap: 6px; margin-top: 10px; color: #8a9da5; font-size: 0.8125rem; }
+
+.guide-btn { min-height: 36px; padding: 6px 12px; border-radius: 10px; border: 1px solid #60737b; background: #263c45; color: #e9f2f3; font: inherit; font-size: 0.8125rem; cursor: pointer; white-space: nowrap; transition: border-color 120ms ease, background-color 120ms ease; }
+.guide-btn:hover:not(:disabled) { border-color: #66e0e4; }
+.guide-btn:active:not(:disabled) { transform: scale(0.97); }
+.guide-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.guide-btn.primary { background: #e9f2f3; color: #0f1d24; border-color: #e9f2f3; }
+.guide-btn.quiet { background: none; border-color: transparent; color: #a9bcc4; }
+.guide-btn.icon { width: 36px; padding: 0; font-size: 1.25rem; line-height: 1; }
+
+.guide-suggest { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+.guide-chip { min-height: 32px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(233, 242, 243, 0.16); background: none; color: #c4d2d8; font: inherit; font-size: 0.75rem; cursor: pointer; }
+.guide-chip:hover { border-color: #66e0e4; color: #e9f2f3; }
+.guide-ask { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid rgba(233, 242, 243, 0.1); }
+.guide-ask input { flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #46616c; background: #0f1d24; color: #e9f2f3; font: inherit; font-size: 0.875rem; }
+.guide-history { list-style: none; margin: 0; padding: 0 14px 10px; max-height: 96px; overflow-y: auto; }
+.guide-history button { width: 100%; min-height: 28px; text-align: left; background: none; border: 0; color: #8a9da5; font: inherit; font-size: 0.75rem; cursor: pointer; padding: 2px 0; }
+.guide-history button:hover { color: #e9f2f3; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Spotlight on an anchor: an outline only, the control stays clickable. */
+.guide-spot { outline: 3px solid #66e0e4 !important; outline-offset: 4px; transition: outline-color 600ms ease; }
+
+/* Phones: a bottom sheet above the launcher. */
+@media (max-width: 640px) {
+  .guide-root { left: 0; right: 0; bottom: 0; align-items: stretch; gap: 0; }
+  .guide-root .guide-launcher { align-self: flex-end; margin: 0 max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)); width: 56px; height: 56px; }
+  .guide-map .guide-launcher { margin-bottom: 108px; }
+  .guide-eye { top: auto; flex-direction: column; }
+  .guide-eye .guide-launcher { position: fixed; top: 96px; right: max(12px, env(safe-area-inset-right)); margin: 0; }
+  .guide-eye .guide-peek { position: fixed; top: 100px; bottom: auto; }
+  .guide-root[data-open] .guide-launcher { display: none; }
+  .guide-panel, .guide-invite { width: 100%; border-radius: 16px 16px 0 0; border-left: 0; border-right: 0; border-bottom: 0; padding-bottom: env(safe-area-inset-bottom); }
+  .guide-panel { max-height: 70vh; }
+  .guide-invite { margin: 0 12px 12px; width: auto; border-radius: 16px; border: 1px solid #46616c; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ga-img { animation: none !important; transition: none; }
+  .guide-spot { transition: none; }
+}
+
+/* ---- Motion: Bop's panel grows from Bop; answers cross-fade; Bop drives off when hidden ---- */
+.guide-panel, .guide-invite { transform-origin: calc(100% - 32px) 100%; animation: guide-in 260ms cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+@keyframes guide-in { from { opacity: 0; transform: translateY(10px) scale(0.94); } to { opacity: 1; transform: none; } }
+.guide-answer, .guide-tour > p { animation: guide-fade 220ms ease-out both; }
+@keyframes guide-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.guide-launcher { transition: transform 420ms cubic-bezier(0.3, 0.8, 0.3, 1), opacity 260ms ease, background-color 120ms ease; }
+.guide-launcher:hover .ga-img { transform: translateY(-2px); }
+.guide-root[data-hidden] .guide-launcher { transform: translateX(calc(100% + 32px)) rotate(8deg); opacity: 0; pointer-events: none; }
+
+.guide-peek {
+  position: absolute; right: calc(-1 * max(16px, env(safe-area-inset-right))); bottom: 4px;
+  display: flex; align-items: center; gap: 2px; height: 52px; padding: 0 8px 0 4px; border-radius: 14px 0 0 14px;
+  background: #14242d; border: 1px solid #46616c; border-right: 0; color: #e9f2f3; font: inherit; font-size: 0.75rem; cursor: pointer;
+  transform: translateX(110%); transition: transform 360ms cubic-bezier(0.2, 0.9, 0.25, 1) 120ms, background-color 120ms ease;
+}
+.guide-root[data-hidden] .guide-peek { transform: translateX(14px); }
+.guide-root[data-hidden] .guide-peek:hover, .guide-root[data-hidden] .guide-peek:focus-visible { transform: translateX(0); background: #1b3039; }
+.guide-peek-face { width: 40px; height: 40px; }
+.guide-peek-label { writing-mode: vertical-rl; transform: rotate(180deg); color: #a9bcc4; letter-spacing: 0.02em; }
+@media (max-width: 640px) {
+  .guide-peek { position: fixed; right: 0; bottom: max(120px, env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-panel, .guide-invite, .guide-answer, .guide-tour > p { animation: none; }
+  .guide-launcher, .guide-peek { transition: opacity 160ms linear; }
+  .guide-root[data-hidden] .guide-launcher { transform: none; }
+}

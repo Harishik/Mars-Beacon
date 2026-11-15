@@ -95,6 +95,8 @@ const frag = /* glsl */ `
   uniform float uHasHeight;
   uniform float uExtent;
   uniform float uShadows;
+  uniform sampler2D uShadowTex; // castShadow() baked over the site, refreshed when the sun moves
+  uniform float uHasShadowTex;
   uniform float uBeam;        // fraction of sunlight surviving the dust column
   uniform float uTau;
   uniform sampler2D uColourMap; // Viking orbital colour (site tint) when uColourMode = 2
@@ -224,7 +226,9 @@ const frag = /* glsl */ `
     // Sun and dusty sky light (visual approximation of Mars illumination).
     vec3 L = normalize(uSunDir);
     float day = smoothstep(-4.0, 8.0, uSunElev);
-    float sh = castShadow(vWorld, L);
+    float sh = uHasShadowTex > 0.5 && uShadows > 0.5 && L.y > 0.0
+      ? texture2D(uShadowTex, vec2(vWorld.x / uExtent + 0.5, vWorld.z / uExtent + 0.5)).r
+      : castShadow(vWorld, L);
     float lambert = max(dot(n, L), 0.0) * day * sh * uBeam;
     vec3 sunCol = mix(vec3(1.0, 0.66, 0.45), vec3(1.0, 0.9, 0.78), smoothstep(4.0, 30.0, uSunElev)) * 2.0;
     vec3 skyCol = mix(vec3(0.05, 0.08, 0.16), vec3(0.62, 0.42, 0.30), day);
@@ -288,7 +292,10 @@ const frag = /* glsl */ `
       float inside = step(threshold * 0.999, m) * step(0.0, m);
       // Derivative clamped: 8-bit plateaus give fwidth = 0, and smoothstep(0, 0, x) is undefined.
       float fw = clamp(fwidth(m), 0.0035, 0.04);
-      float edge = 1.0 - smoothstep(fw * 0.6, fw * 2.0, abs(m - max(threshold, 0.0)));
+      // Wider at site scale so the boundary still reads as a line from kilometres away.
+      float far = smoothstep(700.0, 3200.0, camDist);
+      float wide = 1.0 + 3.0 * far;
+      float edge = 1.0 - smoothstep(fw * 0.6 * wide, fw * 2.0 * wide, abs(m - max(threshold, 0.0)));
       float glow = 1.0 - smoothstep(0.0, fw * 12.0, abs(m - max(threshold, 0.0)));
       vec3 home = vec3(0.56, 0.74, 0.94);
       // Inside: cool tint, slightly stronger near the boundary (less margin).
@@ -298,17 +305,16 @@ const frag = /* glsl */ `
         // Eye level: natural ground; only a thin, quiet boundary line (the visor ribbon carries the route).
         col = mix(col, vec3(0.82, 0.91, 1.0), edge * 0.45 * step(-0.95, m) * (1.0 - smoothstep(60.0, 220.0, camDist)));
       } else {
-      col = mix(col, col * 0.92 + home * 0.10, inside * (0.35 + 0.4 * nearEdge));
+      col = mix(col, col * (0.92 - 0.1 * far) + home * (0.10 + 0.16 * far), inside * (0.35 + 0.4 * nearEdge + 0.25 * far));
       // Outside: dim and desaturate so the reachable ground reads first.
       float lum = dot(col, vec3(0.3, 0.59, 0.11));
       col = mix(col, vec3(lum) * 0.45, (1.0 - inside) * (1.0 - nogo) * 0.55 * uReveal);
       // No-go ground: fine diagonal hatch in hazard colour, always legible.
       float hatch = step(0.62, fract((vWorld.x - vWorld.z) / 5.0));
       col = mix(col, vec3(1.0, 0.45, 0.34), nogo * uShowSlope * (0.18 + 0.22 * hatch) * uReveal);
-      // Boundary line with a slow pulse.
-      float pulse = 0.85 + 0.15 * sin(uTime * 1.6);
-      col += home * glow * 0.18 * step(-0.95, m);
-      col = mix(col, vec3(0.82, 0.91, 1.0), edge * pulse * step(-0.95, m));
+      // Boundary line in the Return Envelope blue, with a soft halo of the same hue.
+      col += home * glow * 0.16 * step(-0.95, m);
+      col = mix(col, vec3(0.66, 0.82, 1.0), edge * step(-0.95, m));
       // Uncertainty band: returnable on the median slope but not on the P90 slope. Amber stripes.
       float band = smoothstep(0.35, 0.65, mt.b) * inside;
       float stripe = step(0.55, fract((vWorld.x + vWorld.z) / 4.0));
@@ -327,39 +333,6 @@ const frag = /* glsl */ `
   }
 `;
 
-// Display copy of the margin field. Small blocked cells (steep ridge flanks)
-// take the best neighbouring value so they do not each get an outline; the
-// slope layer shows them. The engine's own inside/outside result is unchanged.
-function marginToTexture(margin: Float32Array, slope: Float32Array, limit: number, cols: number, rows: number, tex?: THREE.DataTexture, insideP90?: Uint8Array | null) {
-  const data = (tex?.image.data as Uint8Array | undefined) ?? new Uint8Array(cols * rows * 4);
-  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-    const i = r * cols + c;
-    let m = margin[i];
-    const nogo = slope[i] > limit;
-    if (nogo) {
-      let best = -1;
-      for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
-        const rr = r + dr, cc = c + dc;
-        if (rr < 0 || cc < 0 || rr >= rows || cc >= cols) continue;
-        const j = rr * cols + cc;
-        if (slope[j] <= limit && margin[j] > best) best = margin[j];
-      }
-      m = best;
-    }
-    m = Math.max(-1, Math.min(1, m));
-    data[4 * i] = Math.round((m * 0.5 + 0.5) * 255);
-    data[4 * i + 1] = nogo ? 255 : 0;
-    // B: inside the median envelope but not certified on the P90 slope (uncertainty band).
-    data[4 * i + 2] = insideP90 && !nogo && margin[i] >= 0 && !insideP90[i] ? 255 : 0;
-    data[4 * i + 3] = 255;
-  }
-  if (tex) { tex.needsUpdate = true; return tex; }
-  const t = new THREE.DataTexture(data, cols, rows, THREE.RGBAFormat, THREE.UnsignedByteType);
-  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter;
-  t.unpackAlignment = 1; // rows are 750 bytes, not a multiple of 4
-  t.flipY = false; t.needsUpdate = true;
-  return t;
-}
 
 export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number, zMax: number) {
   return new THREE.ShaderMaterial({
@@ -396,6 +369,8 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uHasHeight: { value: 0 },
       uExtent: { value: 3000 },
       uShadows: { value: 1 },
+      uShadowTex: { value: null },
+      uHasShadowTex: { value: 0 },
       uBeam: { value: 0.7 },
       uTau: { value: 0.6 },
       uOverlay: { value: null },
@@ -435,6 +410,130 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
     const day = Math.max(0, Math.min(1, (sun.elevationDeg + 4) / 14));
     (u.uFogColor.value as THREE.Color).setRGB(0.06 + 0.50 * day, 0.09 + 0.30 * day, 0.18 + 0.07 * day); // = sky horizon by day
   });
+}
+
+
+/**
+ * Cast shadows baked into a texture over the site. The ray march toward the sun (48 height samples) used to run
+ * for every screen pixel on every frame; the terrain and the sun are static between clock steps, so it now runs
+ * once per texel and only when the sun direction changes. Same function and penumbra as before.
+ */
+const SHADOW_RES = 1536;
+const bakeVert = /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+const bakeFrag = /* glsl */ `
+  precision highp float;
+  varying vec2 vUv;
+  uniform sampler2D uHeight;
+  uniform float uExtent;
+  uniform vec3 uSunDir;
+  void main() {
+    vec2 uv = vUv;   // texture v = 0 is the north edge in both the height raster and this target
+    vec3 p = vec3((uv.x - 0.5) * uExtent, texture2D(uHeight, uv).r, (uv.y - 0.5) * uExtent);
+    vec3 L = normalize(uSunDir);
+    if (L.y <= 0.0) { gl_FragColor = vec4(0.0); return; }
+    vec2 dir = normalize(L.xz);
+    float tanEl = L.y / max(length(L.xz), 1e-4);
+    float lit = 1.0;
+    float t = 6.0;
+    for (int i = 0; i < 48; i++) {
+      vec2 q = p.xz + dir * t;
+      vec2 st = vec2(q.x / uExtent + 0.5, q.y / uExtent + 0.5);
+      if (st.x < 0.0 || st.y < 0.0 || st.x > 1.0 || st.y > 1.0) break;
+      float hTerrain = texture2D(uHeight, st).r;
+      float hRay = p.y + t * tanEl;
+      lit = min(lit, clamp(1.0 + (hRay - hTerrain) / (0.02 * t + 1.5), 0.0, 1.0));
+      if (lit <= 0.0) break;
+      t *= 1.11;
+    }
+    gl_FragColor = vec4(lit, lit, lit, 1.0);
+  }
+`;
+
+function useBakedShadows(material: THREE.ShaderMaterial, heightTex: THREE.DataTexture, extentM: number) {
+  const low = useStore((s) => s.quality === "low");
+  const bake = useMemo(() => {
+    const target = new THREE.WebGLRenderTarget(SHADOW_RES, SHADOW_RES, {
+      type: THREE.UnsignedByteType, format: THREE.RGBAFormat, depthBuffer: false,
+      magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter, generateMipmaps: false,
+    });
+    target.texture.colorSpace = THREE.NoColorSpace;
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: bakeVert, fragmentShader: bakeFrag, depthTest: false, depthWrite: false,
+      uniforms: { uHeight: { value: heightTex }, uExtent: { value: extentM }, uSunDir: { value: new THREE.Vector3() } },
+    });
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
+    quad.frustumCulled = false;
+    const scene = new THREE.Scene(); scene.add(quad);
+    return { target, mat, quad, scene, cam: new THREE.Camera(), last: new THREE.Vector3(), valid: false };
+  }, [heightTex, extentM]);
+  useEffect(() => () => { bake.target.dispose(); bake.mat.dispose(); bake.quad.geometry.dispose(); material.uniforms.uHasShadowTex.value = 0; }, [bake, material]);
+  useEffect(() => { bake.valid = false; }, [bake, low]);
+  useFrame(({ gl }) => {
+    const u = material.uniforms;
+    if (low) { u.uHasShadowTex.value = 0; return; }
+    const sun = u.uSunDir.value as THREE.Vector3;
+    // Re-bake when the sun has moved more than about 0.15 degrees (a few seconds of rehearsal time).
+    if (bake.valid && sun.angleTo(bake.last) < 0.0026) return;
+    bake.last.copy(sun); bake.valid = true;
+    (bake.mat.uniforms.uSunDir.value as THREE.Vector3).copy(sun);
+    const prev = gl.getRenderTarget();
+    gl.setRenderTarget(bake.target);
+    gl.render(bake.scene, bake.cam);
+    gl.setRenderTarget(prev);
+    u.uShadowTex.value = bake.target.texture;
+    u.uHasShadowTex.value = 1;
+  });
+}
+
+
+/**
+ * Pointer picking on the height field instead of the triangle mesh. Three.js would test all of the mesh's
+ * triangles (about 400 000) on every pointer move, which blocked the page for tens of milliseconds per move.
+ * This marches the ray across the site box in steps of half a grid cell and refines the crossing by bisection,
+ * on the same surface the mesh draws (meshHeightAt), so the picked point is unchanged.
+ */
+function heightFieldRaycast(bundle: SiteBundle) {
+  const E = bundle.manifest.grid.extentM / 2;
+  const zMid = (bundle.manifest.elevation.min + bundle.manifest.elevation.max) / 2;
+  const yLo = (bundle.manifest.elevation.min - zMid) * VERT_EXAG - 1, yHi = (bundle.manifest.elevation.max - zMid) * VERT_EXAG + 1;
+  const box = new THREE.Box3(new THREE.Vector3(-E, yLo, -E), new THREE.Vector3(E, yHi, E));
+  const step = bundle.manifest.grid.liveM * 0.5;
+  const enter = new THREE.Vector3(), p = new THREE.Vector3();
+  const surface = (x: number, z: number) => (meshHeightAt(bundle, x, -z) - zMid) * VERT_EXAG;
+  return function raycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+    const ray = raycaster.ray;
+    let t0: number;
+    if (box.containsPoint(ray.origin)) t0 = 0;
+    else if (ray.intersectBox(box, enter)) t0 = enter.distanceTo(ray.origin);
+    else return;
+    // Far side of the box: march until the ray leaves it.
+    const back = new THREE.Ray(ray.at(t0 + 4 * E * 10, new THREE.Vector3()), ray.direction.clone().negate());
+    const exit = back.intersectBox(box, new THREE.Vector3());
+    const t1 = exit ? exit.distanceTo(ray.origin) : t0 + 4 * E;
+    // Step length scaled by how steeply the ray descends, so grazing rays still sample every cell.
+    const horiz = Math.hypot(ray.direction.x, ray.direction.z);
+    const dt = horiz > 1e-6 ? step / horiz : (t1 - t0);
+    let prevT = t0;
+    ray.at(t0, p);
+    if (t0 === 0 && p.y - surface(p.x, p.z) <= 0) return; // starts under the ground
+    for (let t = t0 + dt; t <= t1 + dt; t += dt) {
+      const tt = Math.min(t, t1);
+      ray.at(tt, p);
+      const d = p.y - surface(p.x, p.z);
+      if (d <= 0) {
+        let a = prevT, b = tt;
+        for (let k = 0; k < 18; k++) { const m = (a + b) / 2; ray.at(m, p); if (p.y - surface(p.x, p.z) > 0) a = m; else b = m; }
+        const dist = (a + b) / 2;
+        if (dist < raycaster.near || dist > raycaster.far) return;
+        const point = ray.at(dist, new THREE.Vector3());
+        point.y = surface(point.x, point.z);
+        intersects.push({ distance: dist, point, object: this } as THREE.Intersection);
+        return;
+      }
+      prevT = tt;
+      if (tt >= t1) break;
+    }
+  };
 }
 
 export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segments?: number }) {
@@ -534,20 +633,30 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
   }, [material, heightTex, extentM, bundle.orthoUrl, bundle.normalUrl]);
 
   useOrthoDetail(material, bundle);
+  useBakedShadows(material, heightTex, extentM);
 
-  // Push the newest margin field into the texture (no geometry rebuild).
+  // Upload the newest envelope display (encoded in the engine worker, so no per-cell work here).
   const envelopeVersion = useStore((s) => s.envelope.version);
   useEffect(() => {
-    const m = useStore.getState().envelope.margin;
-    if (!m) return;
-    marginTex.current = marginToTexture(m, slopeDeg, useStore.getState().slopeLimitDeg, cols, rows, marginTex.current ?? undefined, useStore.getState().envelope.insideP90);
-    material.uniforms.uMargin.value = marginTex.current;
+    const d = useStore.getState().envelope.display;
+    if (!d || d.length !== cols * rows * 4) return;
+    let tex = marginTex.current;
+    if (!tex) {
+      tex = new THREE.DataTexture(d, cols, rows, THREE.RGBAFormat, THREE.UnsignedByteType);
+      tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter;
+      tex.unpackAlignment = 1; tex.flipY = false;
+      marginTex.current = tex;
+    } else tex.image.data = d;
+    tex.needsUpdate = true;
+    material.uniforms.uMargin.value = tex;
     material.uniforms.uHasMargin.value = 1;
-  }, [envelopeVersion, cols, rows, material, slopeDeg]);
+  }, [envelopeVersion, cols, rows, material]);
+  useEffect(() => () => { marginTex.current?.dispose(); marginTex.current = null; }, [material]);
 
   useOverlayTexture(bundle, material);
 
-  return <mesh geometry={geometry} material={material} rotation={[-Math.PI / 2, 0, 0]} />;
+  const raycast = useMemo(() => heightFieldRaycast(bundle), [bundle]);
+  return <mesh geometry={geometry} material={material} rotation={[-Math.PI / 2, 0, 0]} raycast={raycast} />;
 }
 
 /** Keeps the overlay texture in step with the chosen layer and the shared clock (throttled while playing). */

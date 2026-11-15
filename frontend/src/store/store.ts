@@ -8,7 +8,11 @@ export type View = "console" | "control" | "tablet" | "eva" | "hud" | "rover" | 
 export type Phase = "explore" | "plan" | "rehearse" | "execute" | "debrief";
 export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse" | "patches" | "boulders";
 
-export interface Crew { label: string; loadKg: number; fMob: number; o2BudgetG: number; o2SpentG: number }
+export interface Crew {
+  label: string; loadKg: number; fMob: number; o2BudgetG: number; o2SpentG: number;
+  // Water and battery used are not stored: they follow from O2 used and EVA time (physiology.consumablesLeft).
+  waterBudgetG: number; batteryBudgetWh: number;
+}
 
 export interface EnvelopeState {
   margin: Float32Array | null;
@@ -20,6 +24,7 @@ export interface EnvelopeState {
   insideCells: number;
   insideP90: Uint8Array | null; // certified on the P90 slope too (null: not computed, e.g. while playing)
   p90Cells: number;
+  display: Uint8Array | null;   // RGBA texture of the envelope for the terrain shader (built in the worker)
   computing: boolean;
   version: number;
 }
@@ -50,6 +55,8 @@ export interface State {
   ledger: boolean;                  // equations and assumptions sheet open
   tour: boolean;
   sceneReady: boolean;
+  storyChapter: number;
+  focusView: boolean;               // app: side panels slid away so the 3D site has the screen             // landing page chapter in view (-1 outside the landing)
   // Shared EVA plan and timeline: every display reads the same moment of the EVA.
   plans: Plan[];
   activePlan: Plan["id"];
@@ -75,6 +82,12 @@ export interface State {
   setCrew: (i: 0 | 1, p: Partial<Crew>) => void;
   setEnvelope: (p: Partial<EnvelopeState>) => void;
 }
+
+// Budgets are SCENARIO placeholders until cited suit figures are found.
+export const DEFAULT_CREW: [Crew, Crew] = [
+  { label: "EV1", loadKg: 104, fMob: 1, o2BudgetG: 1000, o2SpentG: 0, waterBudgetG: 3600, batteryBudgetWh: 400 },
+  { label: "EV2", loadKg: 104, fMob: 1, o2BudgetG: 1000, o2SpentG: 0, waterBudgetG: 3600, batteryBudgetWh: 400 },
+];
 
 /** Low tier for phones, few-core or low-memory devices, or when the user asks to save data (?quality=low|high overrides). */
 function detectQuality(): "high" | "low" {
@@ -103,18 +116,17 @@ export const useStore = create<State>((set) => ({
   storm: false,
   v0: 0.7, slopeLimitDeg: 20, reserveM: 0.25, kG: 0.78, mRestW: 100, bodyMassKg: 80,
   timeBudgetS: 4 * 3600, timeSpentS: 0,
-  crew: [
-    { label: "EV1", loadKg: 104, fMob: 1, o2BudgetG: 1000, o2SpentG: 0 },
-    { label: "EV2", loadKg: 104, fMob: 1, o2BudgetG: 1000, o2SpentG: 0 },
-  ],
+  crew: DEFAULT_CREW,
   roverActive: false,
-  envelope: { margin: null, timeToHaven: null, parent: null, o2A: null, o2B: null, ms: 0, insideCells: 0, insideP90: null, p90Cells: 0, computing: false, version: 0 },
+  envelope: { margin: null, timeToHaven: null, parent: null, o2A: null, o2B: null, ms: 0, insideCells: 0, insideP90: null, p90Cells: 0, display: null, computing: false, version: 0 },
   cursor: null,
   selected: null,
   panel: "mission",
   ledger: false,
   tour: false,
   sceneReady: false,
+  storyChapter: -1,
+  focusView: false,
   plans: [],
   activePlan: "balanced",
   planMs: 0,

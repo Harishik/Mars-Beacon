@@ -7,12 +7,14 @@
 //    feasible only if, at every stop, both suits can still walk home with reserve.
 // 3. Three plans: maximum science, maximum margin, balanced.
 
-import { metabolicPower, o2RateGph } from "./physiology";
+import { metabolicPower, o2RateGph, waterFromO2, batteryWhFor } from "./physiology";
 
 export interface PlanInput {
   cols: number; rows: number; cellM: number; slopeLimitDeg: number;
   v0: number; kG: number; mRestW: number; bodyMassKg: number; reserveM: number;
   timeBudgetS: number; o2BudgetG: [number, number];
+  waterBudgetG?: [number, number];  // cooling water per suit; left out, not certified
+  batteryBudgetWh?: [number, number];
   fMob: [number, number]; loadKg: [number, number];
   workPowerW: number;             // while sampling at a stop
   dwellS: number;                 // time at each stop
@@ -22,7 +24,7 @@ export interface PlanInput {
 
 export interface PlanLeg { from: string; to: string; cells: number[]; timeS: number; o2G: [number, number]; distM: number }
 export interface PlanEvent { t: number; kind: "depart" | "arrive" | "leave" | "return"; stop: string }
-export interface PlanSample { cell: number; t: number; o2Left: [number, number]; timeLeft: number; distM: number; elev: number; returnNeedS: number }
+export interface PlanSample { cell: number; t: number; o2Left: [number, number]; waterLeft: [number, number]; batteryLeftWh: [number, number]; timeLeft: number; distM: number; elev: number; returnNeedS: number }
 export interface Plan {
   id: "maxScience" | "maxMargin" | "balanced";
   order: string[];
@@ -30,7 +32,7 @@ export interface Plan {
   events: PlanEvent[];
   samples: PlanSample[];
   science: number;
-  minMargin: number;              // smallest remaining fraction over time and both suits' O2
+  minMargin: number;              // smallest remaining fraction over time and both suits' O2, water and battery
   totalS: number;
   o2UsedG: [number, number];
   distM: number;
@@ -177,13 +179,13 @@ export function planEVA(height: Float32Array, slopeDeg: Float32Array, p: PlanInp
         const mt = 1 - (t + f * home.timeS) / p.timeBudgetS;
         const ma = 1 - (a + f * home.o2G[0]) / p.o2BudgetG[0];
         const mb = 1 - (b + f * home.o2G[1]) / p.o2BudgetG[1];
-        const m = Math.min(mt, ma, mb);
+        const m = Math.min(mt, ma, mb, extraMargin(p, f, a, b, t, home.o2G, home.timeS));
         minMargin = Math.min(minMargin, m);
         if (m < 0) ok = false;
       }
       if (!ok) continue;
       // Final margin at the airlock.
-      minMargin = Math.min(minMargin, 1 - t / p.timeBudgetS, 1 - a / p.o2BudgetG[0], 1 - b / p.o2BudgetG[1]);
+      minMargin = Math.min(minMargin, 1 - t / p.timeBudgetS, 1 - a / p.o2BudgetG[0], 1 - b / p.o2BudgetG[1], extraMargin(p, f, a, b, t, [0, 0], 0));
       if (minMargin < 0) continue;
       const science = order.reduce((s, id) => s + (sci.get(id) ?? 0), 0);
       candidates.push({ id: "balanced", order, legs: used, events, samples: [], science, minMargin, totalS: t, o2UsedG: [a, b], distM: d });
@@ -201,14 +203,36 @@ export function planEVA(height: Float32Array, slopeDeg: Float32Array, p: PlanInp
   return pick.map(([id, c]) => ({ ...c, id, samples: sampleTimeline(height, p, c, legs) }));
 }
 
+/**
+ * Water and battery margin after using O2 a, b over time t, with a walk home costing
+ * homeO2 and homeS still to come. 1 when neither budget is given.
+ */
+function extraMargin(p: PlanInput, f: number, a: number, b: number, t: number, homeO2: [number, number], homeS: number): number {
+  let m = 1;
+  if (p.waterBudgetG) {
+    m = Math.min(m,
+      1 - (waterFromO2(a, t) + f * waterFromO2(homeO2[0], homeS)) / p.waterBudgetG[0],
+      1 - (waterFromO2(b, t) + f * waterFromO2(homeO2[1], homeS)) / p.waterBudgetG[1]);
+  }
+  if (p.batteryBudgetWh) {
+    const e = batteryWhFor(t) + f * batteryWhFor(homeS);
+    m = Math.min(m, 1 - e / p.batteryBudgetWh[0], 1 - e / p.batteryBudgetWh[1]);
+  }
+  return m;
+}
+
 /** Resource and elevation samples along the plan, about every 30 s of walking. */
 function sampleTimeline(height: Float32Array, p: PlanInput, plan: Plan, legs: Map<string, PlanLeg>): PlanSample[] {
   const out: PlanSample[] = [];
   const f = 1 + p.reserveM;
   const workGps = o2RateGph(p.workPowerW) / 3600;
   let t = 0, a = 0, b = 0, d = 0;
+  const wb = p.waterBudgetG ?? [Infinity, Infinity], eb = p.batteryBudgetWh ?? [Infinity, Infinity];
   const push = (cell: number, returnNeedS: number) => out.push({
-    cell, t, o2Left: [p.o2BudgetG[0] - a, p.o2BudgetG[1] - b], timeLeft: p.timeBudgetS - t, distM: d, elev: height[cell], returnNeedS,
+    cell, t, o2Left: [p.o2BudgetG[0] - a, p.o2BudgetG[1] - b],
+    waterLeft: [wb[0] - waterFromO2(a, t), wb[1] - waterFromO2(b, t)],
+    batteryLeftWh: [eb[0] - batteryWhFor(t), eb[1] - batteryWhFor(t)],
+    timeLeft: p.timeBudgetS - t, distM: d, elev: height[cell], returnNeedS,
   });
   for (const leg of plan.legs) {
     const home = leg.to === "home" ? null : legs.get(`${leg.to}>home`);

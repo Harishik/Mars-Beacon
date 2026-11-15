@@ -5,6 +5,7 @@ import { toCell, type SiteBundle } from "../data/bundle";
 import type { EnvelopeParams } from "./envelope";
 import type { PlanInput } from "./planner";
 import { WORK_POWER_W } from "./query";
+import { consumablesLeft } from "./physiology";
 
 /** Science value per stop type, a transparent weighting shown in the ledger (ASSUMPTION). */
 export const SCIENCE_WEIGHT = { ridge: 0.35, hollow: 0.35, drill: 0.2 } as const;
@@ -48,7 +49,7 @@ export function useEngine() {
   const bundle = useStore((s) => s.bundle);
   const envInputs = useStore(useShallow((s) => [s.v0, s.slopeLimitDeg, s.reserveM, s.kG, s.mRestW, s.bodyMassKg, s.timeBudgetS, s.timeSpentS, s.crew, s.roverActive, s.playing]));
   const planInputs = useStore(useShallow((s) => [s.v0, s.slopeLimitDeg, s.reserveM, s.kG, s.mRestW, s.bodyMassKg, s.timeBudgetS, s.dwellMin,
-    s.crew[0].loadKg, s.crew[1].loadKg, s.crew[0].fMob, s.crew[1].fMob, s.crew[0].o2BudgetG, s.crew[1].o2BudgetG, s.excludedStops.join(","), s.bundle?.manifest.targets.length]));
+    s.crew[0].loadKg, s.crew[1].loadKg, s.crew[0].fMob, s.crew[1].fMob, s.crew[0].o2BudgetG, s.crew[1].o2BudgetG, s.crew[0].waterBudgetG, s.crew[1].waterBudgetG, s.crew[0].batteryBudgetWh, s.crew[1].batteryBudgetWh, s.excludedStops.join(","), s.bundle?.manifest.targets.length]));
 
   const send = (params: EnvelopeParams) => {
     const w = workerRef.current;
@@ -68,7 +69,7 @@ export function useEngine() {
       if (d.type === "envelope") {
         inFlight.current = false;
         useStore.getState().setEnvelope({
-          margin: d.margin, timeToHaven: d.timeToHaven, parent: d.parent, o2A: d.o2A, o2B: d.o2B, ms: d.ms, insideCells: d.insideCells, insideP90: d.insideP90, p90Cells: d.p90Cells,
+          margin: d.margin, timeToHaven: d.timeToHaven, parent: d.parent, o2A: d.o2A, o2B: d.o2B, ms: d.ms, insideCells: d.insideCells, insideP90: d.insideP90, p90Cells: d.p90Cells, display: d.display,
           computing: pending.current !== null, version: d.id,
         });
         if (pending.current) { const p = pending.current; pending.current = null; send(p); }
@@ -87,12 +88,20 @@ export function useEngine() {
     const havens = m.havens
       .filter((h) => h.type === "habitat" || (h.type === "rover" && s.roverActive))
       .map((h) => toCell(m, h.x, h.y));
-    s.setEnvelope({ computing: true });
+    // Only flag once: setting it again on every playback tick re-rendered every envelope reader for nothing.
+    if (!s.envelope.computing) s.setEnvelope({ computing: true });
     send({
       cols: m.grid.cols, rows: m.grid.rows, cellM: m.grid.liveM,
       slopeLimitDeg: s.slopeLimitDeg, v0: s.v0, kG: s.kG, mRestW: s.mRestW, bodyMassKg: s.bodyMassKg,
       reserveM: s.reserveM, timeBudgetS: s.timeBudgetS, timeSpentS: s.timeSpentS,
-      crew: s.crew.map((c) => ({ fMob: c.fMob, loadKg: c.loadKg, o2BudgetG: c.o2BudgetG, o2SpentG: c.o2SpentG })) as EnvelopeParams["crew"],
+      crew: s.crew.map((c) => {
+        const left = consumablesLeft(c, s.timeSpentS);
+        return {
+          fMob: c.fMob, loadKg: c.loadKg, o2BudgetG: c.o2BudgetG, o2SpentG: c.o2SpentG,
+          waterBudgetG: c.waterBudgetG, waterSpentG: c.waterBudgetG - left.waterLeftG,
+          batteryBudgetWh: c.batteryBudgetWh, batterySpentWh: c.batteryBudgetWh - left.batteryLeftWh,
+        };
+      }) as EnvelopeParams["crew"],
       havens,
       p90: !s.playing, // the band doubles the work, so it is skipped while the timeline plays
     });
@@ -110,6 +119,8 @@ export function useEngine() {
       cols: m.grid.cols, rows: m.grid.rows, cellM: m.grid.liveM, slopeLimitDeg: s.slopeLimitDeg,
       v0: s.v0, kG: s.kG, mRestW: s.mRestW, bodyMassKg: s.bodyMassKg, reserveM: s.reserveM,
       timeBudgetS: s.timeBudgetS, o2BudgetG: [s.crew[0].o2BudgetG, s.crew[1].o2BudgetG],
+      waterBudgetG: [s.crew[0].waterBudgetG, s.crew[1].waterBudgetG],
+      batteryBudgetWh: [s.crew[0].batteryBudgetWh, s.crew[1].batteryBudgetWh],
       fMob: [s.crew[0].fMob, s.crew[1].fMob], loadKg: [s.crew[0].loadKg, s.crew[1].loadKg],
       workPowerW: WORK_POWER_W, dwellS: s.dwellMin * 60,
       home: toCell(m, hab.x, hab.y),

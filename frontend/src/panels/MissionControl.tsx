@@ -17,6 +17,7 @@ import { temperatureAt } from "../engine/overlays";
 import { toCell } from "../data/bundle";
 import { Tag } from "./Tag";
 import type { Tag as TagT } from "../data/bundle";
+import { consumablesLeft } from "../engine/physiology";
 
 /** NASA-STD-3001 Vol. 1 Rev. B (2022): career effective dose limit 600 mSv for all astronauts. */
 const CAREER_LIMIT_MSV = 600;
@@ -120,6 +121,7 @@ export function MissionControl() {
             <header><b>E{i + 1}</b><span>{i === 0 ? "EV1" : "EV2"} · suit load {c.loadKg} kg · pace {Math.round(c.fMob * 100)}%</span></header>
             <dl>
               <div><dt>O₂ left</dt><dd>{((c.o2BudgetG - c.o2SpentG) / 1000).toFixed(2)} kg</dd><Tag t="DERIVED" /></div>
+              <div><dt>Water, battery</dt><dd>{(() => { const m = consumablesLeft(c, s.spent); return `${(m.waterLeftG / 1000).toFixed(2)} kg, ${Math.round(m.batteryLeftWh)} Wh`; })()}</dd><Tag t="DERIVED" /></div>
               <div><dt>O₂ use now</dt><dd>{v?.suit ? `${Math.round(v.suit.o2gph)} g/h (pair pace)` : "–"}</dd><Tag t="DERIVED" /></div>
               <div><dt>Work rate, HR</dt><dd>{v?.suit ? `${Math.round(v.suit.watts)} W, ${v.suit.hr} bpm` : "–"}</dd><Tag t="ASSUMPTION" /></div>
               <div><dt>Dose this EVA</dt><dd>{doseNow.toFixed(2)} mSv</dd><Tag t={s.storm ? "SCENARIO" : "HISTORICAL"} /></div>
