@@ -9,6 +9,7 @@ import { Ledger } from "../panels/Ledger";
 import { MapLayers } from "../panels/MapLayers";
 import { Visor } from "../panels/Visor";
 import { RoverCockpit } from "../panels/RoverCockpit";
+import { FieldTablet } from "../panels/FieldTablet";
 import { PhaseBar, ExploreBrief, DebriefPanel, CueCard, ExecuteNext } from "../panels/Phases";
 import { VERT_EXAG } from "../render/Terrain";
 
@@ -30,10 +31,11 @@ export function Console() {
         <ViewSwitch />
       </header>
       {view !== "hud" && <InstrumentStrip />}
-      {(view === "console" || view === "tablet") && (phase === "explore" || phase === "plan") && <MapLayers />}
-      {view !== "hud" && view !== "rover" && <LayerDrawer />}
+      {view === "console" && (phase === "explore" || phase === "plan") && <MapLayers />}
+      {view !== "hud" && view !== "rover" && view !== "tablet" && <LayerDrawer />}
+      {view === "tablet" && <FieldTablet />}
       {view === "console" && phase === "explore" && <ExploreBrief />}
-      {(view === "console" || view === "tablet") && phase !== "explore" && <CrewPanel />}
+      {view === "console" && phase !== "explore" && <CrewPanel />}
       {view === "linked" && <LinkedFrames />}
       {view === "hud" && <Visor />}
       {view === "rover" && <RoverCockpit />}

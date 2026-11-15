@@ -157,7 +157,7 @@ function ReconstructionGroup() {
       {splats.map((s) => (
         <dl key={s.id} className="prov-card">
           <div><dt>Where</dt><dd>{s.name}: Gaussian splats from rover images</dd></div>
-          <div><dt>Placed on map</dt><dd>shifted {s.registration.dx} m E, {s.registration.dy} m N; height error {s.registration.rmse0M} to {s.registration.rmseM} m against HiRISE</dd></div>
+          <div><dt>Placed on map</dt><dd>shifted {s.registration.dx} m E, {s.registration.dy} m N by a height fit to HiRISE (error {s.registration.rmse0M} to {s.registration.rmseM} m). Independent residual check pending, so treat as a preview</dd></div>
           <div><dt>Image fit</dt><dd>trained views {s.quality.validationPSNR} dB; a separate drive {s.quality.newDrivePSNR} dB. {s.quality.note}</dd></div>
           <div><dt>Source</dt><dd>{s.source}. Greyscale Navcam, tinted for display. Shown in full-detail mode only.</dd></div>
         </dl>
