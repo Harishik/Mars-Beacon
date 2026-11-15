@@ -147,6 +147,30 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
     c?.update();
   });
 
+  // Fly to what the user picks (a stop, a point on the ground) in the map views: the focus glides there with a
+  // critically damped approach, keeping the current angle and zoom. Grabbing the map cancels it mid-flight.
+  const fly = useRef<THREE.Vector3 | null>(null);
+  useEffect(() => {
+    if (!(mode === "console" || mode === "linked" || mode === "tablet")) return;
+    const unsub = useStore.subscribe((s, prev) => {
+      if (s.selected === prev.selected || !s.selected || s.selected.label === "Crew position" || s.playing) return;
+      fly.current = toScene(bundle, s.selected.x, s.selected.y);
+    });
+    const c = controls.current;
+    const cancel = () => { fly.current = null; };
+    c?.addEventListener("start", cancel);
+    return () => { unsub(); c?.removeEventListener("start", cancel); };
+  }, [mode, bundle]);
+  useFrame((_, dt) => {
+    const c = controls.current, goal = fly.current;
+    if (!c || !goal) return;
+    const d = goal.clone().sub(c.target);
+    if (d.length() < 0.5) { fly.current = null; return; }
+    d.multiplyScalar(1 - Math.exp(-dt * 4.5));
+    c.target.add(d); camera.position.add(d);
+    c.update();
+  });
+
   useEffect(() => {
     const c = controls.current;
     const cam = camera as THREE.PerspectiveCamera;

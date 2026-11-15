@@ -55,7 +55,8 @@ export interface State {
   ledger: boolean;                  // equations and assumptions sheet open
   tour: boolean;
   sceneReady: boolean;
-  storyChapter: number;             // landing page chapter in view (-1 outside the landing)
+  storyChapter: number;
+  focusView: boolean;               // app: side panels slid away so the 3D site has the screen             // landing page chapter in view (-1 outside the landing)
   // Shared EVA plan and timeline: every display reads the same moment of the EVA.
   plans: Plan[];
   activePlan: Plan["id"];
@@ -125,6 +126,7 @@ export const useStore = create<State>((set) => ({
   tour: false,
   sceneReady: false,
   storyChapter: -1,
+  focusView: false,
   plans: [],
   activePlan: "balanced",
   planMs: 0,

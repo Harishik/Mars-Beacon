@@ -945,3 +945,24 @@ body > .sheet-backdrop { z-index: 40; }
 @media (prefers-reduced-motion: reduce) {
   .rail-line > span, .rail-tick, .rail-label { transition: none; }
 }
+
+/* ---------- Focus view: panels slide out to the side they came from; the 3D site gets the screen ---------- */
+.drawer, .crew, .brief, .plan-charts, .strip, .ml-bar, .debrief {
+  transition: transform 340ms var(--ease), opacity 240ms var(--ease);
+}
+.focus-view .drawer { transform: translateX(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
+.focus-view .crew, .focus-view .brief { transform: translateX(calc(100% + 24px)); opacity: 0; pointer-events: none; }
+.focus-view .plan-charts, .focus-view .debrief { transform: translateY(24px); opacity: 0; pointer-events: none; }
+.focus-view .strip { transform: translateY(-8px); opacity: 0; pointer-events: none; }
+.focus-btn { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.focus-btn kbd, .ledger-btn kbd {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px;
+  font: 500 0.6875rem var(--font); color: var(--dust-2); border: 1px solid var(--line-strong); border-bottom-width: 2px;
+}
+.focus-btn.on { color: var(--home); border-color: rgba(143, 188, 240, 0.45); }
+.view-console .scene canvas, .view-linked .scene canvas { cursor: crosshair; }
+.view-console .scene canvas:active { cursor: grabbing; }
+@media (prefers-reduced-motion: reduce) {
+  .drawer, .crew, .brief, .plan-charts, .strip, .ml-bar, .debrief { transition: opacity 160ms linear; }
+  .focus-view .drawer, .focus-view .crew, .focus-view .brief, .focus-view .plan-charts, .focus-view .strip, .focus-view .debrief { transform: none; }
+}
