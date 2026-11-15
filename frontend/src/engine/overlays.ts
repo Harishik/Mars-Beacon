@@ -98,3 +98,10 @@ export function encodeOverlay(values: Float32Array, info: OverlayInfo, out?: Uin
   }
   return res;
 }
+
+/** Surface temperature (°C) at one point and time, without touching the cached map field. */
+export function temperatureAt(bundle: SiteBundle, lsDeg: number, tau: number, lmstH: number, cell: number): number {
+  const { slope, aspect } = terrain(bundle);
+  const tab = table(bundle, lsDeg, tau);
+  return temperatureField(tab, slope.subarray(cell, cell + 1), aspect.subarray(cell, cell + 1), lmstH)[0] - 273.15;
+}

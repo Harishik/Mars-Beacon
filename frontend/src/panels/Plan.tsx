@@ -44,7 +44,7 @@ export function PlanCards() {
           </button>
         );
       })}
-      <p className="fine-note">Every plan is checked at each stop: after sampling, both suits must still reach the airlock with reserve. Science weights: ridge 0.35, hollow 0.35, drill site 0.2 <Tag t="ASSUMPTION" /></p>
+      <p className="fine-note">Every plan is checked at each stop: after sampling, both suits must still reach the airlock with reserve. Science value of each stop is the highest value of the science map within 12 m <Tag t="DERIVED" /></p>
     </div>
   );
 }

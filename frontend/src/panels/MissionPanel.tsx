@@ -5,6 +5,9 @@ import { reportAt, type PointReport } from "../engine/query";
 import { Tag } from "./Tag";
 import { PlanCards } from "./Plan";
 import { RoverViews } from "./RoverViews";
+import { stopHazards, type Hazard } from "../engine/hazards";
+import { tauAtElevation } from "../engine/environment";
+import { MARS_HOUR_S } from "../engine/useMission";
 
 const TYPE_LABEL = { ridge: "Ridge", hollow: "Hollow", drill: "Drill site" } as const;
 const WHY = {
@@ -22,6 +25,35 @@ function useReport(x: number, y: number) {
     [s.bundle, s.envelope.version, s.timeSpentS, s.timeBudgetS, s.reserveM, s.crew, x, y]);
 }
 
+function useHazards(x: number, y: number, stopId: string | undefined, stayMin: number | null) {
+  const s = useStore(useShallow((st) => ({
+    bundle: st.bundle, lsDeg: Math.round(st.lsDeg), tau: st.storm ? Math.max(st.tau, 3) : st.tau, storm: st.storm,
+    evaStartLmst: st.evaStartLmst, playheadS: st.playheadS, plans: st.plans, activePlan: st.activePlan,
+  })));
+  return useMemo(() => {
+    if (!s.bundle) return [];
+    const plan = s.plans.find((p) => p.id === s.activePlan);
+    const arrive = plan?.events.find((e) => e.kind === "arrive" && e.stop === stopId)?.t ?? s.playheadS;
+    return stopHazards(s.bundle, x, y, {
+      lsDeg: s.lsDeg, tau: tauAtElevation(s.tau, -3.6), storm: s.storm, stayMin,
+      arriveLmstH: (s.evaStartLmst + arrive / MARS_HOUR_S) % 24, elapsedS: arrive,
+    });
+  }, [s, x, y, stopId, stayMin]);
+}
+
+function HazardChips({ hz, compact = false }: { hz: Hazard[]; compact?: boolean }) {
+  if (!hz.length) return null;
+  return (
+    <ul className={`hz ${compact ? "compact" : ""}`} aria-label="Risks at this stop">
+      {hz.map((h) => (
+        <li key={h.id} className={`hz-${h.level}`} title={h.why}>
+          <i aria-hidden />{compact ? h.label : <><span>{h.label}</span><b>{h.value}</b></>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Status({ r }: { r: PointReport | null }) {
   if (!r) return <span className="st st-wait">Computing</span>;
   if (!r.reachable) return <span className="st st-out">No path home in budget</span>;
@@ -33,6 +65,7 @@ function Status({ r }: { r: PointReport | null }) {
 function StopRow({ t, active }: { t: { id: string; name: string; type: keyof typeof TYPE_LABEL; x: number; y: number }; active: boolean }) {
   const r = useReport(t.x, t.y);
   const set = useStore((s) => s.set);
+  const hz = useHazards(t.x, t.y, t.id, r && r.reachable ? r.stayMin : null);
   return (
     <li>
       <button className={`stop ${active ? "active" : ""}`} onClick={() => set({ selected: { x: t.x, y: t.y, label: t.name } })} aria-pressed={active}>
@@ -41,6 +74,7 @@ function StopRow({ t, active }: { t: { id: string; name: string; type: keyof typ
           <span className="stop-name">{t.name}</span>
           <span className="stop-why">{WHY[t.type]}</span>
           <Status r={r} />
+          <HazardChips hz={hz} compact />
         </span>
         <span className="stop-time">{r && r.reachable ? <><b>{Math.round(r.walkHomeS / 60)}</b> min<br />home</> : "n/a"}</span>
       </button>
@@ -53,6 +87,7 @@ export function SelectedCard() {
   const set = useStore((s) => s.set);
   const r = useReport(sel?.x ?? 0, sel?.y ?? 0);
   const stopId = useStore((s) => s.bundle?.manifest.targets.find((t) => sel && t.x === sel.x && t.y === sel.y)?.id);
+  const hz = useHazards(sel?.x ?? 0, sel?.y ?? 0, stopId, r && r.reachable ? r.stayMin : null);
   if (!sel) return <p className="select-hint">Click anywhere on the terrain, or a stop below, to see the route home and how long the crew can stay there.</p>;
   return (
     <section className="selected" aria-live="polite">
@@ -71,6 +106,8 @@ export function SelectedCard() {
             <span className="tb-value">{r.stayMin < 0 ? `${Math.ceil(-r.stayMin)}` : Math.floor(r.stayMin)}<small>min</small></span>
             <span className="tb-why">limited by {r.limitedBy} <Tag t="DERIVED" /></span>
           </div>
+          <h4 className="hz-title">Risks here <Tag t="DERIVED" /></h4>
+          <HazardChips hz={hz} />
           <dl className="facts">
             <div><dt>Walk home</dt><dd>{Math.round(r.walkHomeS / 60)} min to {r.haven}</dd></div>
             <div><dt>Route length</dt><dd>{(r.distanceM / 1000).toFixed(2)} km</dd></div>
