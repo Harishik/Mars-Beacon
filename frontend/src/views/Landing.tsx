@@ -14,7 +14,7 @@ const LINEAGE = [
   ["Apollo lunar traverse maps", "Planned stops on photo maps, with a walk-back limit on how far the crew could go from the lunar module.", "We replace the fixed distance limit with a boundary computed from terrain, suits, pace and consumables."],
   ["NASA Worldview (Earth)", "A time slider and a layer drawer over daily satellite imagery, with shareable views.", "Our layer drawer and time bar follow the same pattern."],
   ["JPL Mars Trek", "Global and regional Mars layers in the browser.", "We use Trek's MOLA, CTX and Viking services for the setting, then go to the few square kilometres of one Marswalk."],
-  ["JPL Experience Curiosity", "Rover-eye views of real Mars terrain in the browser.", "Our eye-level views use the same idea: real terrain, natural colour, no game paint on the ground."],
+  ["JPL Experience Curiosity", "Rover-eye views of real Mars terrain in the browser.", "Our eye-level views follow the same idea: real terrain in natural colour, with planning overlays kept off the ground."],
   ["Artemis surface planning", "Walk-back distance limits and paired crew operations for the lunar south pole.", "Two-person crew rules and a moving rover haven are built into the engine."],
 ];
 
