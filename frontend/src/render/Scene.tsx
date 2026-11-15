@@ -14,6 +14,7 @@ import { PlanRoute } from "./PlanRoute";
 import { LinkedViews } from "./LinkedViews";
 import { CuriosityTraverse } from "./Traverse";
 import { Boulders } from "./Boulders";
+import { VisorPath } from "./VisorPath";
 import { Patches } from "./Patches";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
@@ -170,7 +171,8 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <Astronaut position={(crewAt ?? crewPos)[1]} color="#f4c552" phase={1.4} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
       {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
-      {mode !== "hero" && <PlanRoute bundle={bundle} />}
+      {mode === "hud" && <VisorPath bundle={bundle} />}
+      {mode !== "hero" && mode !== "hud" && <PlanRoute bundle={bundle} />}
       {mode !== "hero" && <CuriosityTraverse bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
       {mode === "linked" && quality === "high" && <LinkedViews bundle={bundle} />}

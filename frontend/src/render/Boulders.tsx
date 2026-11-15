@@ -5,12 +5,10 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import type { SiteBundle } from "../data/bundle";
 import { sampleHeight } from "../data/bundle";
+import { loadRocks } from "../data/rocks";
 import { useStore } from "../store/store";
 import { VERT_EXAG } from "./Terrain";
 
-const BASE = (import.meta.env.VITE_BUNDLE_BASE_URL as string | undefined) ?? "./bundle";
-
-interface RocksList { path: string; count: number }
 
 /** Deterministic pseudo-random in [0, 1) per index, so rocks keep their shape between loads. */
 const rnd = (i: number, k: number) => { const s = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return s - Math.floor(s); };
@@ -38,22 +36,20 @@ function BoulderLod({ mesh }: { mesh: THREE.InstancedMesh }) {
 
 export function Boulders({ bundle }: { bundle: SiteBundle }) {
   const show = useStore((s) => s.layers.boulders);
-  const list = (bundle.manifest as unknown as { rocksList?: RocksList }).rocksList;
-  const [data, setData] = useState<DataView | null>(null);
+  const [rocks, setRocks] = useState<Float32Array | null>(null);
   useEffect(() => {
-    if (!list) return;
     let live = true;
-    fetch(`${BASE}/${bundle.manifest.siteId}/${list.path}`).then((r) => r.arrayBuffer()).then((b) => { if (live) setData(new DataView(b)); }).catch(() => {});
+    loadRocks(bundle).then((r) => { if (live) setRocks(r); });
     return () => { live = false; };
-  }, [bundle.manifest.siteId, list]);
+  }, [bundle]);
 
   const geometry = useMemo(rockGeometry, []);
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.92, metalness: 0, flatShading: true }), []);
   useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
 
   const mesh = useMemo(() => {
-    if (!data || !list) return null;
-    const n = Math.min(list.count, Math.floor(data.byteLength / 5));
+    if (!rocks) return null;
+    const n = rocks.length / 3;
     const m = new THREE.InstancedMesh(geometry, material, n);
     const { min, max } = bundle.manifest.elevation;
     const zMid = (min + max) / 2;
@@ -62,7 +58,7 @@ export function Boulders({ bundle }: { bundle: SiteBundle }) {
     const col = new THREE.Color();
     let k = 0;
     for (let i = 0; i < n; i++) {
-      const x = data.getInt16(i * 5, true) / 4, y = data.getInt16(i * 5 + 2, true) / 4, d = data.getUint8(i * 5 + 4) / 20;
+      const x = rocks[i * 3], y = rocks[i * 3 + 1], d = rocks[i * 3 + 2];
       if (Math.abs(x) > E - 2 || Math.abs(y) > E - 2) continue;
       const r = d / 2;
       const h = (sampleHeight(bundle, x, y) - zMid) * VERT_EXAG;
@@ -82,7 +78,7 @@ export function Boulders({ bundle }: { bundle: SiteBundle }) {
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
     m.frustumCulled = false;
     return m;
-  }, [data, list, geometry, material, bundle]);
+  }, [rocks, geometry, material, bundle]);
   useEffect(() => () => { mesh?.dispose(); }, [mesh]);
 
   if (!mesh || !show) return null;

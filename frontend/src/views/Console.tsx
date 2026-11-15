@@ -2,11 +2,12 @@ import { useStore } from "../store/store";
 import { Scene } from "../render/Scene";
 import { LayerDrawer } from "../panels/LayerDrawer";
 import { CrewPanel } from "../panels/CrewPanel";
-import { HudOverlay, InstrumentStrip, LinkedFrames, ViewSwitch } from "../panels/Chrome";
+import { InstrumentStrip, LinkedFrames, ViewSwitch } from "../panels/Chrome";
 import { MissionTimeline, PlanCharts } from "../panels/Plan";
 import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
 import { MapLayers } from "../panels/MapLayers";
+import { Visor } from "../panels/Visor";
 import { PhaseBar, ExploreBrief, DebriefPanel, CueCard, ExecuteNext } from "../panels/Phases";
 import { VERT_EXAG } from "../render/Terrain";
 
@@ -33,7 +34,7 @@ export function Console() {
       {view === "console" && phase === "explore" && <ExploreBrief />}
       {(view === "console" || view === "tablet") && phase !== "explore" && <CrewPanel />}
       {view === "linked" && <LinkedFrames />}
-      {view === "hud" && <HudOverlay />}
+      {view === "hud" && <Visor />}
       <MissionTimeline />
       {view === "console" && (phase === "plan" || phase === "rehearse") && <PlanCharts />}
       {view === "console" && phase === "debrief" && <DebriefPanel />}
