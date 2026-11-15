@@ -55,7 +55,7 @@ export function LayerDrawer() {
   const panel = useStore((s) => s.panel);
 
   return (
-    <aside className="pane drawer" aria-label="Mission and layers">
+    <aside className="pane drawer" aria-label="Mission and layers" data-guide="mission-panel">
       <header className="pane-head pane-tabs" role="tablist">
         <button role="tab" aria-selected={panel === "mission"} onClick={() => set({ panel: "mission" })}>Mission</button>
         <button role="tab" aria-selected={panel === "layers"} onClick={() => set({ panel: "layers" })}>Data layers <span className="count">{manifest?.layers.length ?? 0}</span></button>

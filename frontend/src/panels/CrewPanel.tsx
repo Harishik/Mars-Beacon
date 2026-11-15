@@ -22,7 +22,7 @@ export function CrewPanel() {
   const noReturn = env.margin && env.insideCells === 0;
 
   return (
-    <aside className="pane crew" aria-label="Crew and resources">
+    <aside className="pane crew" aria-label="Crew and resources" data-guide="crew-panel">
       <header className="pane-head">
         <h2>Crew and margins</h2>
         <span className={`status ${env.computing ? "busy" : "ready"}`}>{env.computing ? "Recomputing" : "Certified"}</span>

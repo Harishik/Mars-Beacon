@@ -48,7 +48,7 @@ export function MapLayers() {
   }, [overlay, bundle, ls, tau, lmstStep]);
 
   return (
-    <div className="maplayers">
+    <div className="maplayers" data-guide="map-layers">
       <div className="seg" role="radiogroup" aria-label="Colour the terrain by">
         {(["none", ...available.map((o) => o.id)] as OverlayId[]).map((id) => (
           <button key={id} role="radio" aria-checked={overlay === id} onClick={() => set({ overlay: id })}>{SHORT[id]}</button>

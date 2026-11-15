@@ -966,3 +966,30 @@ body > .sheet-backdrop { z-index: 40; }
   .drawer, .crew, .brief, .plan-charts, .strip, .ml-bar, .debrief { transition: opacity 160ms linear; }
   .focus-view .drawer, .focus-view .crew, .focus-view .brief, .focus-view .plan-charts, .focus-view .strip, .focus-view .debrief { transform: none; }
 }
+
+/* ---------- BEACON guide character ---------- */
+.beacon-guide { position: absolute; z-index: 8; right: 16px; bottom: 116px; width: 104px; height: 104px; }
+.bg-pet { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; border-radius: 24px; cursor: pointer; }
+.bg-pet:focus-visible { outline: 2px solid #66e0e4; outline-offset: 2px; }
+.bg-pose { display: block; width: 100%; height: 100%; aspect-ratio: 1; object-fit: contain; transform-origin: 50% 90%; animation: bg-breathe 3s ease-in-out infinite; user-select: none; }
+.bg-wave { animation: bg-sway 0.55s ease-in-out 3; }
+.bg-celebrate { animation: bg-hop 0.6s ease-in-out 3; }
+.bg-alert { animation: bg-sway 0.4s ease-in-out 2; }
+.bg-sleep { animation: bg-breathe 5s ease-in-out infinite; filter: saturate(0.7); }
+.bg-think, .bg-confused { animation: bg-sway 2s ease-in-out infinite; }
+.bg-bubble {
+  position: absolute; right: 0; bottom: calc(100% + 12px); width: min(248px, calc(100vw - 32px));
+  padding: 12px; border-radius: 16px; background: #14242d; border: 1px solid #46616c; color: #e9f2f3;
+  font-size: 0.8125rem; line-height: 1.45; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+.bg-bubble p { margin: 0; }
+.bg-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.bg-actions button { min-height: 32px; padding: 6px 10px; border-radius: 8px; border: 1px solid #60737b; background: #263c45; color: inherit; font: inherit; cursor: pointer; white-space: nowrap; }
+.bg-actions button:hover { border-color: #66e0e4; }
+.bg-actions .bg-dismiss { background: none; }
+.guide-target { outline: 3px solid transparent; outline-offset: 4px; }
+@keyframes bg-breathe { 50% { transform: translateY(-3px); } }
+@keyframes bg-sway { 50% { transform: rotate(4deg); } }
+@keyframes bg-hop { 50% { transform: translateY(-18px) rotate(-3deg); } }
+@media (prefers-reduced-motion: reduce) { .bg-pose { animation: none !important; } }
+@media (max-width: 720px) { .beacon-guide { width: 88px; height: 88px; bottom: 112px; } }

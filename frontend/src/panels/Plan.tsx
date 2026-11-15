@@ -64,9 +64,9 @@ export function MissionTimeline() {
   const pct = (t: number) => `${(t / total) * 100}%`;
 
   return (
-    <div className="pane timeline" aria-label="Mission timeline">
+    <div className="pane timeline" aria-label="Mission timeline" data-guide="timeline">
       <div className="tl-controls">
-        <button className="play" aria-label={s.playing ? "Pause rehearsal" : "Play rehearsal"} onClick={() => {
+        <button data-guide="play" className="play" aria-label={s.playing ? "Pause rehearsal" : "Play rehearsal"} onClick={() => {
           if (!plan) return;
           s.set({ playing: !s.playing, playheadS: s.playheadS >= plan.totalS ? 0 : s.playheadS });
         }}>
@@ -74,7 +74,7 @@ export function MissionTimeline() {
             ? <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" /><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" /></svg>
             : <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden><path d="M4 2.5v11l9-5.5z" fill="currentColor" /></svg>}
         </button>
-        <select aria-label="Rehearsal speed" value={s.speed} onChange={(e) => s.set({ speed: Number(e.target.value) })}>
+        <select data-guide="speed" aria-label="Rehearsal speed" value={s.speed} onChange={(e) => s.set({ speed: Number(e.target.value) })}>
           <option value={1}>Real time</option><option value={5}>5x</option><option value={20}>20x</option>
           <option value={60}>1 min/s</option><option value={120}>2 min/s</option><option value={300}>5 min/s</option><option value={900}>15 min/s</option>
         </select>
