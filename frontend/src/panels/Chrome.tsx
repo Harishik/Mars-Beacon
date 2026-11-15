@@ -4,6 +4,7 @@ import { useShallow } from "zustand/react/shallow";
 import { reportAt } from "../engine/query";
 import { useStore, type View } from "../store/store";
 import { sampleHeight, toCell, SITES } from "../data/bundle";
+import { useAtmosphere, pressureAt } from "../engine/atmosphere";
 import { formatLmst, sunMars24 } from "../engine/sun";
 import { directIrradiance, tauAtElevation } from "../engine/environment";
 import { Tag } from "./Tag";
@@ -51,7 +52,8 @@ export function InstrumentStrip() {
       ) : (
         <span className="hint">Point at the terrain to read elevation, slope and walk-home time</span>
       )}
-      <span className="strip-right" title="Curiosity RAD surface average, Hassler et al., Science 2014"><i>Radiation</i> 0.21 mGy/day <Tag t="HISTORICAL" /></span>
+      <Weather />
+      <span title="Curiosity RAD surface average, Hassler et al., Science 2014"><i>Radiation</i> 0.21 mGy/day <Tag t="HISTORICAL" /></span>
       <span title="Live DONKI space weather arrives with the backend"><i>Space weather</i> feed not connected</span>
     </div>
   );
@@ -101,9 +103,9 @@ export function TimeBar() {
 }
 
 const VIEWS: { id: View; label: string; short: string; hint: string }[] = [
-  { id: "console", label: "Habitat console", short: "Console", hint: "Full 3D map and analysis" },
+  { id: "console", label: "Habitat console", short: "Habitat", hint: "Full 3D map and analysis" },
   { id: "tablet", label: "Field tablet", short: "Tablet", hint: "Top-down map for walking crew" },
-  { id: "hud", label: "Helmet display", short: "Helmet", hint: "First-person view at eye height" },
+  { id: "hud", label: "Helmet display", short: "Visor", hint: "First-person view at eye height" },
   { id: "rover", label: "Rover cockpit", short: "Rover", hint: "Support rover display: crew distance, haven status, drive time" },
   { id: "linked", label: "All linked", short: "Linked", hint: "Console, tablet and visor together from one mission state" },
 ];
@@ -221,5 +223,23 @@ export function LinkedFrames() {
       </div>
       <p className="lf-note">One mission state drives all three displays: the same plan, crew position, consumables and Return Envelope.</p>
     </div>
+  );
+}
+
+/** Measured weather for the strip: dust from the Curiosity climatology, pressure from REMS at the first stop's sol. */
+function Weather() {
+  const atm = useAtmosphere();
+  const ls = useStore((s) => s.lsDeg);
+  const storm = useStore((s) => s.storm);
+  const tau = useStore((s) => tauAtElevation(s.storm ? Math.max(s.tau, 3) : s.tau, -3.6));
+  const refSol = useStore((s) => s.bundle?.manifest.targets.find((t) => t.id === s.plans.find((p) => p.id === s.activePlan)?.order[0])?.sol ?? null);
+  const ltst = useStore((s) => sunMars24(s.lsDeg, s.lmstHours, s.bundle?.manifest.crs.origin.lat ?? -4.8, s.bundle?.manifest.crs.origin.lon ?? 137.38).ltstH);
+  const p = atm && refSol ? pressureAt(atm, refSol, ltst) : null;
+  void ls;
+  return (
+    <>
+      <span className="strip-right" title={storm ? "Dust storm scenario" : "Seasonal climatology fitted to Curiosity 880 nm column optical depth"}><i>Dust</i> τ {tau.toFixed(2)} <Tag t={storm ? "SCENARIO" : atm?.tau880 ? "DERIVED" : "ASSUMPTION"} /></span>
+      {p && <span title={`Curiosity REMS, sol ${refSol}, ${p.n} samples in the half hour`}><i>Pressure</i> {Math.round(p.pa)} Pa <Tag t="HISTORICAL" /></span>}
+    </>
   );
 }

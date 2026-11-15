@@ -730,3 +730,9 @@ body > .sheet-backdrop { z-index: 40; }
 .tb-actions button span { font-size: 1.3rem; } .tb-actions button[aria-pressed="true"] { background: #60D7E5; color: #151C20; }
 .tb-actions .tb-return { border-color: #F3B540; color: #F3B540; background: rgba(243, 181, 64, 0.08); }
 @media (max-width: 860px) { .tablet { top: auto; left: 12px; right: 12px; width: auto; max-height: 55vh; overflow-y: auto; } }
+.shared-chip { font-size: 0.6875rem; letter-spacing: 0.04em; color: rgba(241, 243, 239, 0.7); padding: 4px 9px; border: 1px solid rgba(96, 215, 229, 0.35); border-radius: 999px; white-space: nowrap; }
+@media (max-width: 1360px) { .shared-chip { display: none; } }
+@media (max-width: 1600px) { .shared-chip { display: none; } }
+@media (max-width: 1560px) { .viewswitch .vs-long { display: none; } .viewswitch .vs-short { display: inline; } .viewswitch button { padding: 7px 11px; } }
+.brand { white-space: nowrap; flex: none; }
+@media (max-width: 1500px) { .strip .hint { display: none; } }

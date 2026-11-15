@@ -28,6 +28,7 @@ export function Console() {
         {synthetic && <span className="badge-warn" title={bundle.manifest.notice}>Placeholder terrain</span>}
         <PhaseBar />
         <button className="btn btn-quiet ledger-btn" onClick={() => useStore.getState().set({ ledger: true })}>Equations</button>
+        <span className="shared-chip" title="Habitat console, field tablet, helmet visor and rover read one mission state">One shared mission state</span>
         <ViewSwitch />
       </header>
       {view !== "hud" && <InstrumentStrip />}
