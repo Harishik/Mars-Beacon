@@ -736,3 +736,6 @@ body > .sheet-backdrop { z-index: 40; }
 @media (max-width: 1560px) { .viewswitch .vs-long { display: none; } .viewswitch .vs-short { display: inline; } .viewswitch button { padding: 7px 11px; } }
 .brand { white-space: nowrap; flex: none; }
 @media (max-width: 1500px) { .strip .hint { display: none; } }
+.visor.returning .vz-anchor-next { filter: saturate(0.3); opacity: 0.45 !important; }
+.vz-return-t b { white-space: nowrap; }
+.vz-card.crit .vz-row.big b { color: var(--amb); font-size: 1.2rem; }

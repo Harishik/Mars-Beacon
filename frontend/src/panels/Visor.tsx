@@ -47,9 +47,11 @@ export function Visor() {
   const o2EnduranceS = v?.suit && v.suit.o2gph > 0 ? (o2Left / v.suit.o2gph) * 3600 : Infinity;
   const timeLeftS = Math.min(t.left, o2EnduranceS);
   const limitedBy = o2EnduranceS < t.left ? "O₂ at current work rate" : "EVA time";
-  const returnNow = !!ret && ret.reachable && ret.stay <= 0;
+  // Past the turn-back point, or outside the Return Envelope altogether (no certified path in the budget).
+  const outside = !!ret && !ret.reachable;
+  const returnNow = !!ret && (outside || ret.stay <= 0);
   const turnS = ret && ret.reachable ? ret.stay * 60 : null;
-  const tone = turnS === null ? "" : turnS <= 0 ? "crit" : turnS < 15 * 60 ? "caution" : "nominal";
+  const tone = returnNow ? "crit" : turnS === null ? "" : turnS < 15 * 60 ? "caution" : "nominal";
 
   // World anchors: the next stop and up to two hazards within 80 m on the path.
   const hz = useMemo(() => (v?.hazards ?? []).filter((h) => h.along < 80).slice(0, 2), [v]);
@@ -77,7 +79,7 @@ export function Visor() {
         </div>
       )}
       {hz.map((h, i) => (
-        <div key={i} id={`vz-anchor-hz-${i}`} className={`vz-anchor vz-anchor-hz ${h.kind}`} style={{ opacity: 0 }}>
+        <div key={i} id={`vz-anchor-hz-${i}`} className={`vz-anchor vz-anchor-hz ${h.kind}`} style={{ opacity: 0, marginTop: -38 - i * 34 }}>
           <WarnIcon /> {h.kind === "boulder" ? `BOULDER ${h.size.toFixed(1)} m · ADVISORY` : `STEEP ${Math.round(h.size)}° · AVOID`}
           <small>{Math.round(h.along)} m ahead</small>
         </div>
@@ -86,8 +88,8 @@ export function Visor() {
       {returnNow && (
         <div className="vz-return" role="alert">
           <WarnIcon big />
-          <div><b>RETURN NOW</b><span>Resource margin reached ({ret?.limit})</span></div>
-          <div className="vz-return-t"><small>TURN-BACK WINDOW</small><b>0:00</b></div>
+          <div><b>RETURN NOW</b><span>{outside ? "Outside the Return Envelope: no certified path home within the remaining budget" : `Resource margin reached (${ret?.limit})`}</span></div>
+          <div className="vz-return-t"><small>{outside ? "HOME" : "TURN-BACK WINDOW"}</small><b>{outside && v ? fmtD(v.home.dist) : "0:00"}</b></div>
         </div>
       )}
 
@@ -95,7 +97,7 @@ export function Visor() {
 
       <section className={`vz-card ${tone}`} aria-label="Return status">
         {returnNow ? (
-          <div className="vz-row big"><span>RETURN ETA</span><b>{ret ? fmtT(ret.walk) : "–"}</b><em>EST</em></div>
+          <div className="vz-row big"><span>RETURN ETA</span><b>{ret && ret.reachable ? fmtT(ret.walk) : "over budget"}</b><em>EST</em></div>
         ) : (
           <div className="vz-row big"><span><TurnIcon /> TURN BACK IN</span><b>{turnS !== null ? fmtT(turnS) : "no path"}</b></div>
         )}

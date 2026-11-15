@@ -146,3 +146,6 @@ export const useStore = create<State>((set) => ({
   }),
   setEnvelope: (p) => set((s) => ({ envelope: { ...s.envelope, ...p } })),
 }));
+
+// Development only: lets automated checks drive the shared state (not present in production builds).
+if (import.meta.env.DEV && typeof window !== "undefined") (window as unknown as { __beacon?: typeof useStore }).__beacon = useStore;
