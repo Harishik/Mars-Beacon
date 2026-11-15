@@ -15,6 +15,7 @@ export interface ManifestLayer {
 export interface ManifestPoint { id: string; x: number; y: number }
 export interface Manifest {
   siteId: string; name: string; body: string; version: string; siteHash: string;
+  orthoTiles?: { path: string; tileSize: number; maxLevel: number; count?: number } | null;
   synthetic?: boolean; notice?: string;
   display?: { verticalExaggeration?: number };
   /** Site text shown in the app (science objective and the rover campaign it follows). */

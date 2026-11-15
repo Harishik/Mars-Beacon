@@ -209,13 +209,29 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   );
 }
 
+/** WebGL available? Checked once; without it the panels still work over a flat map image. */
+let webgl: boolean | null = null;
+function hasWebGL() {
+  if (webgl === null) {
+    try { const c = document.createElement("canvas"); webgl = !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { webgl = false; }
+  }
+  return webgl;
+}
+
 export function Scene({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   const ready = useStore((s) => s.sceneReady);
   const low = useStore((s) => s.quality === "low");
   useEffect(() => () => useStore.getState().set({ sceneReady: false }), []);
+  if (!hasWebGL()) {
+    return (
+      <div className="scene scene-fallback" style={bundle.orthoUrl ? { backgroundImage: `url(${bundle.orthoUrl})` } : undefined}>
+        <p role="status">This browser cannot draw the 3D terrain (WebGL is off or unsupported). The HiRISE map, plans, envelope numbers and every panel still work.</p>
+      </div>
+    );
+  }
   return (
     <>
-    {!ready && <div className="scene-veil" role="status"><span className="loading-ring" aria-hidden />Preparing Gale terrain</div>}
+    {!ready && <div className="scene-veil" role="status"><span className="loading-ring" aria-hidden />Preparing {bundle.manifest.site?.name ?? bundle.manifest.name}</div>}
     <Canvas
       className="scene"
       dpr={low ? 1 : [1, 2]}

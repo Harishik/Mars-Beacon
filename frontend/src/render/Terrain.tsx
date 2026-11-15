@@ -85,6 +85,9 @@ const frag = /* glsl */ `
   uniform float uFogNear;
   uniform float uFogFar;
   uniform sampler2D uOrtho;    // HiRISE greyscale, observed
+  uniform sampler2D uDetail;   // 25 cm HiRISE tiles around the camera focus (quadtree level 4 or 5)
+  uniform vec3 uDetailRect;    // detail texture's lower-left uv and uv size in the ortho's uv space
+  uniform float uHasDetail;
   uniform float uHasOrtho;
   uniform sampler2D uNormalMap; // 1 m DEM normals, tangent space x east, y north, z up
   uniform float uHasNormal;
@@ -124,6 +127,19 @@ const frag = /* glsl */ `
   }
 
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+
+  // Greyscale HiRISE: the 4096 px overview everywhere, the full-resolution tiles near the camera focus.
+  float orthoGrey() {
+    float g = texture2D(uOrtho, vUv).r;
+    if (uHasDetail > 0.5) {
+      vec2 d = (vUv - uDetailRect.xy) / uDetailRect.z;
+      if (d.x > 0.0 && d.y > 0.0 && d.x < 1.0 && d.y < 1.0) {
+        float e = min(min(d.x, 1.0 - d.x), min(d.y, 1.0 - d.y));
+        g = mix(g, texture2D(uDetail, d).r, smoothstep(0.0, 0.05, e));
+      }
+    }
+    return g;
+  }
 
   // HiRISE is greyscale. This grade maps its brightness onto Mars surface colours
   // (dark basaltic sand to bright dust). Visualisation, not measured colour.
@@ -177,7 +193,7 @@ const frag = /* glsl */ `
       vec3 c = texture2D(uOrtho, vUv).rgb;
       albedo = pow(c, vec3(2.2)) * 2.3 * vec3(1.0, 1.12, 0.78);   // same Mastcam white balance as below
     } else if (uHasOrtho > 0.5) {
-      float g = texture2D(uOrtho, vUv).r;
+      float g = orthoGrey();
       // HiRISE has the orbital sun baked in; soften its contrast so our own sun does the shading.
       g = clamp(0.5 + (g - 0.5) * 0.9, 0.0, 1.0);
       if (uColourMode > 1.5) {
@@ -370,6 +386,9 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uFogNear: { value: 3500 },
       uFogFar: { value: 60000 },
       uOrtho: { value: null },
+      uDetail: { value: null },
+      uDetailRect: { value: new THREE.Vector3(0, 0, 1) },
+      uHasDetail: { value: 0 },
       uHasOrtho: { value: 0 },
       uNormalMap: { value: null },
       uHasNormal: { value: 0 },
@@ -491,7 +510,14 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
     u.uHeight.value = heightTex; u.uHasHeight.value = 1; u.uExtent.value = extentM;
     const loader = new THREE.TextureLoader();
     const disposers: THREE.Texture[] = [];
-    if (bundle.orthoUrl) loader.load(bundle.orthoUrl, (t) => {
+    if (bundle.orthoUrl) loader.load(bundle.orthoUrl, (img) => {
+      let t: THREE.Texture = img;
+      // Low tier: halve the overview to 2048 px (a quarter of the GPU memory) before upload.
+      if (useStore.getState().quality === "low" && (t.image as HTMLImageElement).width > 2048) {
+        const cv = document.createElement("canvas"); cv.width = cv.height = 2048;
+        cv.getContext("2d")!.drawImage(t.image as HTMLImageElement, 0, 0, 2048, 2048);
+        t.dispose(); t = new THREE.CanvasTexture(cv);
+      }
       t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
       u.uOrtho.value = t; u.uHasOrtho.value = 1; disposers.push(t);
     });
@@ -506,6 +532,8 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
     });
     return () => disposers.forEach((t) => t.dispose());
   }, [material, heightTex, extentM, bundle.orthoUrl, bundle.normalUrl]);
+
+  useOrthoDetail(material, bundle);
 
   // Push the newest margin field into the texture (no geometry rebuild).
   const envelopeVersion = useStore((s) => s.envelope.version);
@@ -547,4 +575,65 @@ function useOverlayTexture(bundle: SiteBundle, material: THREE.ShaderMaterial) {
     u.uOverlay.value = tex;
     u.uOverlayMode.value = info.ramp;
   }, [overlay, ls, tau, lmstStep, bundle, material, tex, roverActive]);
+}
+
+
+/**
+ * Full-resolution HiRISE near the camera: picks quadtree level 5 (about 0.18 m per pixel, from the 25 cm source)
+ * or level 4 by camera distance, stitches the 4 x 4 tiles around the focus into one 2048 px texture and hands
+ * it to the terrain shader. High quality tier only; the overview carries everything else.
+ */
+const tileImages = new Map<string, Promise<HTMLImageElement | null>>();
+function loadTile(url: string) {
+  let p = tileImages.get(url);
+  if (!p) {
+    p = new Promise((res) => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; });
+    tileImages.set(url, p);
+  }
+  return p;
+}
+
+function useOrthoDetail(material: THREE.ShaderMaterial, bundle: SiteBundle) {
+  const ot = bundle.manifest.orthoTiles;
+  const low = useStore((s) => s.quality === "low");
+  const state = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 2048;
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.NoColorSpace; tex.anisotropy = 8; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
+    return { canvas, ctx: canvas.getContext("2d")!, tex, key: "", gen: 0 };
+  }, []);
+  useEffect(() => () => state.tex.dispose(), [state]);
+  useEffect(() => { material.uniforms.uHasDetail.value = 0; state.key = ""; }, [bundle, low, material, state]);
+  const base = `${(import.meta.env.VITE_BUNDLE_BASE_URL as string | undefined) ?? "./bundle"}/${bundle.manifest.siteId}/`;
+  useFrame(({ camera, controls }) => {
+    if (!ot || low) return;
+    const target = (controls as unknown as { target?: THREE.Vector3 } | null)?.target;
+    if (!target) return;
+    const d = camera.position.distanceTo(target);
+    const L = d < 520 ? Math.min(5, ot.maxLevel) : d < 1500 ? Math.min(4, ot.maxLevel) : -1;
+    const u = material.uniforms;
+    if (L < 0) { if (state.key) { state.key = ""; u.uHasDetail.value = 0; } return; }
+    const E = bundle.manifest.grid.extentM, n = 2 ** L, k = 4, span = E / n;
+    const x = target.x, y = -target.z;
+    const c0 = Math.max(0, Math.min(n - k, Math.round((x + E / 2) / span - k / 2)));
+    const r0 = Math.max(0, Math.min(n - k, Math.round((E / 2 - y) / span - k / 2)));
+    const key = `${L}|${r0}|${c0}`;
+    if (key === state.key) return;
+    state.key = key;
+    const gen = ++state.gen;
+    const T = 2048 / k;
+    Promise.all(Array.from({ length: k * k }, (_, i) => {
+      const r = r0 + Math.floor(i / k), c = c0 + (i % k);
+      return loadTile(base + ot.path.replace("{level}", String(L)).replace("{row}", String(r)).replace("{col}", String(c))).then((im) => ({ im, i }));
+    })).then((tiles) => {
+      if (gen !== state.gen) return;            // the camera moved on
+      if (tiles.some((t) => !t.im)) { u.uHasDetail.value = 0; return; }
+      for (const { im, i } of tiles) state.ctx.drawImage(im!, (i % k) * T, Math.floor(i / k) * T, T, T);
+      state.tex.needsUpdate = true;
+      u.uDetail.value = state.tex;
+      (u.uDetailRect.value as THREE.Vector3).set(c0 / n, 1 - (r0 + k) / n, k / n);
+      u.uHasDetail.value = 1;
+    });
+  });
 }
