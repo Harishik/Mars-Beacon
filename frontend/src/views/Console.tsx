@@ -10,6 +10,7 @@ import { MapLayers } from "../panels/MapLayers";
 import { Visor } from "../panels/Visor";
 import { RoverCockpit } from "../panels/RoverCockpit";
 import { FieldTablet } from "../panels/FieldTablet";
+import { MissionControl } from "../panels/MissionControl";
 import { PhaseBar, ExploreBrief, DebriefPanel, CueCard, ExecuteNext } from "../panels/Phases";
 import { VERT_EXAG } from "../render/Terrain";
 
@@ -33,12 +34,13 @@ export function Console() {
       </header>
       {view !== "hud" && view !== "eva" && <InstrumentStrip />}
       {view === "console" && (phase === "explore" || phase === "plan") && <MapLayers />}
-      {view !== "hud" && view !== "rover" && view !== "tablet" && view !== "eva" && <LayerDrawer />}
+      {view !== "hud" && view !== "rover" && view !== "tablet" && view !== "eva" && view !== "control" && <LayerDrawer />}
       {view === "tablet" && <FieldTablet />}
       {view === "console" && phase === "explore" && <ExploreBrief />}
       {view === "console" && phase !== "explore" && <CrewPanel />}
       {view === "linked" && <LinkedFrames />}
       {view === "hud" && <Visor />}
+      {view === "control" && <MissionControl />}
       {view === "eva" && <Visor thirdPerson />}
       {view === "rover" && <RoverCockpit />}
       <MissionTimeline />

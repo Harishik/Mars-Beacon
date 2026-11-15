@@ -104,6 +104,7 @@ export function TimeBar() {
 
 const VIEWS: { id: View; label: string; short: string; hint: string }[] = [
   { id: "console", label: "Habitat console", short: "Habitat", hint: "Full 3D map and analysis" },
+  { id: "control", label: "Mission control", short: "Control", hint: "Flight-control dashboard: go/no-go, crew, safety board, comms delay, event log" },
   { id: "tablet", label: "Field tablet", short: "Tablet", hint: "Top-down map for walking crew" },
   { id: "eva", label: "EVA third person", short: "EVA", hint: "Follow the walking pair from behind, with the projected path and hazards" },
   { id: "hud", label: "Helmet display", short: "Visor", hint: "First-person view at eye height" },
