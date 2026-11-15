@@ -21,7 +21,7 @@ const fmtT = (s: number) => {
   return t < 3600 ? `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}` : `${Math.floor(t / 3600)} h ${String(Math.floor((t % 3600) / 60)).padStart(2, "0")}`;
 };
 
-export function Visor() {
+export function Visor({ thirdPerson = false }: { thirdPerson?: boolean }) {
   const v = useVisor();
   const bundle = useStore((s) => s.bundle);
   const crew = useStore((s) => s.crew);
@@ -64,10 +64,10 @@ export function Visor() {
   }, [bundle, v, hz]);
 
   return (
-    <div className={`visor ${returnNow ? "returning" : ""}`} aria-label="Helmet visor display">
-      <div className="visor-glass" aria-hidden />
+    <div className={`visor ${returnNow ? "returning" : ""} ${thirdPerson ? "third" : ""}`} aria-label={thirdPerson ? "EVA third-person view" : "Helmet visor display"}>
+      {thirdPerson ? null : <HelmetRim />}
       <header className="vz-top">
-        <span className="vz-id">BEACON / EVA-01 · E1</span>
+        <span className="vz-id">BEACON / EVA-01 · {thirdPerson ? "THIRD PERSON, FOLLOWING E1 AND E2" : "E1 VISOR"}</span>
         <HeadingTape />
         {v && <span className="vz-home"><HomeIcon /> HOME {Math.round(v.home.bearing)}° · {fmtD(v.home.dist)}</span>}
       </header>
@@ -201,5 +201,30 @@ function LocalMap({ v }: { v: VisorData | null }) {
         <span className="vz-legend"><i className="lg-route" />route <i className="lg-rock" />boulder ≥1 m</span>
       </footer>
     </section>
+  );
+}
+
+/** Helmet rim and visor glass: dark curved bezel, faint glass sheen, so the view reads as inside a helmet. */
+function HelmetRim() {
+  return (
+    <svg className="helmet-rim" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden>
+      <defs>
+        <radialGradient id="rimShade" cx="50%" cy="46%" r="62%">
+          <stop offset="78%" stopColor="#000" stopOpacity="0" />
+          <stop offset="93%" stopColor="#0b0f12" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#05070a" stopOpacity="0.96" />
+        </radialGradient>
+        <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.07" />
+          <stop offset="35%" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#rimShade)" />
+      <path d="M0 900 L0 760 Q260 700 520 742 Q800 790 1080 742 Q1340 700 1600 760 L1600 900 Z" fill="#0d1216" opacity="0.92" />
+      <path d="M0 760 Q260 700 520 742 Q800 790 1080 742 Q1340 700 1600 760" fill="none" stroke="#3a454d" strokeWidth="3" />
+      <path d="M0 0 L0 90 Q400 40 800 46 Q1200 40 1600 90 L1600 0 Z" fill="#0d1216" opacity="0.85" />
+      <path d="M0 90 Q400 40 800 46 Q1200 40 1600 90" fill="none" stroke="#3a454d" strokeWidth="2" />
+      <ellipse cx="420" cy="230" rx="520" ry="260" fill="url(#sheen)" />
+    </svg>
   );
 }

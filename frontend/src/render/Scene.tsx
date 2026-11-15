@@ -16,9 +16,10 @@ import { CuriosityTraverse } from "./Traverse";
 import { Boulders } from "./Boulders";
 import { Splats } from "./Splats";
 import { VisorPath } from "./VisorPath";
+import { HabitatModel, RoverModel } from "./Models";
 import { VisorAnchors } from "./VisorAnchors";
 import { Patches } from "./Patches";
-import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
+import { Astronaut, TargetPins, toScene } from "./Assets";
 
 type Mode = "hero" | View;
 
@@ -87,6 +88,16 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       cam.position.copy(eye);
       c?.target.copy(eye.clone().add(ahead.sub(eye).normalize().multiplyScalar(0.5)));
       cam.fov = 70;
+    } else if (mode === "eva") {
+      // Third person: 7 m behind and 3.2 m above EV1, looking at a point 12 m ahead of the pair.
+      const h = livePos ? (livePos.heading * Math.PI) / 180 : Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
+      const dx = Math.sin(h), dy = Math.cos(h);
+      const px = livePos?.x ?? hab.x + dx * 20, py = livePos?.y ?? hab.y + dy * 20;
+      const eye = toScene(bundle, px - dx * 4.5, py - dy * 4.5, 2.4);
+      const look = toScene(bundle, px + dx * 10, py + dy * 10, 0.9);
+      cam.position.copy(eye);
+      c?.target.copy(look);
+      cam.fov = 55;
     } else if (mode === "rover") {
       // Support rover cab, 3 m up, looking at the crew (or the first stop before egress).
       const rv = m.havens.find((h) => h.type === "rover");
@@ -107,12 +118,14 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       c?.target.set(focus.p.x, focus.p.y, focus.p.z);
       cam.fov = 45;
     }
-    cam.layers.enable(1); // layer 1: selection markers, hidden from the visor camera
+    if (mode === "eva") cam.layers.disable(1); else cam.layers.enable(1); // layer 1: selection markers
     cam.layers.enable(2); // layer 2: EV1's own suit, hidden from EV1's visor
-    cam.near = mode === "hud" || mode === "rover" ? 0.1 : 1;
+    cam.near = mode === "hud" || mode === "rover" || mode === "eva" ? 0.1 : 1;
     cam.updateProjectionMatrix();
     c?.update();
-  }, [mode, camera, habP, goalP, focus, bundle, hab.x, hab.y, mode === "hud" ? livePos : null, mode === "rover" ? (livePos ? Math.round(livePos.x / 10) * 1000 + Math.round(livePos.y / 10) : 0) : 0]);
+    // Development only: lets automated checks frame the camera.
+    if (import.meta.env.DEV) (window as unknown as { __cam?: unknown }).__cam = { cam, controls: c };
+  }, [mode, camera, habP, goalP, focus, bundle, hab.x, hab.y, mode === "hud" || mode === "eva" ? livePos : null, mode === "rover" ? (livePos ? Math.round(livePos.x / 10) * 1000 + Math.round(livePos.y / 10) : 0) : 0]);
 
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
@@ -160,7 +173,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   }, [bundle, livePos]);
 
   const onClick = (e: { point: THREE.Vector3; delta: number }) => {
-    if (mode === "hero" || mode === "hud" || mode === "rover" || e.delta > 6) return; // ignore drags
+    if (mode === "hero" || mode === "hud" || mode === "rover" || mode === "eva" || e.delta > 6) return; // ignore drags
     useStore.getState().set({ selected: { x: e.point.x, y: -e.point.z } });
   };
   const onMove = (e: { point: THREE.Vector3 }) => {
@@ -179,15 +192,15 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <group onClick={onClick} onPointerMove={onMove} onPointerOut={() => useStore.getState().set({ cursor: null })}>
         <Terrain bundle={bundle} segments={quality === "low" ? 256 : mode === "hero" ? 320 : 448} />
       </group>
-      {showHavens && <Habitat position={habP} />}
-      {showHavens && rover && mode !== "rover" && <Rover bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
+      {showHavens && <HabitatModel position={habP} />}
+      {showHavens && rover && mode !== "rover" && <RoverModel bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
       {mode !== "hud" && <Astronaut position={(crewAt ?? crewPos)[0]} color="#6fd6e6" layer={2} />}
       <Astronaut position={(crewAt ?? crewPos)[1]} color="#f4c552" phase={1.4} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
       {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
-      {mode === "hud" && <VisorPath bundle={bundle} />}
-      {mode === "hud" && <VisorAnchors />}
-      {mode !== "hero" && mode !== "hud" && <PlanRoute bundle={bundle} />}
+      {(mode === "hud" || mode === "eva") && <VisorPath bundle={bundle} />}
+      {(mode === "hud" || mode === "eva") && <VisorAnchors />}
+      {mode !== "hero" && mode !== "hud" && mode !== "eva" && <PlanRoute bundle={bundle} />}
       {mode !== "hero" && <CuriosityTraverse bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
       {mode === "linked" && quality === "high" && <LinkedViews bundle={bundle} />}

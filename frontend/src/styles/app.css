@@ -739,3 +739,6 @@ body > .sheet-backdrop { z-index: 40; }
 .visor.returning .vz-anchor-next { filter: saturate(0.3); opacity: 0.45 !important; }
 .vz-return-t b { white-space: nowrap; }
 .vz-card.crit .vz-row.big b { color: var(--amb); font-size: 1.2rem; }
+.helmet-rim { position: absolute; inset: 0; width: 100%; height: 100%; }
+.visor.third .vz-top { top: 66px; }
+.visor:not(.third) .vz-map, .visor:not(.third) .vz-card { bottom: 132px; }

@@ -48,22 +48,23 @@ export function RoverCockpit() {
         <p className="ck-note">Drive time is a straight-line estimate (ASSUMPTION); rover traverse planning is not modelled.</p>
       </section>
       <section className="ck-panel ck-right">
-        <header className="ck-warn"><WarnIcon /> HAVEN: CONDITIONAL</header>
+        <header className="ck-warn"><WarnIcon /> R1 · ROVER VARIANT A · HAVEN (CONCEPT)</header>
         <dl className="ck-caps">
           <div><dt>Transport support</dt><dd className="ok">available</dd></div>
-          <div><dt>Crew seats</dt><dd>2</dd></div>
-          <div><dt>Pressurized refuge</dt><dd className="no">no</dd></div>
-          <div><dt>Radiation shelter</dt><dd className="no">not qualified</dd></div>
-          <div><dt>O₂ transfer</dt><dd className="na">not modelled</dd></div>
+          <div><dt>Crew</dt><dd>2 to 4</dd></div>
+          <div><dt>Pressurized refuge</dt><dd className="ok">yes, design concept</dd></div>
+          <div><dt>Refuge endurance</dt><dd>≥ 72 h, design target</dd></div>
+          <div><dt>Radiation shelter</dt><dd className="na">mitigation, not quantified</dd></div>
+          <div><dt>Side airlock</dt><dd className="ok">yes</dd></div>
         </dl>
         <button className={`ck-toggle ${s.roverActive ? "on" : ""}`} onClick={() => s.set({ roverActive: !s.roverActive })} style={{ pointerEvents: "auto" }}>
-          {s.roverActive ? "Counted as a mobility haven" : "Not counted as a haven"}
+          {s.roverActive ? "Counted as a haven in the Return Envelope" : "Not counted as a haven"}
         </button>
         <dl>
           <div><dt>Returnable ground</dt><dd>{s.computing ? "recomputing" : `${area.toFixed(2)} km²`}</dd></div>
           <div><dt>R1 → HAB</dt><dd>{fmtD(dHab)}, {Math.ceil(dHab / ROVER_SPEED_MS / 60)} min drive</dd></div>
         </dl>
-        <p className="ck-note">Mobility haven only: a return may end at the rover and ride home. The open rover gives no breathing refuge and no dose protection, so it never counts as shelter during a radiation event.</p>
+        <p className="ck-note">Rover Variant A is the team's pressurized exploration rover concept (cabin, side airlock, ≥72 h refuge target). Counted as a haven, a return may end at R1. Its radiation shielding is not quantified, so the dose model does not reduce dose inside it.</p>
       </section>
     </div>
   );

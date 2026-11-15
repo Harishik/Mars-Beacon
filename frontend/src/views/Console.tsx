@@ -31,14 +31,15 @@ export function Console() {
         <span className="shared-chip" title="Habitat console, field tablet, helmet visor and rover read one mission state">One shared mission state</span>
         <ViewSwitch />
       </header>
-      {view !== "hud" && <InstrumentStrip />}
+      {view !== "hud" && view !== "eva" && <InstrumentStrip />}
       {view === "console" && (phase === "explore" || phase === "plan") && <MapLayers />}
-      {view !== "hud" && view !== "rover" && view !== "tablet" && <LayerDrawer />}
+      {view !== "hud" && view !== "rover" && view !== "tablet" && view !== "eva" && <LayerDrawer />}
       {view === "tablet" && <FieldTablet />}
       {view === "console" && phase === "explore" && <ExploreBrief />}
       {view === "console" && phase !== "explore" && <CrewPanel />}
       {view === "linked" && <LinkedFrames />}
       {view === "hud" && <Visor />}
+      {view === "eva" && <Visor thirdPerson />}
       {view === "rover" && <RoverCockpit />}
       <MissionTimeline />
       {view === "console" && (phase === "plan" || phase === "rehearse") && <PlanCharts />}
