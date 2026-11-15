@@ -16,7 +16,7 @@ const ribbonVert = /* glsl */ `
 const ribbonFrag = /* glsl */ `
   uniform float uTime; varying float vAlong; varying float vSide; varying float vSlope;
   void main() {
-    vec3 safe = vec3(0.35, 0.95, 1.0), warn = vec3(1.0, 0.72, 0.25), bad = vec3(1.0, 0.33, 0.25);
+    vec3 safe = vec3(0.376, 0.843, 0.898), warn = vec3(0.953, 0.71, 0.251), bad = vec3(0.941, 0.42, 0.396);
     vec3 col = vSlope < 12.0 ? safe : (vSlope < 18.0 ? warn : bad);
     float edge = smoothstep(0.82, 1.0, abs(vSide));
     float chev = fract((vAlong - abs(vSide) * 0.9) / 2.2 - uTime * 0.6);
@@ -70,7 +70,7 @@ function Ribbon({ bundle, pts }: { bundle: SiteBundle; pts: { x: number; y: numb
 }
 
 const ringGeo = new THREE.RingGeometry(0.85, 1, 40);
-const ringBoulder = new THREE.MeshBasicMaterial({ color: "#ff5a48", transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
+const ringBoulder = new THREE.MeshBasicMaterial({ color: "#F3B540", transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
 const ringSteep = new THREE.MeshBasicMaterial({ color: "#ffb340", transparent: true, opacity: 0.45, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
 const beamGeo = new THREE.CylinderGeometry(0.35, 0.35, 80, 16, 1, true);
 

@@ -16,6 +16,7 @@ import { CuriosityTraverse } from "./Traverse";
 import { Boulders } from "./Boulders";
 import { Splats } from "./Splats";
 import { VisorPath } from "./VisorPath";
+import { VisorAnchors } from "./VisorAnchors";
 import { Patches } from "./Patches";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
@@ -185,6 +186,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
       {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
       {mode === "hud" && <VisorPath bundle={bundle} />}
+      {mode === "hud" && <VisorAnchors />}
       {mode !== "hero" && mode !== "hud" && <PlanRoute bundle={bundle} />}
       {mode !== "hero" && <CuriosityTraverse bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
