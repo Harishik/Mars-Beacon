@@ -4,6 +4,9 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
 import { activePlanOf } from "../engine/useMission";
+import { reportAt } from "../engine/query";
+
+const WarnIcon = () => <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden><path d="M8 1.5l7 13H1z" fill="none" stroke="currentColor" strokeWidth="1.4" /><path d="M8 6v4M8 12v.5" stroke="currentColor" strokeWidth="1.6" /></svg>;
 
 /** Drive speed for the estimate: Apollo LRV averaged about 2.5 m/s on traverses; we use 2 m/s on a direct line (ASSUMPTION). */
 const ROVER_SPEED_MS = 2.0;
@@ -22,6 +25,7 @@ export function RoverCockpit() {
   const rx = rv?.x ?? hab.x, ry = rv?.y ?? hab.y;
   const dCrew = Math.hypot(crew.x - rx, crew.y - ry), dHab = Math.hypot(hab.x - rx, hab.y - ry);
   const brg = ((Math.atan2(crew.x - rx, crew.y - ry) * 180) / Math.PI + 360) % 360;
+  const crewHome = s.bundle && s.crewPos ? reportAt(s.bundle, useStore.getState(), s.crewPos.x, s.crewPos.y) : null;
   const area = (s.insideCells * m.grid.liveM * m.grid.liveM) / 1e6;
   const plan = activePlanOf({ plans: s.plans, activePlan: s.activePlan });
   const nextEv = plan?.events.find((e) => e.kind === "arrive" && e.t > s.playheadS);
@@ -29,29 +33,37 @@ export function RoverCockpit() {
   return (
     <div className="cockpit" aria-label="Rover cockpit display">
       <div className="ck-glass" aria-hidden />
+      <div className="ck-title"><b>R1 / PARKED</b><span>EVA-01 · crew E1, E2 · position E {Math.round(rx)} m, N {Math.round(ry)} m (site frame)</span></div>
       <section className="ck-panel ck-left">
         <header>CREW TRACK</header>
-        <div className="ck-big"><b>{fmtD(dCrew)}</b><span>to EV1 and EV2, bearing {Math.round(brg)}°</span></div>
+        <div className="ck-big"><b>{fmtD(dCrew)}</b><span>R1 → crew pair (E1, E2 walk together), bearing {Math.round(brg)}° true</span></div>
         <dl>
           <div><dt>Drive to crew</dt><dd>{Math.ceil(dCrew / ROVER_SPEED_MS / 60)} min at 2 m/s, direct</dd></div>
           <div><dt>EV1 O₂</dt><dd>{Math.round(s.crew[0].o2BudgetG - s.crew[0].o2SpentG)} g</dd></div>
           <div><dt>EV2 O₂</dt><dd>{Math.round(s.crew[1].o2BudgetG - s.crew[1].o2SpentG)} g</dd></div>
           <div><dt>EVA time left</dt><dd>{Math.round(s.left / 60)} min</dd></div>
           <div><dt>Crew heading to</dt><dd>{next ? next.name.split(",")[0] : "Habitat airlock"}</dd></div>
+          <div><dt>E1 → HAB, walking route</dt><dd>{crewHome ? `${fmtD(crewHome.distanceM)}, ${Math.round(crewHome.walkHomeS / 60)} min` : "no certified path"}</dd></div>
         </dl>
         <p className="ck-note">Drive time is a straight-line estimate (ASSUMPTION); rover traverse planning is not modelled.</p>
       </section>
       <section className="ck-panel ck-right">
-        <header>SAFE HAVEN</header>
+        <header className="ck-warn"><WarnIcon /> HAVEN: CONDITIONAL</header>
+        <dl className="ck-caps">
+          <div><dt>Transport support</dt><dd className="ok">available</dd></div>
+          <div><dt>Crew seats</dt><dd>2</dd></div>
+          <div><dt>Pressurized refuge</dt><dd className="no">no</dd></div>
+          <div><dt>Radiation shelter</dt><dd className="no">not qualified</dd></div>
+          <div><dt>O₂ transfer</dt><dd className="na">not modelled</dd></div>
+        </dl>
         <button className={`ck-toggle ${s.roverActive ? "on" : ""}`} onClick={() => s.set({ roverActive: !s.roverActive })} style={{ pointerEvents: "auto" }}>
-          {s.roverActive ? "Rover is a haven" : "Rover not counted as a haven"}
+          {s.roverActive ? "Counted as a mobility haven" : "Not counted as a haven"}
         </button>
         <dl>
           <div><dt>Returnable ground</dt><dd>{s.computing ? "recomputing" : `${area.toFixed(2)} km²`}</dd></div>
-          <div><dt>Rover to habitat</dt><dd>{fmtD(dHab)}, {Math.ceil(dHab / ROVER_SPEED_MS / 60)} min</dd></div>
-          <div><dt>Parked at</dt><dd>E {Math.round(rx)} m, N {Math.round(ry)} m</dd></div>
+          <div><dt>R1 → HAB</dt><dd>{fmtD(dHab)}, {Math.ceil(dHab / ROVER_SPEED_MS / 60)} min drive</dd></div>
         </dl>
-        <p className="ck-note">With the rover counted as a haven, the Return Envelope certifies walks home to either the habitat or the rover, and the area above grows.</p>
+        <p className="ck-note">Mobility haven only: a return may end at the rover and ride home. The open rover gives no breathing refuge and no dose protection, so it never counts as shelter during a radiation event.</p>
       </section>
     </div>
   );

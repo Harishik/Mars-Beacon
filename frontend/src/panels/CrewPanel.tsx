@@ -79,8 +79,8 @@ export function CrewPanel() {
         <button className="haven-toggle" role="switch" aria-checked={roverActive} onClick={() => set({ roverActive: !roverActive })}>
           <span className="switch" aria-hidden />
           <span>
-            <span className="layer-name">Support rover as a haven</span>
-            <span className="layer-source">{roverActive ? "Parked and powered" : "Out of service"}</span>
+            <span className="layer-name">Rover R1 as a mobility haven</span>
+            <span className="layer-source">{roverActive ? "Counted: a return may end at R1 and ride home. Not a pressurized or radiation shelter" : "Not counted"}</span>
           </span>
         </button>
         <label className="slider">

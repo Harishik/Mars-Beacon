@@ -705,3 +705,8 @@ body > .sheet-backdrop { z-index: 40; }
 .ck-toggle { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 179, 64, 0.6); background: rgba(255, 179, 64, 0.08); color: #ffd38a; font: inherit; font-weight: 700; cursor: pointer; }
 .ck-toggle.on { background: #ffb340; color: #1c1309; box-shadow: 0 0 18px rgba(255, 179, 64, 0.5); }
 @media (max-width: 900px) { .ck-panel { width: auto; left: 12px; right: 12px; } .ck-right { bottom: 330px; } }
+.ck-title { position: absolute; top: 100px; left: 24px; display: grid; gap: 2px; padding: 8px 12px; border-radius: 6px; background: rgba(21, 28, 32, 0.7); border-left: 3px solid #F3B540; }
+.ck-title b { font-size: 1rem; letter-spacing: 0.08em; color: #F1F3EF; } .ck-title span { font-size: 0.6875rem; color: rgba(241, 243, 239, 0.7); }
+.ck-warn { display: flex; align-items: center; gap: 6px; color: #F3B540 !important; }
+.ck-caps { padding-bottom: 8px; margin-bottom: 8px !important; border-bottom: 1px solid rgba(255, 179, 64, 0.25); }
+.ck-caps .ok { color: #8fe3a6; } .ck-caps .no { color: #F06B65; } .ck-caps .na { color: rgba(255, 230, 194, 0.5); font-style: italic; font-weight: 400; }
