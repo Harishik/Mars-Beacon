@@ -106,6 +106,7 @@ export function Ledger() {
             <ul className="limits">
               <li>Certification uses one search tree (least pair time). A second tree minimising oxygen will be added; until then a feasible cell can be missed, never an infeasible one certified.</li>
               <li>Sun from the Mars24 algorithm (Allison and McEwen 2000), checked against the NASA GISS worked examples. The season slider picks the first date from 15 Nov 2026 at that solar longitude.</li>
+              <li>Boulders do not block routes. The orbital detector's independent test (precision 35%, recall 32%; 20% recall for boulders of 2 m or more) does not support hard obstacles. Slope is the only hard no-go limit; boulders are shown in 3D, on the map layer and in the risk summary.</li>
               <li>Dust optical depth follows a seasonal climatology fitted to Curiosity's 880 nm column measurements (sols 33 to 3953; held-out error 0.22; 87% of later sols inside the band). It is seasonal context, not a storm forecast or a spatial map. Gale only.</li>
               <li>Air pressure is REMS measured at the rover, shown only where a reading exists within half an hour; the pressure trend model failed its later-sol test and is not used.</li>
               <li>The thermal model uses one thermal inertia for the whole site and ignores cast shadows; rock and sand differ. A THEMIS inertia map would set it per pixel.</li>

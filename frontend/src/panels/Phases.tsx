@@ -1,6 +1,6 @@
 // The EVA workflow of the V6 plan: Explore, Plan, Rehearse, Execute, Debrief.
 // One mission state underneath; each step shows what that job needs.
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { useStore, type Phase } from "../store/store";
 import { activePlanOf } from "../engine/useMission";
 import { sunMars24, formatLmst } from "../engine/sun";
@@ -12,6 +12,24 @@ import { siteText } from "../data/bundle";
 import { RoverViews } from "./RoverViews";
 import { useAtmosphere, seasonalTau, pressureAt } from "../engine/atmosphere";
 import type { Plan } from "../engine/planner";
+
+const RegionalContext = lazy(() => import("../render/RegionalContext"));
+
+/** NASA's Gale crater model, loaded only when asked for (3.8 MB). */
+function RegionalCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="regional">
+      <h3 className="list-h">Where this is in Gale crater</h3>
+      {open ? (
+        <div className="regional-view"><Suspense fallback={<span className="loading-ring" aria-hidden />}><RegionalContext /></Suspense></div>
+      ) : (
+        <button className="btn btn-quiet" onClick={() => setOpen(true)}>Show NASA's 3D model of Gale crater (3.8 MB)</button>
+      )}
+      <p className="brief-note">The site is a 3 km box on the northwest flank of Mount Sharp, the mound at the centre of the crater, which Curiosity has been climbing since 2014. Model: NASA 3D Resources, Gale Crater, vertical exaggeration removed. Not georeferenced, so the box is described rather than marked; never used for planning.</p>
+    </section>
+  );
+}
 
 export const PHASES: { id: Phase; label: string; hint: string }[] = [
   { id: "explore", label: "Explore", hint: "Read the site: terrain, temperature, sunlight, boulders, science value" },
@@ -89,6 +107,7 @@ export function ExploreBrief() {
           {kinds.map(([k, v]) => <li key={k}><b>{k}</b><span>{v}</span></li>)}
         </ul>
         <p className="brief-note">{layers.length} source layers in the bundle, each with mission, instrument, product and date under Data layers.</p>
+        {b?.manifest.siteId === "gale-boxwork" && <RegionalCard />}
         <button className="btn btn-primary brief-next" onClick={() => s.setPhase("plan")}>Plan the EVA</button>
       </div>
     </aside>

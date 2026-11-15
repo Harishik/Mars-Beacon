@@ -27,7 +27,7 @@ export const OVERLAYS: OverlayInfo[] = [
   { id: "science", name: "Science value", unit: "0 to 1", min: 0, max: 1, fmt: (v) => v.toFixed(2), tag: "DERIVED", ramp: 2,
     source: "Pipeline (Sahaj): 0.6 ridge and hollow contrast + 0.4 rover context; spectral and geology terms not yet added" },
   { id: "rocks", name: "Boulder cover", unit: "% area", min: 0, max: 30, fmt: (v) => v.toFixed(0), tag: "DERIVED", ramp: 3,
-    source: "M2 boulder detector on HiRISE shadows (rocks of 0.75 m or more); precision not yet measured" },
+    source: "M2 boulder detector on HiRISE shadows (rocks of 0.75 m or more). Independent test: 35% object precision, 32% recall. Advisory only" },
 ];
 
 interface Cache {

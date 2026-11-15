@@ -103,8 +103,9 @@ export async function loadSite(siteId = DEFAULT_SITE): Promise<SiteBundle> {
     sci ? readRaster(base, sci) : Promise.resolve(undefined),
     rk ? readRaster(base, rk) : Promise.resolve(undefined),
   ]);
-  // Rocks of 2 m or larger are hard blocks: fold them into the slope fields as no-go.
-  if (rockBig && manifest.rocksReliable !== false) for (let i = 0; i < slopeDeg.length; i++) if (rockBig[i] >= 1) { slopeDeg[i] = 90; if (slopeP90) slopeP90[i] = 90; }
+  // Boulders are advisory, not hard blocks: on an independent NASA-affiliated test (Mars-Bench HiRISE boulder
+  // polygons) the M2 detector found 20% of boulders of 2 m or more at 49% precision, which does not support
+  // blocking routes. They stay visible (3D, map layer, risk summary). Slope remains the hard no-go limit.
   const img = (name: string) => { const f = manifest.files.find((x) => x.name === name); return f ? `${base}/${f.path}` : undefined; };
   const imgAny = (...n: string[]) => n.map(img).find(Boolean);
   return { manifest, height, slopeDeg, slopeP90, science, rocks, rockBig, orthoUrl: imgAny("ortho", "ortho_4096"), normalUrl: imgAny("normal", "normal_2048") };

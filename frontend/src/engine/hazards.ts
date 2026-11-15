@@ -43,7 +43,7 @@ export function stopHazards(bundle: SiteBundle, x: number, y: number, o: { lsDeg
   const rocks = around(bundle, x, y, bundle.rocks, mean) * 100;
   if (Number.isFinite(rocks)) {
     if (bundle.manifest.rocksReliable === false) out.push({ id: "rocks", label: "Boulders", value: "not rated", level: "caution", why: "The boulder layer at this site is display only: sand-ripple crests are detected as rocks. Check rover images before relying on it." });
-    else out.push({ id: "rocks", label: "Boulders", value: `${rocks.toFixed(0)}%`, level: rocks > L.rocksHigh ? "high" : rocks > L.rocksCaution ? "caution" : "ok", why: "Boulder cover within 12 m from the M2 HiRISE detector (precision not yet measured)" });
+    else out.push({ id: "rocks", label: "Boulders", value: `${rocks.toFixed(0)}%`, level: rocks > L.rocksHigh ? "high" : rocks > L.rocksCaution ? "caution" : "ok", why: "Boulder cover within 12 m from the M2 HiRISE detector (independent test: 35% object precision, 32% recall). Advisory: check the rover images" });
   }
   const cell = (() => { const [c, r] = toCell(bundle.manifest, x, y); return r * bundle.manifest.grid.cols + c; })();
   const t = temperatureAt(bundle, o.lsDeg, o.tau, o.arriveLmstH, cell);
