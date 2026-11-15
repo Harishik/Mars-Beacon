@@ -1,0 +1,15 @@
+{
+  "siteHash": "fixture",
+  "seed": 7,
+  "utcStart": "2026-11-15T00:00:00Z",
+  "assumptions": {
+    "reserveM": 0.25
+  },
+  "plans": [
+    {
+      "id": "p1",
+      "label": "balanced"
+    }
+  ],
+  "activePlanId": "p1"
+}

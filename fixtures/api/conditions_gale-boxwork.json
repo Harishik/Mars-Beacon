@@ -1,0 +1,25 @@
+{
+  "siteId": "gale-boxwork",
+  "utc": "2026-11-15T00:00:00+00:00",
+  "lat": -4.86,
+  "lonEast": 137.32,
+  "msd": 54343.5264,
+  "mtc": "12:37:57",
+  "lmst": "21:47:14",
+  "ltst": "21:21:00",
+  "lmstHours": 21.7873,
+  "ltstHours": 21.3501,
+  "ls": 22.043,
+  "solarDeclinationDeg": 9.286,
+  "sunElevDeg": -50.33,
+  "sunAzDeg": 278.69,
+  "lightTimeS": null,
+  "remsBand": null,
+  "tags": [
+    "DERIVED"
+  ],
+  "sources": [
+    "Mars24 (Allison & McEwen 2000)"
+  ],
+  "placeholderCoordinates": true
+}

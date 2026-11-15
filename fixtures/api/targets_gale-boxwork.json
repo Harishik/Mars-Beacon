@@ -1,0 +1,45 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.32,
+          -4.86
+        ]
+      },
+      "properties": {
+        "id": "ridge-fixture",
+        "name": "Ridge top (fixture)",
+        "type": "ridge",
+        "x": 0.0,
+        "y": 0.0,
+        "sol": null,
+        "source": "fixture",
+        "fixture": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.3200339,
+          -4.86
+        ]
+      },
+      "properties": {
+        "id": "hollow-fixture",
+        "name": "Hollow (fixture)",
+        "type": "hollow",
+        "x": 2.0,
+        "y": 0.0,
+        "sol": null,
+        "source": "fixture",
+        "fixture": true
+      }
+    }
+  ]
+}

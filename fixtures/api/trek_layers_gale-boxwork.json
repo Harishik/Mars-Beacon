@@ -1,0 +1,22 @@
+[
+  {
+    "name": "MOLA colour shaded relief",
+    "wmtsUrl": null,
+    "attribution": "NASA/JPL-Caltech Mars Trek"
+  },
+  {
+    "name": "CTX mosaic",
+    "wmtsUrl": null,
+    "attribution": "NASA/JPL-Caltech Mars Trek"
+  },
+  {
+    "name": "THEMIS day IR",
+    "wmtsUrl": null,
+    "attribution": "NASA/JPL-Caltech Mars Trek"
+  },
+  {
+    "name": "Viking colour mosaic",
+    "wmtsUrl": null,
+    "attribution": "NASA/JPL-Caltech Mars Trek"
+  }
+]

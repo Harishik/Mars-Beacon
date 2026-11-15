@@ -1,0 +1,30 @@
+[
+  {
+    "siteId": "gale-boxwork",
+    "name": "Gale crater, Mount Sharp boxwork unit",
+    "manifestUrl": "/sites/gale-boxwork/manifest",
+    "body": "Mars",
+    "bbox": [
+      137.294603,
+      -4.885306,
+      137.345397,
+      -4.834694
+    ],
+    "siteHash": "2d5174dc3864",
+    "placeholderCoordinates": true
+  },
+  {
+    "siteId": "jezero",
+    "name": "Jezero crater (Site Generator proof)",
+    "manifestUrl": "/sites/jezero/manifest",
+    "body": "Mars",
+    "bbox": [
+      77.473331,
+      18.374694,
+      77.526669,
+      18.425306
+    ],
+    "siteHash": "532257d19ee1",
+    "placeholderCoordinates": true
+  }
+]

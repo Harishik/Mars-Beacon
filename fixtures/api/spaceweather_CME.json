@@ -1,0 +1,17 @@
+{
+  "events": [],
+  "cached": true,
+  "fetchedAt": "2026-11-14T16:12:30.191274",
+  "badge": "CACHED",
+  "kind": "CME",
+  "start": "2026-10-15",
+  "end": "2026-11-14",
+  "sourceUrl": "seed",
+  "credit": "NASA CCMC DONKI",
+  "scenario": {
+    "event": "2024-05-20 solar storm at Mars, measured by Curiosity RAD",
+    "rad_dose_microgray": 8100,
+    "shelter_budget_min": 50,
+    "note": "Scenario fixture. DONKI feeds are mostly Earth-centred; check Mars arrival fields before relying on them."
+  }
+}
