@@ -1,6 +1,7 @@
 import { useStore } from "../store/store";
 import { Reading, Tag } from "./Tag";
 import { evaDoseMsv } from "../engine/environment";
+import { consumablesLeft } from "../engine/physiology";
 
 const fmtMin = (s: number) => `${Math.max(0, Math.round(s / 60))}`;
 
@@ -44,6 +45,7 @@ export function CrewPanel() {
 
       {crew.map((c, i) => {
         const left = c.o2BudgetG - c.o2SpentG;
+        const more = consumablesLeft(c, tSpent);
         const pct = Math.max(0, Math.min(100, (left / c.o2BudgetG) * 100));
         return (
           <section key={c.label} className={`crew-card crew-${i === 0 ? "a" : "b"}`}>
@@ -53,6 +55,10 @@ export function CrewPanel() {
             </div>
             <div className="meter" role="meter" aria-label={`${c.label} oxygen remaining`} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
               <span style={{ width: `${pct}%` }} />
+            </div>
+            <div className="crew-more">
+              <span><b>{(more.waterLeftG / 1000).toFixed(2)}</b> kg cooling water <Tag t="SCENARIO" /></span>
+              <span><b>{Math.round(more.batteryLeftWh)}</b> Wh battery <Tag t="SCENARIO" /></span>
             </div>
             <div className="seg" role="group" aria-label={`${c.label} suit load`}>
               {[104, 186].map((kg) => (

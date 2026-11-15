@@ -5,6 +5,7 @@ import { WORK_POWER_W } from "../engine/query";
 import { Tag } from "./Tag";
 import { HAZARD_LIMITS } from "../engine/hazards";
 import type { Tag as TagT } from "../data/bundle";
+import { SUIT_ELEC_W } from "../engine/physiology";
 
 interface Param { key: "v0" | "slopeLimitDeg" | "reserveM" | "kG" | "mRestW"; name: string; unit: string; min: number; max: number; step: number; tag: TagT; note: string; fmt?: (v: number) => string }
 
@@ -21,10 +22,12 @@ const EQUATIONS: { name: string; eq: string; src: string; tag: TagT }[] = [
   { name: "Cost of walking on a grade", eq: "C(i) = 280.5i⁵ - 58.7i⁴ - 76.8i³ + 51.9i² + 19.6i + 2.5  J/(kg·m)", src: "Minetti et al. (2002)", tag: "DERIVED" },
   { name: "Suited metabolic power", eq: "M = M_rest + k_g · η · C(i) · (W + L) · v", src: "η = terrain factor, W = body, L = suit and load", tag: "ASSUMPTION" },
   { name: "Oxygen use", eq: "O₂ (g/h) = M · 3.6 / 20.1 · 1.429", src: "20.1 kJ per litre O₂ at RER 0.85; 696 W gives 178 g/h (conversion check only)", tag: "DERIVED" },
+  { name: "Cooling water", eq: "H₂O (g/h) = (M + P_elec) · 3600 / 2454", src: "All metabolic and suit electrical heat rejected by evaporating water (2454 J/g near 20 °C); no heat leak through the suit wall, so this overstates use", tag: "DERIVED" },
+  { name: "Suit battery", eq: "E (Wh) = P_elec · t / 3600", src: `P_elec = ${SUIT_ELEC_W} W for fans, pump, radio and displays`, tag: "ASSUMPTION" },
   { name: "Pair pace", eq: "Δt_pair = max(Δt_EV1, Δt_EV2)", src: "The pair walks at the slower member's pace", tag: "ASSUMPTION" },
   { name: "Ground temperature", eq: "ρc ∂T/∂t = ∂/∂z(k ∂T/∂z);  k ∂T/∂z|₀ = (1 − A)·S_slope + ε·L_sky − εσT⁴", src: "1D conduction per slope and aspect class, run to a repeating sol. I = √(kρc) = 350, A = 0.22, ε = 0.98, ρc = 1.2 MJ/m³K, L_sky = 4% of noon sunlight. Flat ground at Gale, Ls 150: −87 to −8.5 °C, inside the REMS range", tag: "DERIVED" },
   { name: "Sunlight on a slope", eq: "S = I_dir·max(0, cos z cos γ + sin z sin γ cos(φ_sun − φ_slope)) + I_dif·(1 + cos γ)/2", src: "I_dir = S₀(Ls)·e^(−τ·m(z)); diffuse = 0.75 of the light removed from the beam (dust scatters forward)", tag: "DERIVED" },
-  { name: "Inside the Return Envelope", eq: "Spent + (1 + m) · PathCost + Reserve ≤ Budget, for time and each suit's O₂, on one path", src: "Multi-haven reverse Dijkstra, 16-neighbour lattice", tag: "DERIVED" },
+  { name: "Inside the Return Envelope", eq: "Spent + (1 + m) · PathCost + Reserve ≤ Budget, for time and each suit's O₂, cooling water and battery, on one path", src: "Multi-haven reverse Dijkstra, 16-neighbour lattice", tag: "DERIVED" },
 ];
 
 export function Ledger() {
@@ -65,6 +68,10 @@ export function Ledger() {
               <div className="param static">
                 <span className="param-top"><span>Work power at a stop<Tag t="ASSUMPTION" /></span><b>{WORK_POWER_W} W</b></span>
                 <span className="param-note">Used for the turn-back time while sampling</span>
+              </div>
+              <div className="param static">
+                <span className="param-top"><span>Suit water and battery budget<Tag t="SCENARIO" /></span><b>{(st.crew[0].waterBudgetG / 1000).toFixed(1)} kg, {st.crew[0].batteryBudgetWh} Wh</b></span>
+                <span className="param-note">Electrical load {SUIT_ELEC_W} W (ASSUMPTION). Placeholders until cited suit figures are found</span>
               </div>
               <div className="param static">
                 <span className="param-top"><span>Suit O₂ budget and EVA time<Tag t="SCENARIO" /></span><b>{st.crew[0].o2BudgetG} g, {Math.round(st.timeBudgetS / 60)} min</b></span>

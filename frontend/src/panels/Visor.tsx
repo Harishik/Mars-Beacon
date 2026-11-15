@@ -14,6 +14,7 @@ import { temperatureAt } from "../engine/overlays";
 import { toCell } from "../data/bundle";
 import { anchorTargets } from "../render/VisorAnchors";
 import { toScene } from "../render/Assets";
+import { consumablesLeft, waterRateGph, SUIT_ELEC_W } from "../engine/physiology";
 
 const fmtD = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(2)} km`);
 /** mm:ss under an hour, otherwise h:mm with the unit shown. */
@@ -51,10 +52,13 @@ export function Visor({ thirdPerson = false }: { thirdPerson?: boolean }) {
     return cov[r * s.bundle.manifest.grid.cols + c] === 1;
   });
   const o2Left = crew[0].o2BudgetG - crew[0].o2SpentG;
-  // Resource-limited time left: the tighter of EVA time and O2 at the current use rate.
+  // Resource-limited time left: the tightest of EVA time and O2, water and battery at the current use rate.
+  const more = consumablesLeft(crew[0], t.spent);
   const o2EnduranceS = v?.suit && v.suit.o2gph > 0 ? (o2Left / v.suit.o2gph) * 3600 : Infinity;
-  const timeLeftS = Math.min(t.left, o2EnduranceS);
-  const limitedBy = o2EnduranceS < t.left ? "O₂ at current work rate" : "EVA time";
+  const waterEnduranceS = v?.suit ? (more.waterLeftG / waterRateGph(v.suit.watts)) * 3600 : Infinity;
+  const batteryEnduranceS = (more.batteryLeftWh / SUIT_ELEC_W) * 3600;
+  const limits: [number, string][] = [[t.left, "EVA time"], [o2EnduranceS, "O₂ at current work rate"], [waterEnduranceS, "cooling water at current work rate"], [batteryEnduranceS, "suit battery"]];
+  const [timeLeftS, limitedBy] = limits.reduce((a, b) => (b[0] < a[0] ? b : a));
   // Past the turn-back point, or outside the Return Envelope altogether (no certified path in the budget).
   const outside = !!ret && !ret.reachable;
   const returnNow = !!ret && (outside || ret.stay <= 0);
@@ -123,6 +127,8 @@ export function Visor({ thirdPerson = false }: { thirdPerson?: boolean }) {
             <Row k="O₂ remaining" val={`${(o2Left / 1000).toFixed(2)} kg`} tag="MODEL" />
             <Row k="O₂ E2" val={`${((crew[1].o2BudgetG - crew[1].o2SpentG) / 1000).toFixed(2)} kg`} tag="MODEL" />
             <Row k="O₂ use" val={v?.suit ? `${Math.round(v.suit.o2gph)} g/h` : "–"} tag="MODEL" />
+            <Row k="Cooling water" val={`${(more.waterLeftG / 1000).toFixed(2)} kg, ${v?.suit ? Math.round(waterRateGph(v.suit.watts)) : "–"} g/h`} tag="MODEL" />
+            <Row k="Battery" val={`${Math.round(more.batteryLeftWh)} Wh, ${SUIT_ELEC_W} W`} tag="MODEL" />
             <Row k="Metabolic rate" val={v?.suit ? `${Math.round(v.suit.watts)} W` : "–"} tag="EST" />
             <Row k="Heart rate" val={v?.suit ? `${v.suit.hr} bpm` : "–"} tag="EST" note="linear in work rate, assumption" />
             <Row k="Pace, grade" val={v?.suit ? `${v.suit.speed.toFixed(2)} m/s, ${v.suit.gradePct > 0 ? "+" : ""}${v.suit.gradePct.toFixed(0)}%` : "–"} tag="MODEL" />

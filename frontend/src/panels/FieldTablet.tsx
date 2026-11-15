@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
+import { consumablesLeft } from "../engine/physiology";
 import { useVisor } from "../engine/useVisor";
 import { reportAt } from "../engine/query";
 import { evaDoseMsv } from "../engine/environment";
@@ -23,6 +24,7 @@ export function FieldTablet() {
     return r ? { stay: r.stayMin, walk: r.walkHomeS, dist: r.distanceM, reachable: r.reachable, limit: r.limitedBy } : null;
   }));
   const o2 = s.crew[0].o2BudgetG - s.crew[0].o2SpentG;
+  const more = consumablesLeft(s.crew[0], s.spent);
   const turnS = ret && ret.reachable ? ret.stay * 60 : null;
   const showRoute = () => { if (v?.next) s.set({ selected: { x: v.next.x, y: v.next.y, label: v.next.name } }); };
   const showReturn = () => { if (s.crewPos) s.set({ selected: { x: s.crewPos.x, y: s.crewPos.y, label: "Route home from here" } }); };
@@ -34,6 +36,7 @@ export function FieldTablet() {
         <div className="tb-card"><span className="tb-ic">⌂</span><div><small>HOME, walking route</small><b>{ret?.reachable ? fmtD(ret.dist) : "no path"}</b><em>{v ? `${Math.round(v.home.bearing)}° true` : ""}</em></div></div>
         <div className={`tb-card ${turnS !== null && turnS < 900 ? "caution" : ""}`}><span className="tb-ic">↺</span><div><small>TURN BACK IN</small><b className="tb-big">{turnS !== null ? fmtT(turnS) : "–"}</b><em>limited by {ret?.limit ?? "–"}</em></div></div>
         <div className="tb-card"><span className="tb-ic">O₂</span><div><small>E1 · E2 remaining</small><b>{(o2 / 1000).toFixed(2)} kg</b><em>E2 {((s.crew[1].o2BudgetG - s.crew[1].o2SpentG) / 1000).toFixed(2)} kg · MODEL</em></div></div>
+        <div className="tb-card"><span className="tb-ic">H₂O</span><div><small>Cooling water · battery, E1</small><b>{(more.waterLeftG / 1000).toFixed(2)} kg</b><em>{Math.round(more.batteryLeftWh)} Wh battery · MODEL</em></div></div>
       </div>
       {suit && (
         <dl className="tb-suit">

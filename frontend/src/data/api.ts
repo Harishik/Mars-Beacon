@@ -4,7 +4,7 @@
 // app keeps working if the backend is down.
 import { useEffect, useState } from "react";
 import type { SiteBundle } from "./bundle";
-import type { State } from "../store/store";
+import { DEFAULT_CREW, type State } from "../store/store";
 
 export const API_BASE = ((import.meta.env.VITE_BEACON_API as string | undefined) || "https://beacon-api-naomi42.azurewebsites.net").replace(/\/$/, "");
 /** Absolute form of the API address, for share links and display. */
@@ -107,7 +107,9 @@ export function applyMission(b: SiteBundle, r: MissionRecord): Partial<State> {
     bundle,
     v0: a.v0, slopeLimitDeg: a.slopeLimitDeg, reserveM: a.reserveM, kG: a.kG, mRestW: a.mRestW, bodyMassKg: a.bodyMassKg,
     timeBudgetS: a.timeBudgetS, dwellMin: a.dwellMin, evaStartLmst: a.evaStartLmst, lmstHours: a.evaStartLmst, lsDeg: a.lsDeg,
-    tau: a.tau, tauManual: a.tauManual, storm: a.storm, roverActive: a.roverActive, crew: a.crew,
+    tau: a.tau, tauManual: a.tauManual, storm: a.storm, roverActive: a.roverActive,
+    // Missions saved before water and battery existed carry no budgets: fill the defaults.
+    crew: a.crew.map((c, i) => ({ ...DEFAULT_CREW[i], ...c })) as State["crew"],
     excludedStops: a.excludedStops ?? [], activePlan: a.activePlan as State["activePlan"], timeSpentS: 0, playheadS: 0,
   };
 }

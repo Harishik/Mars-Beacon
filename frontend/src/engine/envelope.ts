@@ -3,10 +3,15 @@
 // pace), with oxygen per crew member accumulated along the SAME tree path.
 // 21_Simulation_and_Physics.md sections 5.1 to 5.3 (tree T only, for now).
 
-import { metabolicPower, o2RateGph } from "./physiology";
+import { metabolicPower, o2RateGph, waterFromO2, batteryWhFor } from "./physiology";
 // Pair speed below is speed() from physiology.ts inlined for the hot loop.
 
-export interface CrewParams { fMob: number; loadKg: number; o2BudgetG: number; o2SpentG: number }
+export interface CrewParams {
+  fMob: number; loadKg: number; o2BudgetG: number; o2SpentG: number;
+  // Optional: cooling water and suit battery. Left out, only time and O2 are certified.
+  waterBudgetG?: number; waterSpentG?: number;
+  batteryBudgetWh?: number; batterySpentWh?: number;
+}
 export interface EnvelopeParams {
   cols: number; rows: number; cellM: number;
   slopeLimitDeg: number;
@@ -142,13 +147,26 @@ export function computeEnvelope(height: Float32Array, slopeDeg: Float32Array, p:
   const inside = new Uint8Array(n);
   const aLeft = A.o2BudgetG - A.o2SpentG;
   const bLeft = B.o2BudgetG - B.o2SpentG;
+  // Water and battery on the same path: exact functions of that path's O2 and time.
+  const wA = A.waterBudgetG !== undefined ? A.waterBudgetG - (A.waterSpentG ?? 0) : null;
+  const wB = B.waterBudgetG !== undefined ? B.waterBudgetG - (B.waterSpentG ?? 0) : null;
+  const eA = A.batteryBudgetWh !== undefined ? A.batteryBudgetWh - (A.batterySpentWh ?? 0) : null;
+  const eB = B.batteryBudgetWh !== undefined ? B.batteryBudgetWh - (B.batterySpentWh ?? 0) : null;
+  const frac = (left: number, need: number) => (left > 0 ? 1 - (f * need) / left : -1);
   let insideCells = 0;
   for (let i = 0; i < n; i++) {
     if (!Number.isFinite(time[i])) { margin[i] = -1; continue; }
     const mt = tLeft > 0 ? 1 - (f * time[i]) / tLeft : -1;
     const ma = aLeft > 0 ? 1 - (f * o2A[i]) / aLeft : -1;
     const mb = bLeft > 0 ? 1 - (f * o2B[i]) / bLeft : -1;
-    const m = Math.min(mt, ma, mb);
+    let m = Math.min(mt, ma, mb);
+    if (wA !== null) m = Math.min(m, frac(wA, waterFromO2(o2A[i], time[i])));
+    if (wB !== null) m = Math.min(m, frac(wB, waterFromO2(o2B[i], time[i])));
+    if (eA !== null || eB !== null) {
+      const e = batteryWhFor(time[i]);
+      if (eA !== null) m = Math.min(m, frac(eA, e));
+      if (eB !== null) m = Math.min(m, frac(eB, e));
+    }
     margin[i] = m;
     if (m >= 0) { inside[i] = 1; insideCells++; }
   }

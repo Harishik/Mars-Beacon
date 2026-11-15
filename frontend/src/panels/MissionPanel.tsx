@@ -137,8 +137,9 @@ export function SelectedCard() {
             <div><dt>Walk home</dt><dd>{Math.round(r.walkHomeS / 60)} min to {r.haven}</dd></div>
             <div><dt>Route length</dt><dd>{(r.distanceM / 1000).toFixed(2)} km</dd></div>
             <div><dt>O₂ to get home</dt><dd><span className="ca">EV1 {Math.round(r.o2HomeG[0])} g</span> <span className="cb">EV2 {Math.round(r.o2HomeG[1])} g</span></dd></div>
+            <div><dt>Water, battery to get home</dt><dd><span className="ca">EV1 {Math.round(r.waterHomeG[0])} g</span> <span className="cb">EV2 {Math.round(r.waterHomeG[1])} g</span> · {Math.round(r.batteryHomeWh)} Wh</dd></div>
           </dl>
-          <p className="fine-note">Route shown on the map is the certified path: time and both suits' oxygen fit on this same path with reserve.</p>
+          <p className="fine-note">Route shown on the map is the certified path: time and both suits' oxygen, cooling water and battery fit on this same path with reserve.</p>
         </>
       )}
       {stopId && <RoverViews stopId={stopId} />}
