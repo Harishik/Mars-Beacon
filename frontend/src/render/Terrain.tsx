@@ -11,6 +11,30 @@ import { OVERLAYS, overlayValues, encodeOverlay } from "../engine/overlays";
 export let VERT_EXAG = 1.6;
 export function setVertExag(v: number) { VERT_EXAG = v; }
 
+/** Segment count of the drawn site mesh, so objects can be placed on the exact triangles (set by Terrain). */
+export let TERRAIN_SEG = 448;
+
+/**
+ * Height (metres, site datum) of the drawn terrain mesh at site point (x, y): the raster sampled at the mesh
+ * vertices, then interpolated on the same two triangles per quad that PlaneGeometry uses. Placing objects with
+ * this keeps wheels, feet and boots on the visible surface instead of sinking into or floating above it.
+ */
+export function meshHeightAt(b: SiteBundle, x: number, y: number): number {
+  const { cols, rows, extentM: E } = b.manifest.grid;
+  const H = b.height, seg = TERRAIN_SEG, step = E / seg;
+  const ras = (vx: number, vy: number) => {
+    const fc = Math.min(cols - 1.001, Math.max(0, (vx + E / 2) / E * cols - 0.5));
+    const fr = Math.min(rows - 1.001, Math.max(0, (E / 2 - vy) / E * rows - 0.5));
+    const c = Math.floor(fc), r = Math.floor(fr), tx = fc - c, ty = fr - r;
+    return (H[r * cols + c] * (1 - tx) + H[r * cols + c + 1] * tx) * (1 - ty) + (H[(r + 1) * cols + c] * (1 - tx) + H[(r + 1) * cols + c + 1] * tx) * ty;
+  };
+  const gx = Math.min(seg - 1e-6, Math.max(0, (x + E / 2) / step)), gy = Math.min(seg - 1e-6, Math.max(0, (E / 2 - y) / step));
+  const ix = Math.floor(gx), iy = Math.floor(gy), u = gx - ix, v = gy - iy;
+  const x0 = ix * step - E / 2, yT = E / 2 - iy * step;
+  const ha = ras(x0, yT), hb = ras(x0, yT - step), hc = ras(x0 + step, yT - step), hd = ras(x0 + step, yT);
+  return u + v <= 1 ? ha + u * (hd - ha) + v * (hb - ha) : hc + (1 - u) * (hb - hc) + (1 - v) * (hd - hc);
+}
+
 /** Envelope draw-in progress (0..1). Kept outside the store so it does not re-render React. */
 export const anim = { reveal: 0 };
 
@@ -384,6 +408,7 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
 }
 
 export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segments?: number }) {
+  TERRAIN_SEG = segments;
   const { manifest, height, slopeDeg } = bundle;
   const { cols, rows, extentM } = manifest.grid;
   const zMin = manifest.elevation.min, zMax = manifest.elevation.max;

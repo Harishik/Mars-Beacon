@@ -192,7 +192,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <group onClick={onClick} onPointerMove={onMove} onPointerOut={() => useStore.getState().set({ cursor: null })}>
         <Terrain bundle={bundle} segments={quality === "low" ? 256 : mode === "hero" ? 320 : 448} />
       </group>
-      {showHavens && <HabitatModel position={habP} />}
+      {showHavens && <HabitatModel bundle={bundle} x={hab.x} y={hab.y} position={habP} />}
       {showHavens && rover && mode !== "rover" && <RoverModel bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
       {mode !== "hud" && <Astronaut position={(crewAt ?? crewPos)[0]} color="#6fd6e6" layer={2} />}
       <Astronaut position={(crewAt ?? crewPos)[1]} color="#f4c552" phase={1.4} />

@@ -4,14 +4,17 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { sampleHeight, type SiteBundle } from "../data/bundle";
-import { VERT_EXAG } from "./Terrain";
+import { meshHeightAt, VERT_EXAG } from "./Terrain";
 import { useStore } from "../store/store";
 
 /** Site-frame metres (x east, y north) to scene coordinates. */
 export function toScene(b: SiteBundle, x: number, y: number, lift = 0): THREE.Vector3 {
   const { min, max } = b.manifest.elevation;
   const zMid = (min + max) / 2;
-  return new THREE.Vector3(x, (sampleHeight(b, x, y) - zMid) * VERT_EXAG + lift, -y);
+  // Inside the site use the drawn mesh surface; outside it fall back to the raster.
+  const E = b.manifest.grid.extentM / 2;
+  const h = Math.abs(x) < E && Math.abs(y) < E ? meshHeightAt(b, x, y) : sampleHeight(b, x, y);
+  return new THREE.Vector3(x, (h - zMid) * VERT_EXAG + lift, -y);
 }
 
 const suit = new THREE.MeshStandardMaterial({ color: "#e9e4da", roughness: 0.65 });
@@ -97,6 +100,7 @@ export function Astronaut({ position, color, phase = 0, layer = 0 }: { position:
   });
   return (
     <group position={position} scale={1} ref={(g) => { if (layer) g?.traverse((o) => o.layers.set(layer)); }}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.15, 0.03, 0.1]} renderOrder={2}><circleGeometry args={[0.5, 20]} /><meshBasicMaterial color="#000" transparent opacity={0.35} depthWrite={false} /></mesh>
       <mesh ref={legL} material={suit} position={[-0.17, 0.45, 0]}><capsuleGeometry args={[0.13, 0.6, 4, 10]} /></mesh>
       <mesh ref={legR} material={suit} position={[0.17, 0.45, 0]}><capsuleGeometry args={[0.13, 0.6, 4, 10]} /></mesh>
       <mesh material={suit} position={[0, 1.2, 0]}><capsuleGeometry args={[0.3, 0.55, 4, 14]} /></mesh>

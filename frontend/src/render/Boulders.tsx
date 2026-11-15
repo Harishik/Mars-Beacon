@@ -4,10 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import type { SiteBundle } from "../data/bundle";
-import { sampleHeight } from "../data/bundle";
 import { loadRocks } from "../data/rocks";
 import { useStore } from "../store/store";
-import { VERT_EXAG } from "./Terrain";
+import { VERT_EXAG, meshHeightAt } from "./Terrain";
 
 
 /** Deterministic pseudo-random in [0, 1) per index, so rocks keep their shape between loads. */
@@ -61,7 +60,7 @@ export function Boulders({ bundle }: { bundle: SiteBundle }) {
       const x = rocks[i * 3], y = rocks[i * 3 + 1], d = rocks[i * 3 + 2];
       if (Math.abs(x) > E - 2 || Math.abs(y) > E - 2) continue;
       const r = d / 2;
-      const h = (sampleHeight(bundle, x, y) - zMid) * VERT_EXAG;
+      const h = (meshHeightAt(bundle, x, y) - zMid) * VERT_EXAG;
       // Height about 0.6 of the radius, partly buried, as boulders sit on regolith.
       o.position.set(x, h + r * 0.18, -y);
       o.rotation.set((rnd(i, 1) - 0.5) * 0.5, rnd(i, 2) * Math.PI * 2, (rnd(i, 3) - 0.5) * 0.5);
