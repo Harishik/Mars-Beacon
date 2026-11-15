@@ -1,8 +1,8 @@
 // Local first-visit and tour state (§9). Namespaced, versioned, no identifiers or transcripts; in-memory when
 // storage is blocked.
 const KEY = "mars-beacon:guide:v1";
-export interface GuidePrefs { v: 1; inviteDismissed: boolean; tourCompleted: boolean; lastTourStep: number | null }
-const DEFAULTS: GuidePrefs = { v: 1, inviteDismissed: false, tourCompleted: false, lastTourStep: null };
+export interface GuidePrefs { v: 1; inviteDismissed: boolean; tourCompleted: boolean; lastTourStep: number | null; hidden: boolean }
+const DEFAULTS: GuidePrefs = { v: 1, inviteDismissed: false, tourCompleted: false, lastTourStep: null, hidden: false };
 let memory: GuidePrefs = { ...DEFAULTS };
 
 export function loadPrefs(): GuidePrefs {
@@ -11,7 +11,7 @@ export function loadPrefs(): GuidePrefs {
     if (!raw) return memory;
     const p = JSON.parse(raw) as Partial<GuidePrefs>;
     if (p.v !== 1) return memory;
-    memory = { ...DEFAULTS, inviteDismissed: !!p.inviteDismissed, tourCompleted: !!p.tourCompleted, lastTourStep: typeof p.lastTourStep === "number" ? p.lastTourStep : null };
+    memory = { ...DEFAULTS, inviteDismissed: !!p.inviteDismissed, tourCompleted: !!p.tourCompleted, lastTourStep: typeof p.lastTourStep === "number" ? p.lastTourStep : null, hidden: !!p.hidden };
   } catch { /* storage blocked: keep in-memory */ }
   return memory;
 }

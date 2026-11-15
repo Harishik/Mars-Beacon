@@ -117,7 +117,7 @@ export function ViewSwitch() {
   const view = useStore((s) => s.view);
   const set = useStore((s) => s.set);
   return (
-    <div className="viewswitch" role="tablist" aria-label="Display" data-guide-anchor="view-switch">
+    <div className="viewswitch" role="tablist" aria-label="Display" data-guide-anchor="view-switch" data-pill>
       {VIEWS.map((v) => (
         <button key={v.id} role="tab" aria-selected={view === v.id} title={v.hint} onClick={() => set({ view: v.id })}><span className="vs-long">{v.label}</span><span className="vs-short">{v.short}</span></button>
       ))}

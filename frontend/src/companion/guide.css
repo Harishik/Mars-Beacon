@@ -22,7 +22,8 @@
 .guide-landing .guide-panel { max-height: min(600px, calc(100vh - 128px)); }
 .guide-head { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; border-bottom: 1px solid rgba(233, 242, 243, 0.1); }
 .guide-face { width: 44px; height: 44px; flex: none; }
-.guide-head h2 { flex: 1; margin: 0; font-size: 0.9375rem; font-weight: 600; }
+.guide-head h2 { flex: 1; margin: 0; font-size: 1rem; font-weight: 600; display: flex; flex-direction: column; line-height: 1.2; }
+.guide-head h2 span { font-size: 0.75rem; font-weight: 400; color: #8a9da5; }
 .guide-head h2:focus { outline: none; }
 .guide-body { padding: 12px 14px; overflow-y: auto; font-size: 0.875rem; line-height: 1.5; }
 .guide-body p { margin: 0 0 8px; }
@@ -75,4 +76,32 @@
 @media (prefers-reduced-motion: reduce) {
   .ga-img { animation: none !important; transition: none; }
   .guide-spot { transition: none; }
+}
+
+/* ---- Motion: Bop's panel grows from Bop; answers cross-fade; Bop drives off when hidden ---- */
+.guide-panel, .guide-invite { transform-origin: calc(100% - 32px) 100%; animation: guide-in 260ms cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+@keyframes guide-in { from { opacity: 0; transform: translateY(10px) scale(0.94); } to { opacity: 1; transform: none; } }
+.guide-answer, .guide-tour > p { animation: guide-fade 220ms ease-out both; }
+@keyframes guide-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.guide-launcher { transition: transform 420ms cubic-bezier(0.3, 0.8, 0.3, 1), opacity 260ms ease, background-color 120ms ease; }
+.guide-launcher:hover .ga-img { transform: translateY(-2px); }
+.guide-root[data-hidden] .guide-launcher { transform: translateX(calc(100% + 32px)) rotate(8deg); opacity: 0; pointer-events: none; }
+
+.guide-peek {
+  position: absolute; right: calc(-1 * max(16px, env(safe-area-inset-right))); bottom: 4px;
+  display: flex; align-items: center; gap: 2px; height: 52px; padding: 0 8px 0 4px; border-radius: 14px 0 0 14px;
+  background: #14242d; border: 1px solid #46616c; border-right: 0; color: #e9f2f3; font: inherit; font-size: 0.75rem; cursor: pointer;
+  transform: translateX(110%); transition: transform 360ms cubic-bezier(0.2, 0.9, 0.25, 1) 120ms, background-color 120ms ease;
+}
+.guide-root[data-hidden] .guide-peek { transform: translateX(14px); }
+.guide-root[data-hidden] .guide-peek:hover, .guide-root[data-hidden] .guide-peek:focus-visible { transform: translateX(0); background: #1b3039; }
+.guide-peek-face { width: 40px; height: 40px; }
+.guide-peek-label { writing-mode: vertical-rl; transform: rotate(180deg); color: #a9bcc4; letter-spacing: 0.02em; }
+@media (max-width: 640px) {
+  .guide-peek { position: fixed; right: 0; bottom: max(120px, env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-panel, .guide-invite, .guide-answer, .guide-tour > p { animation: none; }
+  .guide-launcher, .guide-peek { transition: opacity 160ms linear; }
+  .guide-root[data-hidden] .guide-launcher { transform: none; }
 }

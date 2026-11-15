@@ -56,7 +56,7 @@ export function LayerDrawer() {
 
   return (
     <aside className="pane drawer" aria-label="Mission and layers" data-guide-anchor="data-layers">
-      <header className="pane-head pane-tabs" role="tablist">
+      <header className="pane-head pane-tabs" role="tablist" data-pill>
         <button role="tab" aria-selected={panel === "mission"} onClick={() => set({ panel: "mission" })}>Mission</button>
         <button role="tab" aria-selected={panel === "layers"} onClick={() => set({ panel: "layers" })}>Data layers <span className="count">{manifest?.layers.length ?? 0}</span></button>
       </header>

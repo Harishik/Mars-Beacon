@@ -60,7 +60,7 @@ export function CrewPanel() {
               <span><b>{(more.waterLeftG / 1000).toFixed(2)}</b> kg cooling water <Tag t="SCENARIO" /></span>
               <span><b>{Math.round(more.batteryLeftWh)}</b> Wh battery <Tag t="SCENARIO" /></span>
             </div>
-            <div className="seg" role="group" aria-label={`${c.label} suit load`}>
+            <div className="seg" role="group" aria-label={`${c.label} suit load`} data-pill>
               {[104, 186].map((kg) => (
                 <button key={kg} aria-pressed={c.loadKg === kg} onClick={() => setCrew(i as 0 | 1, { loadKg: kg })}>
                   {kg === 104 ? "Suit 104 kg" : "Suit + tools 186 kg"}

@@ -993,3 +993,98 @@ body > .sheet-backdrop { z-index: 40; }
 @keyframes bg-hop { 50% { transform: translateY(-18px) rotate(-3deg); } }
 @media (prefers-reduced-motion: reduce) { .bg-pose { animation: none !important; } }
 @media (max-width: 720px) { .beacon-guide { width: 88px; height: 88px; bottom: 112px; } }
+
+/* ======================================================================
+   Interaction layer: controls answer on press, selection glides,
+   panels grow in from their edge. Transform and opacity only.
+   ====================================================================== */
+:root {
+  --spring: cubic-bezier(0.3, 0.9, 0.3, 1);        /* critically damped feel, no overshoot */
+  --spring-pop: cubic-bezier(0.34, 1.4, 0.64, 1);  /* small overshoot, only for things you flick or toggle */
+  --press: 90ms;
+}
+
+/* Every button answers the moment it is pressed (pointer-down), not on release. */
+button, .btn, .chip, .plan-card, .stop, select { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.btn, .chip, .play, .pane-tabs button, .viewswitch button, .phasebar button, .seg button, .plan-card, .stop, .layer-toggle, .haven-toggle, .seg-2d {
+  transition: transform var(--press) ease-out, background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+.btn:active, .chip:active, .pane-tabs button:active, .viewswitch button:active, .phasebar button:active, .seg button:active, .seg-2d:active { transform: scale(0.96); }
+.plan-card:active, .stop:active, .layer-toggle:active, .haven-toggle:active { transform: scale(0.985); }
+.btn-quiet:hover, .btn-ghost:hover { background-color: rgba(173, 201, 236, 0.08); }
+.chip:hover { background-color: rgba(226, 173, 110, 0.08); }
+:where(button, select, input, a):focus-visible { outline: 2px solid var(--home); outline-offset: 2px; }
+
+/* Sliding selection pill (ui/pills.ts) */
+[data-pill] { position: relative; isolation: isolate; }
+[data-pill] > .ui-pill {
+  position: absolute; top: 0; left: 0; z-index: -1; pointer-events: none; opacity: 0;
+  transition: transform 340ms var(--spring), width 340ms var(--spring), height 340ms var(--spring), opacity 160ms ease;
+}
+[data-pill] > button { position: relative; }
+.phasebar > .ui-pill { border-radius: 999px; background: rgba(143, 188, 240, 0.16); box-shadow: inset 0 0 0 1px rgba(143, 188, 240, 0.45); }
+.phasebar button[aria-current="step"] { background: transparent; box-shadow: none; }
+.viewswitch > .ui-pill { border-radius: 999px; background: var(--dust); }
+.viewswitch button[aria-selected="true"] { background: transparent; color: var(--night); }
+.pane-tabs > .ui-pill { border-radius: 8px; background: rgba(173, 201, 236, 0.12); }
+.pane-tabs button[aria-selected="true"] { background: transparent; }
+.seg > .ui-pill { border-radius: 6px; background: var(--dusk-2); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.seg button[aria-pressed="true"]:not(.seg-2d), .seg button[aria-checked="true"] { background: transparent; box-shadow: none; }
+.phasebar button i { transition: background-color 200ms ease, color 200ms ease, transform 300ms var(--spring-pop); }
+.phasebar button[aria-current="step"] i { transform: scale(1.08); }
+
+/* Toggles: the knob springs across and stretches while held */
+.switch::after { transition: transform 300ms var(--spring-pop), width 120ms ease, background-color 200ms ease; }
+.layer-toggle:active .switch::after, .haven-toggle:active .switch::after { width: 15px; }
+.layer-toggle:active [aria-checked="true"] .switch::after, .layer-row.on .layer-toggle:active .switch::after { transform: translateX(9px); }
+.layer-row { transition: background-color 200ms ease; }
+.layer-row.on { background-color: rgba(143, 188, 240, 0.05); }
+
+/* Selected plan and stop: an accent bar draws in on the leading edge */
+.plan-card, .stop { position: relative; }
+.plan-card::before, .stop::before {
+  content: ""; position: absolute; left: -1px; top: 10px; bottom: 10px; width: 3px; border-radius: 2px;
+  background: var(--home); transform: scaleY(0); transform-origin: center; transition: transform 300ms var(--spring);
+}
+.plan-card.on::before, .stop.active::before { transform: scaleY(1); }
+.plan-card:hover:not(.on) { background-color: rgba(173, 201, 236, 0.05); }
+
+/* Play / pause morph, press feedback, and a steady ring while playing */
+.play { position: relative; transition: transform var(--press) ease-out, background-color 160ms ease, box-shadow 240ms ease; }
+.play:active { transform: scale(0.92); }
+.play .pi { position: absolute; transition: opacity 160ms ease, transform 260ms var(--spring); }
+.play .pi:not(.on) { opacity: 0; transform: scale(0.6) rotate(-45deg); }
+.play.is-playing { box-shadow: 0 0 0 4px rgba(143, 188, 240, 0.22); }
+
+/* Timeline: the handle grows while you hover or drag it; progress eases */
+.tl-track input[type="range"]::-webkit-slider-thumb { transition: transform 160ms var(--spring); }
+.tl-track:hover input[type="range"]::-webkit-slider-thumb { transform: scaleX(1.5); }
+.tl-track input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.6, 1.15); }
+.tl-marker i { transition: transform 200ms var(--spring-pop); }
+.tl-marker:hover i { transform: scale(1.15); }
+
+/* Meters ease between readings */
+.meter span { transition: width 420ms var(--spring); }
+
+/* Panels grow in from the edge they live on when they appear (phase and view changes). */
+@keyframes pane-from-left { from { opacity: 0; transform: translateX(-16px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes pane-from-right { from { opacity: 0; transform: translateX(16px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes pane-from-below { from { opacity: 0; transform: translateY(12px) scale(0.985); } to { opacity: 1; transform: none; } }
+.drawer { animation: pane-from-left 360ms var(--spring) backwards; }
+.crew, .brief, .mc { animation: pane-from-right 360ms var(--spring) backwards; }
+.plan-charts, .debrief, .exec-next, .timeline { animation: pane-from-below 360ms var(--spring) backwards; }
+/* Content swapped inside a panel (tabs) cross-fades instead of snapping. */
+.drawer-scroll { animation: pane-from-below 240ms var(--spring) backwards; }
+
+/* Cards and rows inside panels stagger in by a few milliseconds each */
+.plan-cards > *, .stops > li { animation: pane-from-below 300ms var(--spring) backwards; }
+.plan-cards > :nth-child(2), .stops > li:nth-child(2) { animation-delay: 30ms; }
+.plan-cards > :nth-child(3), .stops > li:nth-child(3) { animation-delay: 60ms; }
+.plan-cards > :nth-child(4), .stops > li:nth-child(4) { animation-delay: 90ms; }
+.stops > li:nth-child(n+5) { animation-delay: 120ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-pill] > .ui-pill { transition: opacity 120ms linear; }
+  .drawer, .crew, .brief, .mc, .plan-charts, .debrief, .exec-next, .timeline, .drawer-scroll, .plan-cards > *, .stops > li { animation: none; }
+  .btn:active, .chip:active, .plan-card:active, .stop:active, .play:active { transform: none; }
+}

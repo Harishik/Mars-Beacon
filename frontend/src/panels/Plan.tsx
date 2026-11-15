@@ -66,13 +66,12 @@ export function MissionTimeline() {
   return (
     <div className="pane timeline" aria-label="Mission timeline" data-guide-anchor="timeline">
       <div className="tl-controls">
-        <button className="play" aria-label={s.playing ? "Pause rehearsal" : "Play rehearsal"} onClick={() => {
+        <button className={`play ${s.playing ? "is-playing" : ""}`} aria-label={s.playing ? "Pause rehearsal" : "Play rehearsal"} onClick={() => {
           if (!plan) return;
           s.set({ playing: !s.playing, playheadS: s.playheadS >= plan.totalS ? 0 : s.playheadS });
         }}>
-          {s.playing
-            ? <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" /><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" /></svg>
-            : <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden><path d="M4 2.5v11l9-5.5z" fill="currentColor" /></svg>}
+          <svg className={`pi pi-play ${s.playing ? "" : "on"}`} viewBox="0 0 16 16" width="16" height="16" aria-hidden><path d="M4 2.5v11l9-5.5z" fill="currentColor" /></svg>
+          <svg className={`pi pi-pause ${s.playing ? "on" : ""}`} viewBox="0 0 16 16" width="16" height="16" aria-hidden><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" /><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" /></svg>
         </button>
         <select aria-label="Rehearsal speed" value={s.speed} onChange={(e) => s.set({ speed: Number(e.target.value) })}>
           <option value={1}>Real time</option><option value={5}>5x</option><option value={20}>20x</option>

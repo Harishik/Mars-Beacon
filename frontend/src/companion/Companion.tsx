@@ -1,4 +1,4 @@
-// Mars BEACON Guide (BEACON_Guide.md): launcher, first-visit invitation, non-modal help panel (bottom sheet on
+// Bop, the Mars BEACON guide (BEACON_Guide.md; the name replaces display text only): launcher, first-visit invitation, non-modal help panel (bottom sheet on
 // phones), deterministic answers and the guided tour. Mounted at the app root, outside the 3D canvas, so it works
 // while the site loads, when it fails to load, and with WebGL unavailable. No network requests, no polling.
 import { useEffect, useRef, useState } from "react";
@@ -21,10 +21,11 @@ interface GuideState {
   open: boolean; invite: boolean; expression: CompanionExpression; pointing: "left" | "right" | null;
   entries: Entry[]; current: number | null; result: ActionResult | null; helpful: Record<number, boolean>;
   tour: number | null; snapshot: ViewSnapshot | null; missing: GuideAnchor | null;
+  hidden: boolean;            // Bop parked off screen; a small tab at the edge brings Bop back
 }
 const useGuide = create<GuideState>(() => ({
   open: false, invite: false, expression: "idle", pointing: null, entries: [], current: null, result: null, helpful: {},
-  tour: null, snapshot: null, missing: null,
+  tour: null, snapshot: null, missing: null, hidden: loadPrefs().hidden,
 }));
 let nextId = 1;
 let backTimer = 0;
@@ -73,7 +74,7 @@ export function Companion() {
   // First visit: a brief invitation after the shell is interactive. No focus capture, no repeats.
   useEffect(() => {
     const p = loadPrefs();
-    if (p.inviteDismissed || p.tourCompleted) return;
+    if (p.inviteDismissed || p.tourCompleted || p.hidden) return;
     const t = window.setTimeout(() => useGuide.setState({ invite: true }), 1800);
     return () => window.clearTimeout(t);
   }, []);
@@ -98,6 +99,20 @@ export function Companion() {
     requestAnimationFrame(() => launcher.current?.focus());
   };
   const dismissInvite = () => { useGuide.setState({ invite: false }); savePrefs({ inviteDismissed: true }); };
+  const peek = useRef<HTMLButtonElement>(null);
+  /** Park Bop off screen. Mission state is untouched; the tab at the edge brings Bop back. */
+  const hide = () => {
+    useGuide.setState({ hidden: true, open: false, invite: false, tour: null, missing: null });
+    onCompanionEvent("closed");
+    savePrefs({ hidden: true, inviteDismissed: true });
+    requestAnimationFrame(() => peek.current?.focus());
+  };
+  const unhide = () => {
+    useGuide.setState({ hidden: false });
+    savePrefs({ hidden: false });
+    onCompanionEvent("attention");
+    requestAnimationFrame(() => launcher.current?.focus());
+  };
 
   const show = (res: Resolution, question?: string) => {
     const id = nextId++;
@@ -149,14 +164,15 @@ export function Companion() {
   const entry = g.entries.find((e) => e.id === g.current) ?? null;
 
   return (
-    <div className={`guide-root guide-${pos}`} data-open={g.open || undefined}>
+    <div className={`guide-root guide-${pos}`} data-open={g.open || undefined} data-hidden={g.hidden || undefined}>
       {g.invite && !g.open && (
         <div className="guide-invite" role="status">
-          <p>New here? I can show you how Mars BEACON works.</p>
+          <p>New here? I'm Bop. I can show you how Mars BEACON works.</p>
           <div className="guide-row">
             <button className="guide-btn primary" onClick={startTour}>Take the tour</button>
             <button className="guide-btn" onClick={() => { savePrefs({ inviteDismissed: true }); open(); }}>Ask a question</button>
             <button className="guide-btn quiet" onClick={dismissInvite}>Not now</button>
+            <button className="guide-btn quiet" onClick={hide}>Hide Bop</button>
           </div>
         </div>
       )}
@@ -165,9 +181,10 @@ export function Companion() {
         <section className="guide-panel" aria-labelledby="guide-title">
           <header className="guide-head">
             <span className="guide-face" aria-hidden><CompanionAvatar expression={g.expression} pointing={g.pointing} size={44} /></span>
-            <h2 id="guide-title" ref={heading} tabIndex={-1}>Mars BEACON Guide</h2>
+            <h2 id="guide-title" ref={heading} tabIndex={-1}>Bop<span>Mars BEACON guide</span></h2>
             {g.tour === null && <button className="guide-btn" onClick={startTour}>Tour</button>}
-            <button className="guide-btn icon" aria-label="Close guide" onClick={close}>×</button>
+            <button className="guide-btn" onClick={hide} title="Park Bop at the screen edge">Hide</button>
+            <button className="guide-btn icon" aria-label="Close Bop" onClick={close}>×</button>
           </header>
 
           {g.tour !== null ? (
@@ -206,7 +223,11 @@ export function Companion() {
         </section>
       )}
 
-      <button ref={launcher} className="guide-launcher" aria-label={g.open ? "Close Mars BEACON guide" : "Open Mars BEACON guide"} aria-expanded={g.open}
+      <button ref={peek} className="guide-peek" aria-label="Show Bop, the Mars BEACON guide" tabIndex={g.hidden ? 0 : -1} aria-hidden={!g.hidden} onClick={unhide}>
+        <span className="guide-peek-face" aria-hidden><CompanionAvatar expression="idle" size={40} /></span>
+        <span className="guide-peek-label">Bop</span>
+      </button>
+      <button ref={launcher} tabIndex={g.hidden ? -1 : 0} aria-hidden={g.hidden || undefined} className="guide-launcher" aria-label={g.open ? "Close Bop, the Mars BEACON guide" : "Open Bop, the Mars BEACON guide"} aria-expanded={g.open}
         onClick={() => (g.open ? close() : open())}>
         <CompanionAvatar expression={g.open ? g.expression : "idle"} pointing={g.open ? g.pointing : null} size={64} />
       </button>

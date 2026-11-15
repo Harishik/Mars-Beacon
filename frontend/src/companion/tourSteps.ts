@@ -19,5 +19,5 @@ export const TOUR: TourStep[] = [
   { id: "return", title: "Return", narration: "The boundary reflects modeled travel, oxygen and reserve constraints. The amber band is the P90 slope uncertainty when it is available.", enter: "show_envelope", anchor: "envelope-summary" },
   { id: "rehearse", title: "Rehearse", narration: "Inspect how the proposed EVA changes over mission time. Rehearse starts playback, so it waits for you.", anchor: "phase-rehearse", offer: { label: "Start rehearsal", action: "start_rehearsal" } },
   { id: "evidence", title: "Evidence", narration: "Open source cards and equations to check the assumptions.", anchor: "equations", offer: { label: "Open Equations", action: "open_equations" } },
-  { id: "finish", title: "Finish", narration: "You're ready to explore. Open the guide any time." },
+  { id: "finish", title: "Finish", narration: "You're ready to explore. Open Bop any time." },
 ];

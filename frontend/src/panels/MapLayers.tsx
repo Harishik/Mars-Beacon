@@ -49,7 +49,7 @@ export function MapLayers() {
 
   return (
     <div className="maplayers" data-guide-anchor="map-layers">
-      <div className="seg" role="radiogroup" aria-label="Colour the terrain by">
+      <div className="seg" role="radiogroup" aria-label="Colour the terrain by" data-pill>
         {(["none", ...available.map((o) => o.id)] as OverlayId[]).map((id) => (
           <button key={id} role="radio" aria-checked={overlay === id} onClick={() => set({ overlay: id })}>{SHORT[id]}</button>
         ))}

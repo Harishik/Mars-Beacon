@@ -9,6 +9,8 @@ import { anim } from "../render/Terrain";
 import { Landing } from "../views/Landing";
 import { Console } from "../views/Console";
 import { Companion } from "../companion/Companion";
+import { installPills } from "../ui/pills";
+installPills();
 
 function useRoute() {
   const [hash, setHash] = useState(() => window.location.hash);
