@@ -1,0 +1,37 @@
+{
+  "project": "Mars BEACON",
+  "updated": "2026-11-15",
+  "basis": "Team confirmation plus repository documentation",
+  "tools": [
+    {
+      "name": "Anthropic Claude Code",
+      "role": "AI coding assistant",
+      "scope": "project-level; per-file allocation not recorded"
+    },
+    {
+      "name": "OpenAI Codex",
+      "role": "AI coding assistant; documented training/reconstruction assistance; submission documentation",
+      "scope": "project-level, docs/training, README and submission documentation"
+    },
+    {
+      "name": "Microsoft TRELLIS.2",
+      "role": "3D concept-model generation",
+      "scope": "fixtures/models collection; confirm per-file mapping and input rights",
+      "source": "https://github.com/microsoft/TRELLIS.2"
+    }
+  ],
+  "generated_asset_collection": [
+    "fixtures/models/astronaut_elena.glb",
+    "fixtures/models/astronaut_tomas.glb",
+    "fixtures/models/habitat.glb",
+    "fixtures/models/rover.glb"
+  ],
+  "per_file_provenance_verified": false,
+  "visible_media_label_verified": false,
+  "embedded_glb_metadata_modified": false,
+  "media_folders": {
+    "demo-video": "placeholder only",
+    "walkthrough-video": "placeholder only"
+  },
+  "label_text": "AI-generated 3D assets using Microsoft TRELLIS.2"
+}

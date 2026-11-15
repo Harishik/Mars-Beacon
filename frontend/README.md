@@ -1,43 +1,35 @@
-# frontend/
+# Mars BEACON frontend
 
-Owner: **Harishik**
-
-React Three Fiber web app: Habitat Console, Field Tablet and Helmet HUD, all driven by one mission state, plus the planning engine in a Web Worker.
-
-Planned stack: Vite, React, TypeScript, three.js via React Three Fiber, drei, Spark (Gaussian splats), Zustand, Comlink Web Worker, Leaflet (Mars Trek inset), Vitest.
-
-Configuration (environment variables, never commit secrets):
-
-| Variable | Purpose |
-|---|---|
-| `VITE_API_BASE_URL` | Backend URL from Naomi's Cloud Run deploy (or local) |
-| `VITE_BUNDLE_BASE_URL` | Where site bundles live (bucket URL, or `/fixtures` in dev) |
-
-The app must work with the backend down: panels fall back to cached data from the bundle.
-
-## Run it
+React/TypeScript browser application with Three.js, React Three Fiber, drei, Spark, Zustand and a Web Worker planning engine. The deployed app is https://mars-beacon.pages.dev/.
 
 ```bash
 cd frontend
-npm install
-npm run fixture   # writes the synthetic placeholder bundle to ../fixtures/bundle/gale-synthetic/
-npm run dev       # http://localhost:5173  (landing page; the map is at #/app)
-npm test          # engine tests, including a 750 x 750 timing run
+npm ci
+npm run dev
+# http://localhost:5173/#/app
 ```
 
-In development the app reads bundles from `../fixtures/bundle/<siteId>/`. To use Sahaj's real bundle, set `VITE_BUNDLE_BASE_URL` to the bucket folder that holds `<siteId>/manifest.json` and `VITE_SITE_ID` to its site id. No code changes.
+Use Node.js 22.12+. Run `npm run typecheck`, `npm test`, and `npm run build` from this directory. Full instructions: [Setup](../docs/SETUP.md).
 
-## What is built so far
-
-| Part | Where | State |
+| Variable | Default | Meaning |
 |---|---|---|
-| Bundle loader (manifest + typed rasters, size checks) | `src/data/bundle.ts` | Working |
-| Return Envelope engine: multi-haven reverse Dijkstra, 16 neighbours, paired-crew pace, O2 per suit on the same path, reserve margin | `src/engine/envelope.ts`, `worker.ts` | Working (tree T only; tree O and P90 band next) |
-| Walking and oxygen model (Tobler speed, Minetti cost, O2 conversion) | `src/engine/physiology.ts` | Working; Sahaj's oracle cases to confirm |
-| Sun position | `src/engine/sun.ts` | Placeholder (declination 0) until the Mars24 port |
-| Terrain shader: envelope boundary, no-go hatch, contours, grid, sun light, haze | `src/render/Terrain.tsx` | Working |
-| Mars sky, habitat, rover, two astronauts, target pins | `src/render/` | Working, built in code |
-| Landing page, console, layer drawer with source cards, crew panel, time bar, instrument strip | `src/views/`, `src/panels/` | Working |
-| Field tablet and helmet display | `src/render/Scene.tsx`, `src/panels/Chrome.tsx` | First version |
+| `VITE_BUNDLE_BASE_URL` | `./bundle` | Parent of site folders; Vite serves `../fixtures` as public files. |
+| `VITE_SITE_ID` | `gale-boxwork` | Initial site. |
+| `VITE_BEACON_API` | Azure URL in `src/data/api.ts` | Backend; `/api` selects the local Vite proxy to port 8000. |
 
-Design rules and references: `docs/design/Design_System.md`.
+All frontend variables are public. Keep private keys on the server. See [.env.example](.env.example).
+
+## Code map
+
+- `src/data/`: bundle loading and backend access.
+- `src/store/`: shared mission state.
+- `src/engine/`: Return Envelope, routes, consumables, Mars24, environment, thermal model and live feeds.
+- `src/render/`: terrain, procedural objects, rover detail and displays.
+- `src/panels/`, `src/views/`: planning workflow, source information and user interfaces.
+- `src/test/`: numerical and behavior tests.
+
+Current behavior includes P90 slope sensitivity, Mars24 time/sun calculations, water/battery budgets and multiple crew displays. Earlier prototype notes describing these as future work are historical. See [architecture](../docs/ARCHITECTURE.md) and [limitations](../docs/VALIDATION_AND_LIMITATIONS.md).
+
+The browser engine can continue using loaded bundles if the API fails. Mission persistence and fresh feeds still need a reachable backend. `npm run fixture` creates synthetic data only; do not confuse it with real site generation.
+
+AI-assisted development and TRELLIS.2 concept assets are disclosed in [AI_USAGE.md](../AI_USAGE.md).
