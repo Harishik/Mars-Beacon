@@ -22,7 +22,8 @@ import { Patches } from "./Patches";
 import { TargetPins, toScene } from "./Assets";
 import { CrewPair } from "./Crew";
 import { StoryCamera } from "./StoryCamera";
-import { liveCrewPose, isLive } from "../engine/useMission";
+import { isLive } from "../engine/useMission";
+import { visualCrewPose } from "./habitatFootprint";
 import { meshHeightAt, VERT_EXAG as EXAG } from "./Terrain";
 
 type Mode = "hero" | "story" | View;
@@ -59,7 +60,7 @@ function FirstFrame() {
 }
 
 function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const controls = useRef<OrbitControlsImpl>(null);
   const m = bundle.manifest;
   const hab = m.havens.find((h) => h.type === "habitat")!;
@@ -123,10 +124,18 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
   };
   // Third person: carry the camera with the crew every frame, keeping the orbit the user dragged to, and keep it
   // above the ground. Visor and rover cab: re-aim every frame while the crew is moving.
+  // Third person: shift the picture down a little so the crew sit in the clear middle, above the visor's cards.
+  const size = useThree((s) => s.size);
+  useEffect(() => {
+    const cam = camera as THREE.PerspectiveCamera;
+    if (mode === "eva") cam.setViewOffset(size.width, size.height, 0, Math.round(size.height * 0.14), size.width, size.height);
+    else if (cam.view) cam.clearViewOffset();
+    cam.updateProjectionMatrix();
+  }, [mode, camera, size.width, size.height]);
   useFrame(() => {
     const c = controls.current;
     if (mode === "eva" && c) {
-      const pose = liveCrewPose();
+      const pose = visualCrewPose();
       const fallbackH = Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
       const px = pose?.x ?? hab.x + Math.sin(fallbackH) * 20, py = pose?.y ?? hab.y + Math.cos(fallbackH) * 20;
       const want = toScene(bundle, px, py, 1.25);
@@ -143,9 +152,24 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       return;
     }
     if (!(mode === "hud" || mode === "rover") || !isLive()) return;
-    placeFollow(liveCrewPose());
+    placeFollow(visualCrewPose());
     c?.update();
   });
+
+  // Third person: R or a double-click puts the camera back behind the crew after orbiting away.
+  useEffect(() => {
+    if (mode !== "eva") return;
+    const reset = () => { placeFollow(visualCrewPose()); controls.current?.update(); };
+    const key = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
+      if ((e.key === "r" || e.key === "R") && !e.metaKey && !e.ctrlKey) reset();
+    };
+    window.addEventListener("keydown", key);
+    gl.domElement.addEventListener("dblclick", reset);
+    return () => { window.removeEventListener("keydown", key); gl.domElement.removeEventListener("dblclick", reset); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, gl, bundle]);
 
   // Fly to what the user picks (a stop, a point on the ground) in the map views: the focus glides there with a
   // critically damped approach, keeping the current angle and zoom. Grabbing the map cancels it mid-flight.

@@ -131,3 +131,21 @@ def test_rover_images(client):
     imgs = client.get("/rover-images", params={"site": "gale-boxwork"}).json()
     assert imgs and imgs[0]["image"].startswith("/bundle/gale-boxwork/")
     assert client.get(imgs[0]["image"]).status_code == 200
+
+
+def test_donki_failure_is_remembered_briefly(client):
+    feeds._recent_fail.clear()
+    calls = []
+    def down(url):
+        calls.append(url)
+        raise RuntimeError("upstream down")
+    d = main.db()
+    r1 = feeds.donki(d, "GST", date(2026, 3, 1), date(2026, 3, 7), fetch=down)
+    n = len(calls)
+    r2 = feeds.donki(d, "GST", date(2026, 3, 1), date(2026, 3, 7), fetch=down)
+    assert r1["badge"] == r2["badge"] == "UNAVAILABLE"
+    assert len(calls) == n  # the second visitor is answered from memory, no new upstream wait
+    def ok(url):
+        return [{"gstID": "x"}]
+    feeds._recent_fail.clear()
+    assert feeds.donki(d, "GST", date(2026, 3, 1), date(2026, 3, 7), fetch=ok)["badge"] == "LIVE"

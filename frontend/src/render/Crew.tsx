@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import type { SiteBundle } from "../data/bundle";
-import { liveCrewPose } from "../engine/useMission";
+import { visualCrewPose } from "./habitatFootprint";
 import { Astronaut, toScene } from "./Assets";
 
 export const CREW = [
@@ -54,11 +54,11 @@ function Member({ url, color, layer }: { url: string; color: string; layer?: num
   const fb = <Astronaut position={ORIGIN} color={color} layer={layer} />;
   return (
     <group ref={(g) => { if (layer) g?.traverse((o) => o.layers.set(layer)); }}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} renderOrder={2}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.14, 0]} renderOrder={2}>
         <ringGeometry args={[0.42, 0.52, 40]} />
         <meshBasicMaterial color={color} transparent opacity={0.75} depthWrite={false} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.12, 0.03, 0.1]} renderOrder={1}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.12, 0.1, 0.1]} renderOrder={1}>
         <circleGeometry args={[0.42, 24]} />
         <meshBasicMaterial color="#000" transparent opacity={0.32} depthWrite={false} />
       </mesh>
@@ -77,7 +77,7 @@ export function CrewPair({ bundle, standby, showEv1 }: { bundle: SiteBundle; sta
   const body = [useRef<THREE.Group>(null), useRef<THREE.Group>(null)];
   const gait = useRef({ phase: 0, amp: 0, yaw: 0, last: new THREE.Vector3(), init: false });
   useFrame((state, dt) => {
-    const pose = liveCrewPose();
+    const pose = visualCrewPose();
     const g = gait.current;
     let pa: THREE.Vector3, pb: THREE.Vector3, yaw = g.yaw;
     if (!pose) { pa = standby[0]; pb = standby[1]; }

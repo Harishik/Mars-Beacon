@@ -2,7 +2,11 @@
 .guide-root { position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: flex-end; gap: 12px; pointer-events: none; font-family: var(--font); }
 .guide-root > * { pointer-events: auto; }
 .guide-map { bottom: 116px; }
-.guide-eye { bottom: 116px; }
+/* Eye-level views: the visor's cards own the bottom corners, so Bop waits top right under the home readout
+   and the panel opens downward. */
+.guide-eye { bottom: auto; top: 104px; flex-direction: column-reverse; }
+.guide-eye .guide-panel, .guide-eye .guide-invite { transform-origin: calc(100% - 32px) 0; }
+.guide-eye .guide-peek { bottom: auto; top: 4px; }
 
 .guide-launcher { width: 64px; height: 64px; padding: 0; border: 0; border-radius: 20px; background: none; cursor: pointer; display: grid; place-items: center; }
 .guide-launcher:hover { background: rgba(102, 224, 228, 0.08); }
@@ -67,7 +71,10 @@
 @media (max-width: 640px) {
   .guide-root { left: 0; right: 0; bottom: 0; align-items: stretch; gap: 0; }
   .guide-root .guide-launcher { align-self: flex-end; margin: 0 max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)); width: 56px; height: 56px; }
-  .guide-map .guide-launcher, .guide-eye .guide-launcher { margin-bottom: 108px; }
+  .guide-map .guide-launcher { margin-bottom: 108px; }
+  .guide-eye { top: auto; flex-direction: column; }
+  .guide-eye .guide-launcher { position: fixed; top: 96px; right: max(12px, env(safe-area-inset-right)); margin: 0; }
+  .guide-eye .guide-peek { position: fixed; top: 100px; bottom: auto; }
   .guide-root[data-open] .guide-launcher { display: none; }
   .guide-panel, .guide-invite { width: 100%; border-radius: 16px 16px 0 0; border-left: 0; border-right: 0; border-bottom: 0; padding-bottom: env(safe-area-inset-bottom); }
   .guide-panel { max-height: 70vh; }

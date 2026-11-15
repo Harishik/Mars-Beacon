@@ -25,7 +25,8 @@ Fetch = Callable[[str], Any]
 
 
 def http_get_json(url: str, headers: dict | None = None) -> Any:
-    with httpx.Client(timeout=20.0, headers={**UA, **(headers or {})}, follow_redirects=True) as c:
+    # Short connect timeout: an unreachable upstream fails in seconds, so the browser (20 s limit) still gets an answer.
+    with httpx.Client(timeout=httpx.Timeout(12.0, connect=5.0), headers={**UA, **(headers or {})}, follow_redirects=True) as c:
         r = c.get(url)
         r.raise_for_status()
         return r.json()
@@ -33,6 +34,12 @@ def http_get_json(url: str, headers: dict | None = None) -> Any:
 
 def _age_s(at: datetime) -> int:
     return int((datetime.now(timezone.utc) - at).total_seconds())
+
+
+# After every source fails, answer from memory for a short while instead of making each visitor wait on the
+# same dead upstream again. Per process; a fresh success clears it.
+FAIL_TTL = timedelta(minutes=int(os.environ.get("DONKI_FAIL_TTL_MIN", "2")))
+_recent_fail: dict[str, tuple[datetime, list[str]]] = {}
 
 
 def donki(db: Database, kind: str, start: date, end: date, fetch: Fetch = http_get_json) -> dict:
@@ -44,6 +51,13 @@ def donki(db: Database, kind: str, start: date, end: date, fetch: Fetch = http_g
                 "ageS": _age_s(cached[2]), "sourceUrl": cached[1]}
     q = f"startDate={start.isoformat()}&endDate={end.isoformat()}"
     api_key = os.environ.get("NASA_API_KEY", "").strip()
+    failed = _recent_fail.get(key)
+    if failed and datetime.now(timezone.utc) - failed[0] < FAIL_TTL:
+        if cached:
+            return {**base, "events": cached[0], "cached": True, "badge": "STALE", "fetchedAt": cached[2].isoformat(),
+                    "ageS": _age_s(cached[2]), "sourceUrl": cached[1], "errors": failed[1]}
+        return {**base, "events": [], "cached": False, "badge": "UNAVAILABLE", "fetchedAt": None, "sourceUrl": None,
+                "errors": failed[1], "hint": None if api_key else "Set NASA_API_KEY (free at api.nasa.gov) for a second DONKI source."}
     # The key goes in the X-Api-Key header (api.data.gov accepts it), never in a URL that could be logged.
     sources: list[tuple[str, dict | None]] = [(f"{CCMC}/{kind}?{q}", None)]
     if api_key:
@@ -58,9 +72,11 @@ def donki(db: Database, kind: str, start: date, end: date, fetch: Fetch = http_g
                 raise ValueError("unexpected DONKI payload")
             public = url
             at = db.cache_put(key, events, public)
+            _recent_fail.pop(key, None)
             return {**base, "events": events, "cached": False, "badge": "LIVE", "fetchedAt": at.isoformat(), "ageS": 0, "sourceUrl": public}
         except Exception as e:  # noqa: BLE001 - every upstream failure falls through to the next source
             errors.append(f"{url.split('?')[0]}: {type(e).__name__}")
+    _recent_fail[key] = (datetime.now(timezone.utc), errors)
     if cached:
         return {**base, "events": cached[0], "cached": True, "badge": "STALE", "fetchedAt": cached[2].isoformat(),
                 "ageS": _age_s(cached[2]), "sourceUrl": cached[1], "errors": errors}

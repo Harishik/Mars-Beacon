@@ -159,7 +159,7 @@ export function Companion() {
     onCompanionEvent(completed ? "success" : "idle");
   };
 
-  const pos = route === "app" ? (view === "hud" || view === "eva" ? "eye" : "map") : "landing";
+  const pos = route === "app" ? (view === "hud" || view === "eva" || view === "rover" ? "eye" : "map") : "landing";
   const ctx = readContext();
   const entry = g.entries.find((e) => e.id === g.current) ?? null;
 

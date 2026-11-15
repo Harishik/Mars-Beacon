@@ -40,7 +40,16 @@ export function crewPoseAt(plan: Plan, b: SiteBundle, tIn: number): CrewPose | n
   };
   const [ax, ay] = xy(a.cell), [nx, ny] = xy(n.cell);
   const x = t === 0 ? ax : ax + (nx - ax) * f, y = t === 0 ? ay : ay + (ny - ay) * f;
-  const heading = Math.atan2(nx - ax, ny - ay) * 180 / Math.PI;
+  // Standing still (a stop, or the end): keep the direction they arrived from instead of snapping to north.
+  let hx = nx - ax, hy = ny - ay;
+  if (hx === 0 && hy === 0) {
+    for (let j = k; j > 0; j--) {
+      const [px, py] = xy(plan.samples[j - 1].cell), [qx, qy] = xy(plan.samples[j].cell);
+      if (px !== qx || py !== qy) { hx = qx - px; hy = qy - py; break; }
+    }
+    if (hx === 0 && hy === 0 && plan.samples.length > 1) { const [qx, qy] = xy(plan.samples[1].cell); hx = qx - ax; hy = qy - ay; }
+  }
+  const heading = Math.atan2(hx, hy) * 180 / Math.PI;
   return {
     x, y, heading: Number.isFinite(heading) ? heading : 0,
     o2Left: [a.o2Left[0] + (n.o2Left[0] - a.o2Left[0]) * f, a.o2Left[1] + (n.o2Left[1] - a.o2Left[1]) * f],

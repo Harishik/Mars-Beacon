@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { SiteBundle } from "../data/bundle";
 import { toScene } from "./Assets";
-import { liveCrewPose } from "../engine/useMission";
+import { visualCrewPose } from "./habitatFootprint";
 
 /** Scroll progress in chapters (0 = hero, 5 = walk), written by the landing page. */
 export const story = { p: 0, pointerX: 0, pointerY: 0 };
@@ -49,7 +49,7 @@ export function StoryCamera({ bundle }: { bundle: SiteBundle }) {
     const p = Math.max(0, Math.min(keys.length - 1, story.p));
     const i = Math.min(keys.length - 2, Math.floor(p)), f = smooth(p - i);
     // Keyframes that depend on where the crew actually is: meeting them (2) and walking with them (5).
-    const pose = liveCrewPose();
+    const pose = visualCrewPose();
     const live = (k: number) => {
       const key = keys[k];
       if (!pose || (k !== 2 && k !== 5)) return key;

@@ -14,9 +14,9 @@ export function PlanRoute({ bundle }: { bundle: SiteBundle }) {
   const pts = useMemo(() => {
     if (!plan) return [];
     const cells = plan.legs.flatMap((l, i) => (i ? l.cells.slice(1) : l.cells));
-    return cells.filter((_, k) => k % 3 === 0 || k === cells.length - 1).map((c) => {
+    return cells.map((c) => {
       const r = Math.floor(c / cols), cc = c - r * cols;
-      return toScene(bundle, (cc + 0.5) * liveM - extentM / 2, extentM / 2 - (r + 0.5) * liveM, 1.6);
+      return toScene(bundle, (cc + 0.5) * liveM - extentM / 2, extentM / 2 - (r + 0.5) * liveM, 0.4);
     });
   }, [plan, bundle, cols, liveM, extentM]);
   if (!plan || pts.length < 2) return null;

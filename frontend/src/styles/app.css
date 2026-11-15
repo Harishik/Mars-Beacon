@@ -570,7 +570,8 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .db-notes h3 { margin: 0 0 4px; font-size: 0.75rem; color: var(--sun); font-weight: 600; }
 .db-notes p, .db-notes ul { margin: 0 0 10px; font-size: 0.75rem; line-height: 1.45; color: var(--dust-2); padding-left: 0; }
 .db-notes ul { padding-left: 16px; }
-@media (max-width: 1100px) { .debrief { left: 16px; right: 16px; } .db-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .debrief { left: 302px; right: 322px; } .db-grid { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .debrief { left: 12px; right: 12px; top: 104px; bottom: auto; max-height: 40vh; } }
 
 .cuecard { display: none; }
 @media print {
@@ -1087,4 +1088,37 @@ button, .btn, .chip, .plan-card, .stop, select { -webkit-tap-highlight-color: tr
   [data-pill] > .ui-pill { transition: opacity 120ms linear; }
   .drawer, .crew, .brief, .mc, .plan-charts, .debrief, .exec-next, .timeline, .drawer-scroll, .plan-cards > *, .stops > li { animation: none; }
   .btn:active, .chip:active, .plan-card:active, .stop:active, .play:active { transform: none; }
+}
+
+/* Between 860 and 1100 px the side panels narrow (270 and 290 px): keep the terrain colouring bar in the gap
+   between them, wrapping to two rows if it must, and keep the walking hint to its keys. */
+@media (max-width: 1100px) and (min-width: 861px) {
+  .maplayers { left: 302px; right: 322px; transform: none; }
+  .maplayers .seg { flex-wrap: wrap; justify-content: center; }
+}
+@media (max-width: 860px) { .maplayers { left: 12px; right: 12px; transform: none; } .maplayers .seg { flex-wrap: wrap; justify-content: center; } }
+@media (max-width: 1100px) {
+  .walk-hint { gap: 10px; padding: 6px 10px; }
+  .walk-hint span:nth-child(3), .walk-hint span:nth-child(4) { display: none; }
+}
+
+/* Room for Bop (bottom right, above the timeline) on the full-height panels of the map displays. */
+.view-control .mc { right: 92px; }
+.tablet { bottom: 192px; }
+@media (max-width: 1100px) { .brief { width: 290px; } }
+
+/* Phones: bottom sheets leave Bop a lane on the right; nothing stacks on the colouring bar or the visor cards. */
+@media (max-width: 860px) {
+  .crew { right: 80px; }
+  .brief { top: auto; bottom: 108px; left: 16px; right: 80px; width: auto; max-height: 42vh; }
+  .debrief { max-height: 30vh; }
+}
+@media (max-width: 560px) {
+  .vz-map { width: 150px; }
+  .vz-map canvas { width: 134px; height: 92px; }
+  .vz-card { width: 186px; }
+}
+/* Phones: the chapter text sits at the bottom, so leave Bop's corner free. */
+@media (max-width: 760px) {
+  .chapter, .walk-sticky { padding-bottom: 96px; }
 }

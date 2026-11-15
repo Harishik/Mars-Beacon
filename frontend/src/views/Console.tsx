@@ -75,7 +75,7 @@ export function Console() {
       {eyeLevel && (
         <p className="walk-hint" aria-label="Walking controls">
           <span><kbd>W</kbd> walk</span><span><kbd>S</kbd> back</span><span><kbd>Shift</kbd> faster</span>
-          {view === "eva" && <span>Drag to look around</span>}
+          {view === "eva" && <><span>Drag to look around</span><span><kbd>R</kbd> behind the crew</span></>}
         </p>
       )}
       <MissionTimeline />
