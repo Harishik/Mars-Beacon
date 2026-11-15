@@ -41,8 +41,6 @@ const PENDING = [
   { kind: "Spectral", name: "CRISM hydrated minerals", who: "Sahaj, bundle" },
   { kind: "Thermal", name: "THEMIS thermal inertia", who: "Sahaj, bundle" },
   { kind: "Geophysical", name: "USGS geologic units", who: "Sahaj, bundle" },
-  { kind: "Radiation", name: "RAD dose, DONKI events", who: "Naomi, API" },
-  { kind: "Atmospheric", name: "REMS season band", who: "Naomi, API" },
 ];
 
 export function LayerDrawer() {

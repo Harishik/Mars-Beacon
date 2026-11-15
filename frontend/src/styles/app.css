@@ -104,7 +104,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 .data-list dt { color: var(--sun); font-weight: 500; }
 .data-list dd { margin: 0; color: var(--dust); }
 
-.display-row { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 28px; margin: 12px 0 44px; }
+.display-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; margin: 12px 0 44px; }
 .display-row figure { margin: 0; }
 .display-row figcaption { color: var(--dust-2); margin-top: 16px; max-width: 40ch; }
 .display-row figcaption b { color: var(--dust); font-weight: 600; }
@@ -391,7 +391,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .limits { margin: 0; padding-left: 18px; color: var(--dust-2); font-size: 0.875rem; display: grid; gap: 6px; }
 
 /* ---------- Landing additions ---------- */
-.lineage-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line); }
+.lineage-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-top: 1px solid var(--line); }
 .lineage-row { padding: 22px 24px 0 0; }
 .lineage-row h3 { font-size: var(--step-1); font-stretch: 106%; margin-bottom: 10px; }
 .lineage-row p { margin: 0 0 10px; color: var(--dust-2); }
