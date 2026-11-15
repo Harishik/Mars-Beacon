@@ -802,3 +802,18 @@ body > .sheet-backdrop { z-index: 40; }
 .shared-banner { position: absolute; top: 96px; left: 50%; transform: translateX(-50%); z-index: 40; background: rgba(14, 22, 36, 0.92); border: 1px solid rgba(143, 211, 255, 0.4); color: #e8eef6; padding: 8px 14px; border-radius: 10px; font-size: 13px; max-width: min(720px, 90vw); display: flex; gap: 12px; align-items: center; }
 .shared-banner.err { border-color: #e8b04a; }
 .shared-banner button { background: none; border: 0; color: inherit; font-size: 16px; cursor: pointer; }
+
+/* Space weather alert: every display */
+.space-alert { position: absolute; top: 96px; left: 50%; transform: translateX(-50%); z-index: 45; display: flex; gap: 14px; align-items: center;
+  background: rgba(70, 8, 6, 0.92); border: 2px solid #ff5a46; color: #fff; padding: 10px 16px; border-radius: 10px; max-width: min(860px, 94vw);
+  box-shadow: 0 0 0 0 rgba(255, 90, 70, 0.7); animation: spe-pulse 1.2s ease-in-out infinite; }
+.space-alert b { font-size: 15px; letter-spacing: .12em; color: #ffb3a8; white-space: nowrap; }
+.space-alert span { font-size: 14px; line-height: 1.35; }
+.space-alert em { display: block; font-style: normal; font-size: 11px; opacity: .75; letter-spacing: .04em; margin-top: 2px; }
+.space-alert button { background: #ff5a46; color: #fff; border: 0; border-radius: 6px; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+.space-alert.late { background: rgba(110, 6, 4, 0.95); }
+.space-alert.collapsed { animation: none; padding: 6px 10px; top: auto; bottom: 120px; left: auto; right: 20px; transform: none; }
+.view-hud .space-alert, .view-eva .space-alert { top: 120px; }
+@keyframes spe-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 90, 70, 0.55); border-color: #ff5a46; } 50% { box-shadow: 0 0 0 12px rgba(255, 90, 70, 0); border-color: #ffd0c8; } }
+@media (prefers-reduced-motion: reduce) { .space-alert { animation: none; } }
+.vz-comm-lost b { color: #ffb347; }

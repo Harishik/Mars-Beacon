@@ -136,7 +136,7 @@ export async function fetchDonki(): Promise<DonkiFeed> {
     try {
       const r = await get();
       if (r) return buildDonki(r[0], r[1], r[2], "live", name, now);
-      errs.push(`${name}: seed data only`);
+      errs.push(`${name}: no data yet`);
     } catch (e) { errs.push(`${name}: ${(e as Error).message}`); }
   }
   try {

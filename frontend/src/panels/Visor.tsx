@@ -3,6 +3,7 @@
 // labelled where they are, a heading-up local map and one compact status card. The suit detail panel opens
 // on request (S). At the turn-back point a single RETURN NOW state takes over.
 // Timing semantics are kept separate: turn back in, return ETA, resource-limited time left.
+import { radioCoverage } from "../engine/radio";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
@@ -41,6 +42,13 @@ export function Visor({ thirdPerson = false }: { thirdPerson?: boolean }) {
     if (!s.bundle || !s.crewPos) return null;
     const [c, r] = toCell(s.bundle.manifest, s.crewPos.x, s.crewPos.y);
     return Math.round(temperatureAt(s.bundle, Math.round(s.lsDeg), tauAtElevation(s.storm ? Math.max(s.tau, 3) : s.tau, -3.6), Math.round(s.lmstHours * 6) / 6, r * s.bundle.manifest.grid.cols + c));
+  });
+  const comm = useStore((s) => {
+    if (!s.bundle || !s.crewPos) return null;
+    const cov = radioCoverage(s.bundle, s.roverActive);
+    if (!cov) return null;
+    const [c, r] = toCell(s.bundle.manifest, s.crewPos.x, s.crewPos.y);
+    return cov[r * s.bundle.manifest.grid.cols + c] === 1;
   });
   const o2Left = crew[0].o2BudgetG - crew[0].o2SpentG;
   // Resource-limited time left: the tighter of EVA time and O2 at the current use rate.
@@ -104,6 +112,7 @@ export function Visor({ thirdPerson = false }: { thirdPerson?: boolean }) {
         <div className="vz-row"><span>O₂ E1</span><b>{(o2Left / 1000).toFixed(2)} kg</b><em>MODEL</em></div>
         <div className="vz-row"><span>TIME LEFT</span><b>{fmtT(timeLeftS)}</b><em>EST</em></div>
         <div className="vz-sub">limited by {limitedBy}</div>
+        {comm !== null && <div className={`vz-row ${comm ? "" : "vz-comm-lost"}`}><span>COMM</span><b>{comm ? "LINE OF SIGHT" : "RADIO SHADOW"}</b><em>DEM</em></div>}
         <button className="vz-suit-btn" onClick={() => setDetail((d) => !d)} aria-pressed={detail}>SUIT {detail ? "▾" : "▸"} <kbd>S</kbd></button>
       </section>
 

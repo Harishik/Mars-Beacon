@@ -10,6 +10,7 @@ import { directIrradiance, evaDoseMsv, tauAtElevation, RAD_GY_PER_DAY, RAD_QUALI
 import { earthMarsLightTime } from "../engine/lighttime";
 import { reportAt } from "../engine/query";
 import { useLiveWeather, ageText } from "../engine/liveWeather";
+import { radioCoverage, routeRadio } from "../engine/radio";
 import { useAtmosphere, seasonalTau, pressureAt } from "../engine/atmosphere";
 import { useVisor } from "../engine/useVisor";
 import { temperatureAt } from "../engine/overlays";
@@ -20,7 +21,7 @@ import type { Tag as TagT } from "../data/bundle";
 /** NASA-STD-3001 Vol. 1 Rev. B (2022): career effective dose limit 600 mSv for all astronauts. */
 const CAREER_LIMIT_MSV = 600;
 /** Solar particle event warning lead time we plan to (ASSUMPTION; forecast lead times vary). */
-const SPE_LEAD_MIN = 30;
+import { SPE_LEAD_MIN } from "./SpaceAlert";
 /** Habitat array for the power estimate (ASSUMPTION): 20 m2 at 25 % efficiency. */
 const ARRAY_M2 = 20, ARRAY_EFF = 0.25;
 /** Dust optical depth above which we hold EVAs (ASSUMPTION, about a regional storm). */
@@ -64,6 +65,11 @@ export function MissionControl() {
     return mx;
   }, [b, plan]);
   const shelterMin = ret?.reachable ? ret.walkHomeS / 60 : Infinity;
+  const radio = useMemo(() => {
+    if (!b || !plan) return null;
+    const cov = radioCoverage(b, s.roverActive);
+    return cov ? routeRadio(cov, plan.samples) : null;
+  }, [b, plan, s.roverActive]);
 
   const checks: Check[] = [
     { label: "Every stop returnable with reserve", status: !plan ? "nogo" : plan.minMargin > 0.3 ? "go" : plan.minMargin > 0 ? "watch" : "nogo", value: plan ? `min margin ${Math.round(plan.minMargin * 100)}%` : "no plan", why: `Return Envelope with ${Math.round(s.reserveM * 100)}% reserve on time and both suits' O₂`, tag: "DERIVED" },
@@ -71,6 +77,7 @@ export function MissionControl() {
     { label: "Radiation, solar particle event", status: s.storm || dk?.level === "alert" ? (shelterMin <= SPE_LEAD_MIN ? "watch" : "nogo") : dk?.level === "watch" ? "watch" : "go", value: s.storm || dk?.level === "alert" ? `shelter ${Number.isFinite(shelterMin) ? Math.round(shelterMin) + " min" : "out of reach"}` : dk && dk.state !== "unavailable" ? (dk.level === "watch" ? "DONKI watch" : "DONKI quiet") : "no live feed", why: `During an event the crew must reach the habitat${s.roverActive ? " or R1" : ""} within the ${SPE_LEAD_MIN} min warning lead (assumption). Live: ${dk?.summary ?? "fetching DONKI"}`, tag: s.storm ? "SCENARIO" : dk?.state === "live" ? "OBSERVED" : "HISTORICAL" },
     { label: "Daylight at egress and return", status: sun.elevationDeg > 10 ? "go" : sun.elevationDeg > 0 ? "watch" : "nogo", value: `sun ${sun.elevationDeg.toFixed(0)}°`, why: "Sun above 10° for footing and power", tag: "PREDICTED" },
     { label: "Steepest ground on the route", status: steepOnRoute > 20 ? "nogo" : steepOnRoute > 15 ? "watch" : "go", value: `${steepOnRoute.toFixed(0)}°`, why: "4 m slope on the planned path cells; no-go above the slope limit", tag: "DERIVED" },
+    { label: "Radio line of sight on the route", status: !radio ? "watch" : radio.share >= 0.9 && radio.longestGapS <= 5 * 60 ? "go" : "watch", value: radio ? `${Math.round(radio.share * 100)}%, longest gap ${Math.round(radio.longestGapS / 60)} min` : "–", why: `Helmet to habitat antenna${s.roverActive ? " or the R1 relay" : ""} over the DEM (mast heights assumed). ${radio && radio.longestGapS > 15 * 60 ? (s.roverActive ? "Gaps over 15 min remain: move R1 to a ridge as a relay." : "Gaps over 15 min: count R1 as a relay or plan check-in calls before each gap.") : "Watch if any gap is over 5 min."}`, tag: "DERIVED" },
     { label: "Habitat power from the array", status: powerKw > 0.5 ? "go" : powerKw > 0.1 ? "watch" : "nogo", value: `${powerKw.toFixed(2)} kW now`, why: `${ARRAY_M2} m² at ${ARRAY_EFF * 100}% (assumption), direct sunlight through the dust`, tag: "DERIVED" },
   ];
   const overall: Status = checks.some((c) => c.status === "nogo") ? "nogo" : checks.some((c) => c.status === "watch") ? "watch" : "go";

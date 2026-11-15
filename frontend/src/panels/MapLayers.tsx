@@ -14,7 +14,7 @@ const RAMPS = [
   "linear-gradient(90deg, #331f29 0%, #ff528c 60%, #ff528c 100%)",
 ];
 
-const SHORT: Record<OverlayId, string> = { none: "Terrain", thermal: "Temperature", solar: "Solar energy", science: "Science value", rocks: "Boulders" };
+const SHORT: Record<OverlayId, string> = { none: "Terrain", thermal: "Temperature", solar: "Solar energy", science: "Science value", rocks: "Boulders", radio: "Radio" };
 
 export function MapLayers() {
   const overlay = useStore((s) => s.overlay);
@@ -29,7 +29,7 @@ export function MapLayers() {
 
   const here = useMemo(() => {
     if (!info || !bundle || !cursor) return null;
-    const vals = overlayValues(overlay, bundle, ls, tauAtElevation(tau, -3.6), lmstStep);
+    const vals = overlayValues(overlay, bundle, ls, tauAtElevation(tau, -3.6), lmstStep, useStore.getState().roverActive);
     if (!vals) return null;
     const [c, r] = toCell(bundle.manifest, cursor.x, cursor.y);
     const v = vals[r * bundle.manifest.grid.cols + c];

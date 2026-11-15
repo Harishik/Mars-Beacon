@@ -3,9 +3,10 @@
 
 import type { SiteBundle } from "../data/bundle";
 import type { Tag } from "../data/bundle";
+import { radioCoverage } from "./radio";
 import { slopeAspect, thermalTable, temperatureField, insolationField, THERMAL_DEFAULTS, type ThermalTable } from "./thermal";
 
-export type OverlayId = "none" | "thermal" | "solar" | "science" | "rocks";
+export type OverlayId = "none" | "thermal" | "solar" | "science" | "rocks" | "radio";
 
 export interface OverlayInfo {
   id: Exclude<OverlayId, "none">;
@@ -28,6 +29,8 @@ export const OVERLAYS: OverlayInfo[] = [
     source: "Pipeline (Sahaj): 0.6 ridge and hollow contrast + 0.4 rover context; spectral and geology terms not yet added" },
   { id: "rocks", name: "Boulder cover", unit: "% area", min: 0, max: 30, fmt: (v) => v.toFixed(0), tag: "DERIVED", ramp: 3,
     source: "M2 boulder detector on HiRISE shadows (rocks of 0.75 m or more). Independent test: 35% object precision, 32% recall. Advisory only" },
+  { id: "radio", name: "Radio shadow", unit: "no line of sight", min: 0, max: 1, fmt: (v) => (v >= 0.5 ? "shadow" : "in sight"), tag: "DERIVED", ramp: 3,
+    source: "Line of sight from the habitat antenna (3 m mast) to a helmet antenna (1.8 m) over the 4 m DEM, Mars curvature included; the parked rover relays when counted. Mast heights are assumptions" },
 ];
 
 interface Cache {
@@ -59,8 +62,15 @@ function table(bundle: SiteBundle, lsDeg: number, tau: number): ThermalTable {
 }
 
 /** Physical values of an overlay field (°C, kWh/m², 0..1, % area), or null if the bundle lacks it. */
-export function overlayValues(id: OverlayId, bundle: SiteBundle, lsDeg: number, tau: number, lmstH: number): Float32Array | null {
+export function overlayValues(id: OverlayId, bundle: SiteBundle, lsDeg: number, tau: number, lmstH: number, roverActive = false): Float32Array | null {
   if (id === "none") return null;
+  if (id === "radio") {
+    const cov = radioCoverage(bundle, roverActive);
+    if (!cov) return null;
+    const out = new Float32Array(cov.length);
+    for (let i = 0; i < out.length; i++) out[i] = cov[i] ? 0 : 1;
+    return out;
+  }
   if (id === "science") return bundle.science ?? null;
   if (id === "rocks") {
     if (!bundle.rocks) return null;

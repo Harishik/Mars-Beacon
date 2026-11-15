@@ -1,4 +1,4 @@
-import { ShareButton } from "./Share";
+import { ShareButton, ExportRoute } from "./Share";
 import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
@@ -161,6 +161,7 @@ export function MissionPanel() {
       <section>
         <h3 className="list-h">EVA plan</h3>
         <ShareButton kind="plan" />
+        <ExportRoute />
         <PlanCards />
       </section>
       <SelectedCard />

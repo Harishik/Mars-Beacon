@@ -530,6 +530,7 @@ function useOverlayTexture(bundle: SiteBundle, material: THREE.ShaderMaterial) {
   const tau = useStore((s) => (s.storm ? Math.max(s.tau, 3) : s.tau));
   // Temperature changes slowly: refresh every 10 Mars minutes of clock time.
   const lmstStep = useStore((s) => Math.round(s.lmstHours * 6) / 6);
+  const roverActive = useStore((s) => s.roverActive);
   const tex = useMemo(() => {
     const t = new THREE.DataTexture(new Uint8Array(cols * rows).fill(255), cols, rows, THREE.RedFormat, THREE.UnsignedByteType);
     t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.unpackAlignment = 1; t.flipY = false; t.needsUpdate = true;
@@ -539,11 +540,11 @@ function useOverlayTexture(bundle: SiteBundle, material: THREE.ShaderMaterial) {
   useEffect(() => {
     const u = material.uniforms;
     const info = OVERLAYS.find((o) => o.id === overlay);
-    const vals = info ? overlayValues(overlay, bundle, ls, tauAtElevation(tau, -3.6), lmstStep) : null;
+    const vals = info ? overlayValues(overlay, bundle, ls, tauAtElevation(tau, -3.6), lmstStep, roverActive) : null;
     if (!info || !vals) { u.uOverlayMode.value = -1; return; }
     encodeOverlay(vals, info, tex.image.data as Uint8Array);
     tex.needsUpdate = true;
     u.uOverlay.value = tex;
     u.uOverlayMode.value = info.ramp;
-  }, [overlay, ls, tau, lmstStep, bundle, material, tex]);
+  }, [overlay, ls, tau, lmstStep, bundle, material, tex, roverActive]);
 }
