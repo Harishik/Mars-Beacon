@@ -27,7 +27,7 @@ export interface Manifest {
   files: ManifestFile[];
   layers: ManifestLayer[];
   havens: (ManifestPoint & { type: "habitat" | "rover" | "shelter" })[];
-  targets: (ManifestPoint & { name: string; type: "ridge" | "hollow" | "drill"; sol: number | null; source: string })[];
+  targets: (ManifestPoint & { name: string; type: "ridge" | "hollow" | "drill" | "custom"; sol: number | null; source: string })[];
   povImages: unknown[];
   route: { source: string; points: [number, number][]; sols?: number[] };
 }

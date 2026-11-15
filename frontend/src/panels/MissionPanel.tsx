@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
 import { reportAt, type PointReport } from "../engine/query";
@@ -10,11 +10,12 @@ import { stopHazards, type Hazard } from "../engine/hazards";
 import { tauAtElevation } from "../engine/environment";
 import { MARS_HOUR_S } from "../engine/useMission";
 
-const TYPE_LABEL = { ridge: "Ridge", hollow: "Hollow", drill: "Drill site" } as const;
+const TYPE_LABEL = { ridge: "Ridge", hollow: "Hollow", drill: "Drill site", custom: "Planner stop" } as const;
 const WHY = {
   ridge: "Where Curiosity worked on a local high. Sample the resistant rock to compare with a hollow.",
   hollow: "Where Curiosity worked in a local low. Sample to compare with a ridge.",
   drill: "Where Curiosity stopped to work on flat ground. Context sample for the comparison.",
+  custom: "Added by the mission planner on the map.",
 } as const;
 
 function useReport(x: number, y: number) {
@@ -67,8 +68,13 @@ function StopRow({ t, active }: { t: { id: string; name: string; type: keyof typ
   const r = useReport(t.x, t.y);
   const set = useStore((s) => s.set);
   const hz = useHazards(t.x, t.y, t.id, r && r.reachable ? r.stayMin : null);
+  const excluded = useStore((s) => s.excludedStops.includes(t.id));
+  const toggle = useStore((s) => s.toggleStop);
   return (
-    <li>
+    <li className={excluded ? "excluded" : ""}>
+      <label className="stop-include" title="Include this stop when planning">
+        <input type="checkbox" checked={!excluded} onChange={() => toggle(t.id)} /> {excluded ? "Left out of the plan" : "In the plan"}
+      </label>
       <button className={`stop ${active ? "active" : ""}`} onClick={() => set({ selected: { x: t.x, y: t.y, label: t.name } })} aria-pressed={active}>
         <span className={`stop-type type-${t.type}`}>{TYPE_LABEL[t.type]}</span>
         <span className="stop-main">
@@ -83,8 +89,23 @@ function StopRow({ t, active }: { t: { id: string; name: string; type: keyof typ
   );
 }
 
+/** Mission design: turn the selected point into a science stop. */
+function AddStop({ x, y }: { x: number; y: number }) {
+  const add = useStore((s) => s.addStop);
+  const count = useStore((s) => (s.bundle?.manifest.targets.length ?? 0) - s.excludedStops.length);
+  const [name, setName] = useState("");
+  return (
+    <form className="add-stop" onSubmit={(e) => { e.preventDefault(); add(x, y, name.trim()); setName(""); }}>
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name this stop (optional)" aria-label="Stop name" />
+      <button className="btn btn-primary" type="submit" disabled={count >= 6}>Add as science stop</button>
+      {count >= 6 && <small>Six stops is the planner limit; leave one out first.</small>}
+    </form>
+  );
+}
+
 export function SelectedCard() {
   const sel = useStore((s) => s.selected);
+  const removeStop = useStore((s) => s.removeStop);
   const set = useStore((s) => s.set);
   const r = useReport(sel?.x ?? 0, sel?.y ?? 0);
   const stopId = useStore((s) => s.bundle?.manifest.targets.find((t) => sel && t.x === sel.x && t.y === sel.y)?.id);
@@ -107,6 +128,8 @@ export function SelectedCard() {
             <span className="tb-value">{r.stayMin < 0 ? `${Math.ceil(-r.stayMin)}` : Math.floor(r.stayMin)}<small>min</small></span>
             <span className="tb-why">limited by {r.limitedBy} <Tag t="DERIVED" /></span>
           </div>
+          {!stopId && <AddStop x={sel.x} y={sel.y} />}
+          {stopId?.startsWith("custom-") && <button className="btn btn-quiet stop-del" onClick={() => removeStop(stopId)}>Delete this planner stop</button>}
           <h4 className="hz-title">Risks here <Tag t="DERIVED" /></h4>
           <HazardChips hz={hz} />
           <dl className="facts">

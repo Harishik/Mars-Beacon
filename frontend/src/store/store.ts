@@ -65,6 +65,10 @@ interface State {
   setError: (e: string) => void;
   set: (p: Partial<State>) => void;
   setPhase: (p: Phase) => void;
+  excludedStops: string[];          // stops the planner leaves out
+  addStop: (x: number, y: number, name: string) => void;
+  removeStop: (id: string) => void;
+  toggleStop: (id: string) => void;
   toggleLayer: (id: LayerId) => void;
   setCrew: (i: 0 | 1, p: Partial<Crew>) => void;
   setEnvelope: (p: Partial<EnvelopeState>) => void;
@@ -127,6 +131,22 @@ export const useStore = create<State>((set) => ({
   },
   setError: (e) => set({ loadError: e }),
   set: (p) => set(p),
+  excludedStops: [],
+  // Mission design: planners add their own science stops on the map. The stop joins the site's target list
+  // (so every display sees it) and the planner re-plans.
+  addStop: (x, y, name) => set((s) => {
+    if (!s.bundle) return {};
+    const id = `custom-${Date.now().toString(36)}`;
+    const t = { id, name: name || `Stop at E ${Math.round(x)}, N ${Math.round(y)}`, type: "custom" as const, x, y, sol: null, source: "Added by the mission planner" };
+    const manifest = { ...s.bundle.manifest, targets: [...s.bundle.manifest.targets, t] };
+    return { bundle: { ...s.bundle, manifest }, selected: { x, y, label: t.name } };
+  }),
+  removeStop: (id) => set((s) => {
+    if (!s.bundle) return {};
+    const manifest = { ...s.bundle.manifest, targets: s.bundle.manifest.targets.filter((t) => t.id !== id) };
+    return { bundle: { ...s.bundle, manifest }, excludedStops: s.excludedStops.filter((e) => e !== id), selected: null };
+  }),
+  toggleStop: (id) => set((s) => ({ excludedStops: s.excludedStops.includes(id) ? s.excludedStops.filter((e) => e !== id) : [...s.excludedStops, id] })),
   setPhase: (phase) => set((s) => {
     const wide = (typeof window === "undefined" || window.innerWidth >= 1100) && s.quality === "high";
     const total = s.plans.find((p) => p.id === s.activePlan)?.totalS ?? 0;

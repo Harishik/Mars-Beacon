@@ -742,3 +742,10 @@ body > .sheet-backdrop { z-index: 40; }
 .helmet-rim { position: absolute; inset: 0; width: 100%; height: 100%; }
 .visor.third .vz-top { top: 66px; }
 .visor:not(.third) .vz-map, .visor:not(.third) .vz-card { bottom: 132px; }
+.stop-include { display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: var(--dust-3); padding: 0 4px 4px; cursor: pointer; }
+.stops li.excluded .stop { opacity: 0.45; }
+.add-stop { display: grid; gap: 6px; margin: 10px 0; }
+.add-stop input { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(236, 229, 216, 0.05); color: var(--dust); font: inherit; font-size: 0.8125rem; }
+.add-stop small { font-size: 0.6875rem; color: var(--sun); }
+.stop-del { margin: 8px 0; height: 30px; font-size: 0.75rem; }
+.type-custom { background: rgba(96, 215, 229, 0.18) !important; color: #60D7E5 !important; }

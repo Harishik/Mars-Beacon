@@ -48,7 +48,7 @@ export function useEngine() {
   const bundle = useStore((s) => s.bundle);
   const envInputs = useStore(useShallow((s) => [s.v0, s.slopeLimitDeg, s.reserveM, s.kG, s.mRestW, s.bodyMassKg, s.timeBudgetS, s.timeSpentS, s.crew, s.roverActive, s.playing]));
   const planInputs = useStore(useShallow((s) => [s.v0, s.slopeLimitDeg, s.reserveM, s.kG, s.mRestW, s.bodyMassKg, s.timeBudgetS, s.dwellMin,
-    s.crew[0].loadKg, s.crew[1].loadKg, s.crew[0].fMob, s.crew[1].fMob, s.crew[0].o2BudgetG, s.crew[1].o2BudgetG]));
+    s.crew[0].loadKg, s.crew[1].loadKg, s.crew[0].fMob, s.crew[1].fMob, s.crew[0].o2BudgetG, s.crew[1].o2BudgetG, s.excludedStops.join(","), s.bundle?.manifest.targets.length]));
 
   const send = (params: EnvelopeParams) => {
     const w = workerRef.current;
@@ -113,7 +113,9 @@ export function useEngine() {
       fMob: [s.crew[0].fMob, s.crew[1].fMob], loadKg: [s.crew[0].loadKg, s.crew[1].loadKg],
       workPowerW: WORK_POWER_W, dwellS: s.dwellMin * 60,
       home: toCell(m, hab.x, hab.y),
-      stops: m.targets.map((t) => ({ id: t.id, cell: toCell(m, t.x, t.y), science: stopScience(bundle, t.x, t.y) ?? SCIENCE_WEIGHT[t.type] })),
+      // Up to six included stops (the planner tries every order).
+      stops: m.targets.filter((t) => !s.excludedStops.includes(t.id)).slice(0, 6)
+        .map((t) => ({ id: t.id, cell: toCell(m, t.x, t.y), science: stopScience(bundle, t.x, t.y) ?? (t.type === "custom" ? 0.3 : SCIENCE_WEIGHT[t.type]) })),
     };
     s.set({ planBusy: true });
     const id = ++planId.current;
