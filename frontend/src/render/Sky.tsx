@@ -22,8 +22,10 @@ const frag = /* glsl */ `
     vec3 d = normalize(vDir);
     float h = clamp(d.y, -0.2, 1.0);
     float day = smoothstep(-6.0, 10.0, uElev);
-    vec3 zenithDay = vec3(0.55, 0.40, 0.29);
-    vec3 horizonDay = vec3(0.85, 0.66, 0.46);
+    // Linear values tuned so the tone-mapped sky lands near Mastcam natural-colour skies at Gale
+    // (butterscotch, a little darker overhead), and the horizon matches the terrain's dust haze.
+    vec3 zenithDay = vec3(0.36, 0.24, 0.15);
+    vec3 horizonDay = vec3(0.56, 0.39, 0.25);
     vec3 zenithNight = vec3(0.02, 0.04, 0.09);
     vec3 horizonNight = vec3(0.07, 0.11, 0.2);
     vec3 zen = mix(zenithNight, zenithDay, day);

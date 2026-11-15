@@ -43,7 +43,7 @@ export function Boulders({ bundle }: { bundle: SiteBundle }) {
   }, [bundle]);
 
   const geometry = useMemo(rockGeometry, []);
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.92, metalness: 0, flatShading: true }), []);
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.95, metalness: 0, flatShading: false }), []);
   useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
 
   const mesh = useMemo(() => {
@@ -67,8 +67,9 @@ export function Boulders({ bundle }: { bundle: SiteBundle }) {
       o.scale.set(r * (0.85 + 0.3 * rnd(i, 4)), r * (0.5 + 0.25 * rnd(i, 5)), r * (0.85 + 0.3 * rnd(i, 6)));
       o.updateMatrix();
       m.setMatrixAt(k, o.matrix);
-      // Slight tone variation between rocks.
-      col.setRGB(0.62 + 0.14 * rnd(i, 7), 0.45 + 0.08 * rnd(i, 7), 0.34 + 0.06 * rnd(i, 8));
+      // Grey-brown basaltic tones with a dust-coated variation (Mastcam views of Gale boulders), not bright tan.
+      const dust = rnd(i, 7);
+      col.setRGB(0.30 + 0.16 * dust, 0.24 + 0.10 * dust, 0.20 + 0.06 * dust * rnd(i, 8));
       m.setColorAt(k, col);
       k++;
     }

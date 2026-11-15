@@ -79,6 +79,7 @@ const frag = /* glsl */ `
   uniform float uShowSlope;
   uniform float uShowContours;
   uniform float uShowGrid;
+  uniform float uField;         // 1 in the eye-level views (EVA, visor, rover): natural ground, planning paint off
   uniform float uHasMargin;
   uniform vec3 uFogColor;
   uniform float uFogNear;
@@ -174,7 +175,7 @@ const frag = /* glsl */ `
     if (uHasOrtho > 0.5 && uColourMode > 0.5 && uColourMode < 1.5) {
       // CTX detail already coloured with Viking (sRGB): to linear, scaled to the site's brightness.
       vec3 c = texture2D(uOrtho, vUv).rgb;
-      albedo = pow(c, vec3(2.2)) * 2.3;
+      albedo = pow(c, vec3(2.2)) * 2.3 * vec3(1.0, 1.12, 0.78);   // same Mastcam white balance as below
     } else if (uHasOrtho > 0.5) {
       float g = texture2D(uOrtho, vUv).r;
       // HiRISE has the orbital sun baked in; soften its contrast so our own sun does the shading.
@@ -182,7 +183,9 @@ const frag = /* glsl */ `
       if (uColourMode > 1.5) {
         // Measured colour: Viking orbital colour (about 330 m) carries the hue, HiRISE (25 cm) the detail.
         vec3 v = pow(texture2D(uColourMap, vUv).rgb, vec3(2.2));
-        albedo = v * 2.3 * clamp(g / 0.5, 0.3, 1.9);
+        // White balance: the Viking mosaic's blue sits almost level with green, which renders pink-mauve.
+        // Scale to the channel ratios of Mastcam natural-colour Gale soil and bedrock (about R:G:B 1 : 0.72 : 0.50).
+        albedo = v * 2.3 * vec3(1.0, 1.12, 0.78) * clamp(g / 0.5, 0.3, 1.9);
       } else {
         albedo = marsGrade(g);
       }
@@ -195,7 +198,8 @@ const frag = /* glsl */ `
     albedo *= 1.0 + near * (vnoise(vWorld.xz * 1.7) - 0.5) * 0.26 + near * (vnoise(vWorld.xz * 7.3) - 0.5) * 0.16;
     // Within a few tens of metres: pebbles and fractured-plate texture of the boxwork bedrock (procedural, labelled).
     float pebble = smoothstep(0.72, 0.9, vnoise(vWorld.xz * 3.1)) - smoothstep(0.72, 0.9, vnoise(vWorld.xz * 3.1 + 0.15)) * 0.6;
-    float plates = abs(vnoise(vWorld.xz * 0.9) - 0.5) < 0.03 ? -0.18 : 0.0;
+    // Soft dark seams between bedrock plates (a hard threshold reads as cartoon cracks).
+    float plates = -0.12 * (1.0 - smoothstep(0.0, 0.06, abs(vnoise(vWorld.xz * 0.9) - 0.5)));
     albedo *= 1.0 + close * (pebble * 0.35 + plates + (vnoise(vWorld.xz * 19.0) - 0.5) * 0.18);
 
     // Cavity term from the smoothed surface: hollows darker, crests a touch lighter.
@@ -216,7 +220,7 @@ const frag = /* glsl */ `
     vec3 col = albedo * cavity * (sunCol * lambert * 1.25 + skyCol * hemi * 0.36 * skyBoost + bounce * 0.4);
 
     // Contours every 10 m, index contour every 50 m.
-    if (uShowContours > 0.5) {
+    if (uShowContours > 0.5 && uField < 0.5) {
       // Contours from a smoothed surface (generalised, as on printed maps).
       float ce = vSmooth;
       float f = ce / 10.0;
@@ -231,7 +235,7 @@ const frag = /* glsl */ `
     }
 
     // 500 m grid.
-    if (uShowGrid > 0.5) {
+    if (uShowGrid > 0.5 && uField < 0.5) {
       vec2 g = vWorld.xz / 500.0;
       vec2 gw = max(fwidth(g), vec2(1e-4));
       vec2 gl = 1.0 - smoothstep(vec2(0.0), gw * 1.2, abs(fract(g - 0.5) - 0.5));
@@ -239,7 +243,7 @@ const frag = /* glsl */ `
     }
 
     float slope = texture2D(uSlope, vUv).r * 64.0;
-    if (uShowSlope > 0.5) {
+    if (uShowSlope > 0.5 && uField < 0.5) {
       float steep = smoothstep(uSlopeLimit * 0.5, uSlopeLimit, slope);
       col = mix(col, vec3(0.96, 0.78, 0.45), steep * 0.35);
       if (slope > uSlopeLimit) {
@@ -274,6 +278,10 @@ const frag = /* glsl */ `
       // Inside: cool tint, slightly stronger near the boundary (less margin).
       float nearEdge = 1.0 - smoothstep(0.0, 0.35, m);
       edge *= 1.0 - nogo; glow *= 1.0 - nogo; inside *= 1.0 - nogo;
+      if (uField > 0.5) {
+        // Eye level: natural ground; only a thin, quiet boundary line (the visor ribbon carries the route).
+        col = mix(col, vec3(0.82, 0.91, 1.0), edge * 0.45 * step(-0.95, m) * (1.0 - smoothstep(60.0, 220.0, camDist)));
+      } else {
       col = mix(col, col * 0.92 + home * 0.10, inside * (0.35 + 0.4 * nearEdge));
       // Outside: dim and desaturate so the reachable ground reads first.
       float lum = dot(col, vec3(0.3, 0.59, 0.11));
@@ -288,7 +296,8 @@ const frag = /* glsl */ `
       // Uncertainty band: returnable on the median slope but not on the P90 slope. Amber stripes.
       float band = smoothstep(0.35, 0.65, mt.b) * inside;
       float stripe = step(0.55, fract((vWorld.x + vWorld.z) / 4.0));
-      col = mix(col, vec3(0.89, 0.68, 0.43), band * (0.22 + 0.28 * stripe) * uReveal);
+      col = mix(col, vec3(0.93, 0.62, 0.28), band * (0.12 + 0.18 * stripe) * uReveal);
+      }
     }
 
     // Distance haze.
@@ -355,6 +364,7 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uShowSlope: { value: 0 },
       uShowContours: { value: 1 },
       uShowGrid: { value: 0 },
+      uField: { value: 0 },
       uHasMargin: { value: 0 },
       uFogColor: { value: new THREE.Color("#c9a27c") },
       uFogNear: { value: 3500 },
@@ -395,6 +405,7 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
     u.uShowSlope.value = site && s.layers.slope ? 1 : 0;
     u.uShowContours.value = site && s.layers.contours ? 1 : 0;
     u.uShowGrid.value = site && s.layers.grid ? 1 : 0;
+    u.uField.value = s.view === "eva" || s.view === "hud" || s.view === "rover" ? 1 : 0;
     // Low tier: no ray-marched cast shadows (the costliest shader step).
     if (site) u.uShadows.value = s.quality === "low" ? 0 : 1;
     if (site) {
@@ -403,7 +414,7 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
       u.uReveal.value = 1 - Math.pow(1 - anim.reveal, 3);
     }
     const day = Math.max(0, Math.min(1, (sun.elevationDeg + 4) / 14));
-    (u.uFogColor.value as THREE.Color).setRGB(0.06 + 0.62 * day, 0.09 + 0.40 * day, 0.18 + 0.20 * day);
+    (u.uFogColor.value as THREE.Color).setRGB(0.06 + 0.50 * day, 0.09 + 0.30 * day, 0.18 + 0.07 * day); // = sky horizon by day
   });
 }
 

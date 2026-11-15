@@ -110,6 +110,8 @@ export function Ledger() {
               <li>Dust optical depth follows a seasonal climatology fitted to Curiosity's 880 nm column measurements (sols 33 to 3953; held-out error 0.22; 87% of later sols inside the band). It is seasonal context, not a storm forecast or a spatial map. Gale only.</li>
               <li>Air pressure is REMS measured at the rover, shown only where a reading exists within half an hour; the pressure trend model failed its later-sol test and is not used.</li>
               <li>The thermal model uses one thermal inertia for the whole site and ignores cast shadows; rock and sand differ. A THEMIS inertia map would set it per pixel.</li>
+              <li>Ground colour: Viking orbital colour (about 330 m) carries the hue and HiRISE (25 cm) the detail. The Viking blue channel is rebalanced to the channel ratios of Mastcam natural-colour Gale images; this is a visual match, not a calibrated reflectance. Pebble and bedrock-seam grain within 70 m of the camera is procedural.</li>
+              <li>Live feeds: Curiosity REMS daily weather from the NASA/JPL Mars weather feed (published with a lag of weeks) and NASA DONKI flares, SEP events and Mars-bound CMEs over 7 days, refreshed every 15 minutes in the browser. If a feed cannot be reached the panels say so and fall back to a dated snapshot. DONKI observes from near Earth; Mars' angle from Earth around the Sun is shown with it.</li>
               <li>No radiation shelter layer yet: shelter needs overhang or habitat geometry, not available for this site.</li>
               <li>Terrain is the USGS HiRISE 1 m DEM and 25 cm orthophoto (Sahaj's L0 bundle). No-go uses the 4 m slope; the P90 band uses 16 DEM realisations.</li>
             </ul>
