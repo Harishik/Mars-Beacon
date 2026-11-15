@@ -75,7 +75,9 @@ def donki(db: Database, kind: str, start: date, end: date, fetch: Fetch = http_g
             _recent_fail.pop(key, None)
             return {**base, "events": events, "cached": False, "badge": "LIVE", "fetchedAt": at.isoformat(), "ageS": 0, "sourceUrl": public}
         except Exception as e:  # noqa: BLE001 - every upstream failure falls through to the next source
-            errors.append(f"{url.split('?')[0]}: {type(e).__name__}")
+            # Status code shown so a bad key (401/403), the rate limit (429) and a NASA outage (404/5xx) are told apart.
+            code = getattr(getattr(e, "response", None), "status_code", None)
+            errors.append(f"{url.split('?')[0]}: {type(e).__name__}{f' {code}' if code else ''}")
     _recent_fail[key] = (datetime.now(timezone.utc), errors)
     if cached:
         return {**base, "events": cached[0], "cached": True, "badge": "STALE", "fetchedAt": cached[2].isoformat(),
