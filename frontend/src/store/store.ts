@@ -4,7 +4,7 @@ import type { SiteBundle } from "../data/bundle";
 import type { Plan } from "../engine/planner";
 import { setVertExag } from "../render/Terrain";
 
-export type View = "console" | "tablet" | "hud" | "linked";
+export type View = "console" | "tablet" | "hud" | "rover" | "linked";
 export type Phase = "explore" | "plan" | "rehearse" | "execute" | "debrief";
 export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse" | "patches" | "boulders";
 

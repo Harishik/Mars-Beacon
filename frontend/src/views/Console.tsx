@@ -8,6 +8,7 @@ import { Wordmark } from "./Wordmark";
 import { Ledger } from "../panels/Ledger";
 import { MapLayers } from "../panels/MapLayers";
 import { Visor } from "../panels/Visor";
+import { RoverCockpit } from "../panels/RoverCockpit";
 import { PhaseBar, ExploreBrief, DebriefPanel, CueCard, ExecuteNext } from "../panels/Phases";
 import { VERT_EXAG } from "../render/Terrain";
 
@@ -30,11 +31,12 @@ export function Console() {
       </header>
       {view !== "hud" && <InstrumentStrip />}
       {(view === "console" || view === "tablet") && (phase === "explore" || phase === "plan") && <MapLayers />}
-      {view !== "hud" && <LayerDrawer />}
+      {view !== "hud" && view !== "rover" && <LayerDrawer />}
       {view === "console" && phase === "explore" && <ExploreBrief />}
       {(view === "console" || view === "tablet") && phase !== "explore" && <CrewPanel />}
       {view === "linked" && <LinkedFrames />}
       {view === "hud" && <Visor />}
+      {view === "rover" && <RoverCockpit />}
       <MissionTimeline />
       {view === "console" && (phase === "plan" || phase === "rehearse") && <PlanCharts />}
       {view === "console" && phase === "debrief" && <DebriefPanel />}

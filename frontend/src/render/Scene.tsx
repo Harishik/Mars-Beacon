@@ -86,6 +86,16 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       cam.position.copy(eye);
       c?.target.copy(eye.clone().add(ahead.sub(eye).normalize().multiplyScalar(0.5)));
       cam.fov = 70;
+    } else if (mode === "rover") {
+      // Support rover cab, 3 m up, looking at the crew (or the first stop before egress).
+      const rv = m.havens.find((h) => h.type === "rover");
+      const rx = rv?.x ?? hab.x + 60, ry = rv?.y ?? hab.y;
+      const tx = livePos?.x ?? goal.x, ty = livePos?.y ?? goal.y;
+      const eye = toScene(bundle, rx, ry, 3.2);
+      cam.position.copy(eye);
+      const look = toScene(bundle, tx, ty, 1.5);
+      c?.target.copy(eye.clone().add(look.sub(eye).normalize().multiplyScalar(0.5)));
+      cam.fov = 58;
     } else if (mode === "hero") {
       cam.position.set(habP.x - 900, habP.y + 520, habP.z + 1250);
       c?.target.set(habP.x + 350, habP.y - 40, habP.z - 250);
@@ -98,10 +108,10 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
     }
     cam.layers.enable(1); // layer 1: selection markers, hidden from the visor camera
     cam.layers.enable(2); // layer 2: EV1's own suit, hidden from EV1's visor
-    cam.near = mode === "hud" ? 0.1 : 1;
+    cam.near = mode === "hud" || mode === "rover" ? 0.1 : 1;
     cam.updateProjectionMatrix();
     c?.update();
-  }, [mode, camera, habP, goalP, focus, bundle, hab.x, hab.y, mode === "hud" ? livePos : null]);
+  }, [mode, camera, habP, goalP, focus, bundle, hab.x, hab.y, mode === "hud" ? livePos : null, mode === "rover" ? (livePos ? Math.round(livePos.x / 10) * 1000 + Math.round(livePos.y / 10) : 0) : 0]);
 
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
@@ -115,12 +125,12 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       enabled={mode !== "hero"}
       enableRotate={mode !== "tablet"}
       enablePan={mode === "console" || mode === "tablet" || mode === "linked"}
-      enableZoom={mode !== "hud"}
+      enableZoom={mode !== "hud" && mode !== "rover"}
       screenSpacePanning={mode === "tablet"}
-      maxPolarAngle={mode === "hud" ? Math.PI * 0.62 : Math.PI * 0.47}
-      minDistance={mode === "hud" ? 0.1 : 60}
+      maxPolarAngle={mode === "hud" || mode === "rover" ? Math.PI * 0.62 : Math.PI * 0.47}
+      minDistance={mode === "hud" || mode === "rover" ? 0.1 : 60}
       maxDistance={7000}
-      rotateSpeed={mode === "hud" ? -0.35 : 0.6}
+      rotateSpeed={mode === "hud" || mode === "rover" ? -0.35 : 0.6}
     />
   );
 }
@@ -149,7 +159,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   }, [bundle, livePos]);
 
   const onClick = (e: { point: THREE.Vector3; delta: number }) => {
-    if (mode === "hero" || mode === "hud" || e.delta > 6) return; // ignore drags
+    if (mode === "hero" || mode === "hud" || mode === "rover" || e.delta > 6) return; // ignore drags
     useStore.getState().set({ selected: { x: e.point.x, y: -e.point.z } });
   };
   const onMove = (e: { point: THREE.Vector3 }) => {
@@ -169,7 +179,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
         <Terrain bundle={bundle} segments={quality === "low" ? 256 : mode === "hero" ? 320 : 448} />
       </group>
       {showHavens && <Habitat position={habP} />}
-      {showHavens && rover && <Rover bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
+      {showHavens && rover && mode !== "rover" && <Rover bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
       {mode !== "hud" && <Astronaut position={(crewAt ?? crewPos)[0]} color="#6fd6e6" layer={2} />}
       <Astronaut position={(crewAt ?? crewPos)[1]} color="#f4c552" phase={1.4} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
