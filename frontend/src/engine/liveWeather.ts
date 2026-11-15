@@ -1,8 +1,8 @@
 // Live feeds, fetched in the browser with no backend:
 //  - Curiosity REMS daily weather (NASA/JPL Mars weather feed, Centro de Astrobiologia instrument team).
 //  - NASA DONKI space weather: solar flares, solar energetic particle (SEP) events and CMEs whose
-//    WSA-ENLIL model run lists a Mars impact. Tried keyless at CCMC first, then api.nasa.gov with
-//    VITE_NASA_API_KEY (or DEMO_KEY, which is rate limited), then a bundled snapshot.
+//    WSA-ENLIL model run lists a Mars impact. Through the team backend first (server-side cache), then
+//    api.nasa.gov with VITE_NASA_API_KEY (or DEMO_KEY, which is rate limited), then a bundled snapshot.
 // Every value carries its source, the time it was fetched and whether it is live or a snapshot.
 import { useEffect, useState } from "react";
 import { earthMarsSeparationDeg } from "./lighttime";
@@ -26,7 +26,6 @@ export interface DonkiFeed {
 }
 
 const REMS_URL = "https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json";
-const CCMC = "https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get";
 const APOD = "https://api.nasa.gov/DONKI";
 const WINDOW_DAYS = 7;
 const REFRESH_MS = 15 * 60 * 1000;
@@ -129,7 +128,7 @@ export async function fetchDonki(): Promise<DonkiFeed> {
       const r = await Promise.all((["FLR", "SEP", "CME"] as const).map((k) => backendSpaceWeather(k, d0, d1)));
       return r.every(Boolean) ? (r.map((x) => x!.events) as Raw) : null;
     }],
-    ["NASA CCMC DONKI", async () => (await Promise.all(["FLR", "SEP", "CME"].map((t) => getJson(`${CCMC}/${t}?${q}`)))) as Raw],
+    // (CCMC's keyless DONKI service refuses browser requests (no CORS header), so only the backend uses it.)
     [`api.nasa.gov DONKI${key === "DEMO_KEY" ? " (demo key)" : ""}`, async () => (await Promise.all(["FLR", "SEP", "CME"].map((t) => getJson(`${APOD}/${t}?${q}&api_key=${key}`)))) as Raw],
   ];
   for (const [name, get] of sources) {
