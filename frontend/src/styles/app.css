@@ -300,6 +300,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
   .vs-long { display: none; }
   .vs-short { display: inline; }
   .topbar .wm-text { display: none; }
+  .topbar .wordmark svg { width: 32px; height: 32px; }
   .time-ticks { display: none; }
   .time-track { padding-bottom: 0; }
   .crew { max-height: 36vh; }
