@@ -2,6 +2,7 @@ import { useClimatologyDust } from "../engine/atmosphere";
 import { useEffect, useState } from "react";
 import { useStore } from "../store/store";
 import { loadSite, siteFromUrl } from "../data/bundle";
+import { shareIdFromUrl, loadMission, applyMission } from "../data/api";
 import { useEngine } from "../engine/useEngine";
 import { useMission } from "../engine/useMission";
 import { anim } from "../render/Terrain";
@@ -27,7 +28,24 @@ export function App() {
   useClimatologyDust();
 
   useEffect(() => {
-    loadSite(siteFromUrl()).then((b) => useStore.getState().setBundle(b)).catch((e: Error) => useStore.getState().setError(e.message));
+    loadSite(siteFromUrl()).then(async (b) => {
+      const st = useStore.getState();
+      st.setBundle(b);
+      // A share link (#/app?plan=ID) reopens a mission saved in the team database.
+      const id = shareIdFromUrl();
+      if (!id) return;
+      st.set({ sharedStatus: { text: "Opening the shared mission…" } });
+      try {
+        const rec = await loadMission(id);
+        if (rec.siteId !== b.manifest.siteId) throw new Error(`it was saved for ${rec.siteId}; open it with ?site=${rec.siteId}`);
+        st.set(applyMission(useStore.getState().bundle ?? b, rec));
+        const when = rec.createdAt ? new Date(rec.createdAt).toUTCString().slice(5, 22) + " UTC" : "";
+        const stale = rec.siteHash !== b.manifest.siteHash ? " The site data has changed since it was saved, so routes are recomputed on the current data." : "";
+        st.set({ sharedStatus: { text: `Shared ${rec.kind} "${rec.planName}" loaded${when ? `, saved ${when}` : ""}.${stale}` } });
+      } catch (e) {
+        st.set({ sharedStatus: { text: `Could not open the shared mission: ${(e as Error).message}`, error: true } });
+      }
+    }).catch((e: Error) => useStore.getState().setError(e.message));
   }, []);
 
   useEffect(() => {

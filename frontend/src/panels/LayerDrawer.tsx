@@ -1,3 +1,4 @@
+import { BackendStatus } from "./Share";
 import { useStore, type LayerId } from "../store/store";
 import type { ManifestLayer, Tag as TagT } from "../data/bundle";
 import { Tag } from "./Tag";
@@ -112,6 +113,10 @@ export function LayerDrawer() {
               <span className="layer-source">{p.kind}, from {p.who}</span>
             </div>
           ))}
+        </section>
+        <section className="layer-group">
+          <h3>Team backend</h3>
+          <BackendStatus />
         </section>
       </div>)}
     </aside>

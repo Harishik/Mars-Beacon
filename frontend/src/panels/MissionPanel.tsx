@@ -1,3 +1,4 @@
+import { ShareButton } from "./Share";
 import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
@@ -159,6 +160,7 @@ export function MissionPanel() {
       </section>
       <section>
         <h3 className="list-h">EVA plan</h3>
+        <ShareButton kind="plan" />
         <PlanCards />
       </section>
       <SelectedCard />

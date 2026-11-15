@@ -6,6 +6,7 @@
 // Every value carries its source, the time it was fetched and whether it is live or a snapshot.
 import { useEffect, useState } from "react";
 import { earthMarsSeparationDeg } from "./lighttime";
+import { backendSpaceWeather } from "../data/api";
 
 export type FeedState = "live" | "snapshot" | "unavailable";
 
@@ -107,17 +108,25 @@ function buildDonki(fl: RawFlare[], sp: RawSep[], cm: RawCme[], state: FeedState
 
 export async function fetchDonki(): Promise<DonkiFeed> {
   const now = Date.now();
-  const q = `startDate=${day(now - WINDOW_DAYS * 86400000)}&endDate=${day(now)}`;
+  const d0 = day(now - WINDOW_DAYS * 86400000), d1 = day(now);
+  const q = `startDate=${d0}&endDate=${d1}`;
   const key = (import.meta.env.VITE_NASA_API_KEY as string | undefined) || "DEMO_KEY";
   const errs: string[] = [];
-  const tries: [string, (t: string) => string][] = [
-    ["NASA CCMC DONKI", (t) => `${CCMC}/${t}?${q}`],
-    [`api.nasa.gov DONKI${key === "DEMO_KEY" ? " (demo key)" : ""}`, (t) => `${APOD}/${t}?${q}&api_key=${key}`],
+  type Raw = [RawFlare[], RawSep[], RawCme[]];
+  const sources: [string, () => Promise<Raw | null>][] = [
+    ["NASA CCMC DONKI", async () => (await Promise.all(["FLR", "SEP", "CME"].map((t) => getJson(`${CCMC}/${t}?${q}`)))) as Raw],
+    // Team backend's server-side DONKI cache: no browser rate limit. Skipped while it only holds seed data.
+    ["Team backend DONKI cache", async () => {
+      const r = await Promise.all((["FLR", "SEP", "CME"] as const).map((k) => backendSpaceWeather(k, d0, d1)));
+      return r.every(Boolean) ? (r.map((x) => x!.events) as Raw) : null;
+    }],
+    [`api.nasa.gov DONKI${key === "DEMO_KEY" ? " (demo key)" : ""}`, async () => (await Promise.all(["FLR", "SEP", "CME"].map((t) => getJson(`${APOD}/${t}?${q}&api_key=${key}`)))) as Raw],
   ];
-  for (const [name, url] of tries) {
+  for (const [name, get] of sources) {
     try {
-      const [fl, sp, cm] = await Promise.all([getJson(url("FLR")), getJson(url("SEP")), getJson(url("CME"))]);
-      return buildDonki(fl, sp, cm, "live", name, now);
+      const r = await get();
+      if (r) return buildDonki(r[0], r[1], r[2], "live", name, now);
+      errs.push(`${name}: seed data only`);
     } catch (e) { errs.push(`${name}: ${(e as Error).message}`); }
   }
   try {

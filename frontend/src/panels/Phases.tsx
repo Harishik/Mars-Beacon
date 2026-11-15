@@ -8,6 +8,7 @@ import { directIrradiance, tauAtElevation, evaDoseMsv, RAD_GY_PER_DAY, RAD_QUALI
 import { overlayValues, currentThermalTable } from "../engine/overlays";
 import { flatCurve, STEPS_PER_SOL } from "../engine/thermal";
 import { Tag } from "./Tag";
+import { ShareButton } from "./Share";
 import { useLiveWeather } from "../engine/liveWeather";
 import { siteText } from "../data/bundle";
 import { RoverViews } from "./RoverViews";
@@ -135,6 +136,7 @@ export function DebriefPanel() {
         <h2>Debrief</h2>
         <span>{walked >= plan.totalS ? "EVA complete" : `Rehearsal stopped at ${hm(walked)}`}</span>
         <button className="btn btn-quiet" onClick={() => window.print()}>Print EVA cue card</button>
+        <ShareButton kind="debrief" />
       </header>
       <div className="db-grid">
         <table className="db-table">

@@ -24,7 +24,7 @@ export interface EnvelopeState {
   version: number;
 }
 
-interface State {
+export interface State {
   bundle: SiteBundle | null;
   loadError: string | null;
   view: View;
@@ -61,6 +61,7 @@ interface State {
   evaStartLmst: number;             // local solar time at egress
   dwellMin: number;                 // minutes at each stop
   crewPos: { x: number; y: number; heading: number } | null;
+  sharedStatus: { text: string; error?: boolean } | null; // loading a mission from a share link
   setBundle: (b: SiteBundle) => void;
   setError: (e: string) => void;
   set: (p: Partial<State>) => void;
@@ -123,6 +124,7 @@ export const useStore = create<State>((set) => ({
   evaStartLmst: 9.0,
   dwellMin: 20,
   crewPos: null,
+  sharedStatus: null,
   setBundle: (b) => {
     setVertExag(b.manifest.display?.verticalExaggeration ?? 1.6);
     // Start with the first ridge selected so the turn-back card and route are visible at once.

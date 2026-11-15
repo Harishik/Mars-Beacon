@@ -13,6 +13,7 @@ import { FieldTablet } from "../panels/FieldTablet";
 import { MissionControl } from "../panels/MissionControl";
 import { PhaseBar, ExploreBrief, DebriefPanel, CueCard, ExecuteNext } from "../panels/Phases";
 import { VERT_EXAG } from "../render/Terrain";
+import { SharedBanner } from "../panels/Share";
 
 export function Console() {
   const bundle = useStore((s) => s.bundle);
@@ -24,6 +25,7 @@ export function Console() {
   return (
     <div className={`console view-${view} phase-${phase}`}>
       <Scene bundle={bundle} mode={view} />
+      <SharedBanner />
       <header className="topbar">
         <a href="#/" className="brand" aria-label="Mars BEACON home"><Wordmark /></a>
         {synthetic && <span className="badge-warn" title={bundle.manifest.notice}>Placeholder terrain</span>}

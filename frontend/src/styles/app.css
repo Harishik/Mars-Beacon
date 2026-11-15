@@ -793,3 +793,12 @@ body > .sheet-backdrop { z-index: 40; }
 .mc-live.sw-watch { border-left-color: #e8b04a; }
 .mc-live.sw-alert { border-left-color: #ff6b5a; }
 .mc-feed { float: right; font-size: 10px; letter-spacing: .08em; opacity: .7; font-weight: 500; }
+
+/* Save and share */
+.share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; }
+.share .btn { padding: 6px 12px; font-size: 12px; }
+.share-link { font-size: 11px; color: #8fd3ff; word-break: break-all; }
+.share-err { font-size: 11px; color: #e8b04a; }
+.shared-banner { position: absolute; top: 96px; left: 50%; transform: translateX(-50%); z-index: 40; background: rgba(14, 22, 36, 0.92); border: 1px solid rgba(143, 211, 255, 0.4); color: #e8eef6; padding: 8px 14px; border-radius: 10px; font-size: 13px; max-width: min(720px, 90vw); display: flex; gap: 12px; align-items: center; }
+.shared-banner.err { border-color: #e8b04a; }
+.shared-banner button { background: none; border: 0; color: inherit; font-size: 16px; cursor: pointer; }
