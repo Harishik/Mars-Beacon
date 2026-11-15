@@ -29,3 +29,15 @@ export function earthMarsLightTime(utcMs: number) {
   const d = Math.hypot(m[0] - e[0], m[1] - e[1], m[2] - e[2]);
   return { distanceAU: d, oneWayS: (d * AU_KM) / C_KMS };
 }
+
+/**
+ * Heliocentric longitude separation (deg, 0 to 180) between Earth and Mars. Solar events in DONKI are
+ * seen from near Earth; when Mars sits far around the Sun, an Earth-facing event says little about Mars.
+ */
+export function earthMarsSeparationDeg(utcMs: number): number {
+  const T = (utcMs / 86400000 + 2440587.5 - 2451545.0) / 36525;
+  const e = position(EARTH, T), m = position(MARS, T);
+  let d = Math.abs(Math.atan2(m[1], m[0]) - Math.atan2(e[1], e[0])) / D2R;
+  if (d > 180) d = 360 - d;
+  return d;
+}

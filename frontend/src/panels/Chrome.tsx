@@ -1,4 +1,5 @@
 // Instrument strip, time bar, view switch, HUD overlay and tablet cards.
+import { useLiveWeather, ageText } from "../engine/liveWeather";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { reportAt } from "../engine/query";
@@ -54,7 +55,7 @@ export function InstrumentStrip() {
       )}
       <Weather />
       <span title="Curiosity RAD surface average, Hassler et al., Science 2014"><i>Radiation</i> 0.21 mGy/day <Tag t="HISTORICAL" /></span>
-      <span title="Live DONKI space weather arrives with the backend"><i>Space weather</i> feed not connected</span>
+      <SpaceWeather />
     </div>
   );
 }
@@ -225,6 +226,25 @@ export function LinkedFrames() {
       </div>
       <p className="lf-note">One mission state drives all three displays: the same plan, crew position, consumables and Return Envelope.</p>
     </div>
+  );
+}
+
+/** Latest Curiosity REMS sol and NASA DONKI space weather, fetched live in the browser. */
+function SpaceWeather() {
+  const { rems, donki } = useLiveWeather();
+  const r = rems?.latest;
+  return (
+    <>
+      {r && (
+        <span title={`${rems!.source}, sol ${r.sol} (${r.date}), ${rems!.ageDays !== null ? Math.round(rems!.ageDays) + " days old" : ""}. Air ${r.minC} to ${r.maxC} °C, ground ${r.groundMinC} to ${r.groundMaxC} °C, UV ${r.uv}. Fetched ${ageText(rems!.fetchedAt)}.`}>
+          <i>Curiosity sol {r.sol}</i> {r.minC}/{r.maxC} °C {r.pressurePa ?? "–"} Pa <Tag t={rems!.state === "live" ? "OBSERVED" : "HISTORICAL"} />
+        </span>
+      )}
+      <span className={`sw sw-${donki?.level ?? "na"}`} title={donki ? `${donki.source}, ${donki.state}, fetched ${ageText(donki.fetchedAt)}. ${donki.summary}. Mars is ${Math.round(donki.separationDeg)}° from Earth around the Sun.${donki.note ? " " + donki.note : ""}` : "Fetching NASA DONKI"}>
+        <i>Space weather</i> {!donki ? "…" : donki.state === "unavailable" ? "offline" : donki.level === "quiet" ? "quiet" : donki.level.toUpperCase()}
+        {donki && donki.state !== "unavailable" && <Tag t={donki.state === "live" ? "OBSERVED" : "HISTORICAL"} />}
+      </span>
+    </>
   );
 }
 

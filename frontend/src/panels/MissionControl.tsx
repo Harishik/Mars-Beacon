@@ -9,6 +9,7 @@ import { sunMars24, formatLmst } from "../engine/sun";
 import { directIrradiance, evaDoseMsv, tauAtElevation, RAD_GY_PER_DAY, RAD_QUALITY } from "../engine/environment";
 import { earthMarsLightTime } from "../engine/lighttime";
 import { reportAt } from "../engine/query";
+import { useLiveWeather, ageText } from "../engine/liveWeather";
 import { useAtmosphere, seasonalTau, pressureAt } from "../engine/atmosphere";
 import { useVisor } from "../engine/useVisor";
 import { temperatureAt } from "../engine/overlays";
@@ -38,6 +39,8 @@ export function MissionControl() {
     plans: st.plans, activePlan: st.activePlan, reserveM: st.reserveM,
   })));
   const atm = useAtmosphere();
+  const live = useLiveWeather();
+  const dk = live.donki, rm = live.rems;
   const v = useVisor();
   const b = s.bundle;
   const plan = activePlanOf({ plans: s.plans, activePlan: s.activePlan });
@@ -65,7 +68,7 @@ export function MissionControl() {
   const checks: Check[] = [
     { label: "Every stop returnable with reserve", status: !plan ? "nogo" : plan.minMargin > 0.3 ? "go" : plan.minMargin > 0 ? "watch" : "nogo", value: plan ? `min margin ${Math.round(plan.minMargin * 100)}%` : "no plan", why: `Return Envelope with ${Math.round(s.reserveM * 100)}% reserve on time and both suits' O₂`, tag: "DERIVED" },
     { label: "Dust", status: tauSite >= TAU_HOLD ? "nogo" : tauSite >= 1.2 ? "watch" : "go", value: `τ ${tauSite.toFixed(2)}`, why: `Hold EVAs at τ ≥ ${TAU_HOLD} (assumption)`, tag: s.storm ? "SCENARIO" : dust ? "DERIVED" : "ASSUMPTION" },
-    { label: "Radiation, solar particle event", status: s.storm ? (shelterMin <= SPE_LEAD_MIN ? "watch" : "nogo") : "go", value: s.storm ? `shelter ${Number.isFinite(shelterMin) ? Math.round(shelterMin) + " min" : "out of reach"}` : "no event", why: `During an event the crew must reach the habitat${s.roverActive ? " or R1" : ""} within the ${SPE_LEAD_MIN} min warning lead (assumption)`, tag: s.storm ? "SCENARIO" : "HISTORICAL" },
+    { label: "Radiation, solar particle event", status: s.storm || dk?.level === "alert" ? (shelterMin <= SPE_LEAD_MIN ? "watch" : "nogo") : dk?.level === "watch" ? "watch" : "go", value: s.storm || dk?.level === "alert" ? `shelter ${Number.isFinite(shelterMin) ? Math.round(shelterMin) + " min" : "out of reach"}` : dk && dk.state !== "unavailable" ? (dk.level === "watch" ? "DONKI watch" : "DONKI quiet") : "no live feed", why: `During an event the crew must reach the habitat${s.roverActive ? " or R1" : ""} within the ${SPE_LEAD_MIN} min warning lead (assumption). Live: ${dk?.summary ?? "fetching DONKI"}`, tag: s.storm ? "SCENARIO" : dk?.state === "live" ? "OBSERVED" : "HISTORICAL" },
     { label: "Daylight at egress and return", status: sun.elevationDeg > 10 ? "go" : sun.elevationDeg > 0 ? "watch" : "nogo", value: `sun ${sun.elevationDeg.toFixed(0)}°`, why: "Sun above 10° for footing and power", tag: "PREDICTED" },
     { label: "Steepest ground on the route", status: steepOnRoute > 20 ? "nogo" : steepOnRoute > 15 ? "watch" : "go", value: `${steepOnRoute.toFixed(0)}°`, why: "4 m slope on the planned path cells; no-go above the slope limit", tag: "DERIVED" },
     { label: "Habitat power from the array", status: powerKw > 0.5 ? "go" : powerKw > 0.1 ? "watch" : "nogo", value: `${powerKw.toFixed(2)} kW now`, why: `${ARRAY_M2} m² at ${ARRAY_EFF * 100}% (assumption), direct sunlight through the dust`, tag: "DERIVED" },
@@ -137,7 +140,18 @@ export function MissionControl() {
             <div><dt>This EVA, planned</dt><dd>{dosePlan.toFixed(2)} mSv = {((dosePlan / CAREER_LIMIT_MSV) * 100).toFixed(3)}% of the 600 mSv career limit</dd></div>
             <div><dt>Shelter</dt><dd>habitat{s.roverActive ? " or R1 (shielding not quantified)" : ""}, {Number.isFinite(shelterMin) ? `${Math.round(shelterMin)} min walk` : "out of reach"}</dd></div>
           </dl>
-          <p>Curiosity RAD surface average (Hassler et al. 2014), quality factor 3.05; limit from NASA-STD-3001. Live space weather (DONKI) arrives with the backend.</p>
+          <p>Curiosity RAD surface average (Hassler et al. 2014), quality factor 3.05; limit from NASA-STD-3001.</p>
+        </div>
+        <div className={`mc-box mc-live sw-${dk?.level ?? "na"}`}>
+          <h3>Space weather, NASA DONKI <span className="mc-feed">{dk ? `${dk.state === "live" ? "LIVE" : dk.state === "snapshot" ? "SNAPSHOT" : "OFFLINE"} · ${ageText(dk.fetchedAt)}` : "fetching"}</span></h3>
+          <div className="mc-big"><b>{!dk ? "…" : dk.state === "unavailable" ? "No feed" : dk.level === "quiet" ? "Quiet" : dk.level === "watch" ? "Watch" : "Alert"}</b><span>{dk?.state === "unavailable" ? "Live fetch failed; the radiation check falls back to the RAD average and the storm scenario" : dk?.summary}</span></div>
+          <dl className="mc-dl">
+            <div><dt>Flares, last {dk?.windowDays ?? 7} days</dt><dd>{dk ? (dk.flares.length ? `${dk.flares.length}, largest ${[...dk.flares].sort((a, b) => b.cls.localeCompare(a.cls))[0].cls}` : "none") : "–"}</dd></div>
+            <div><dt>SEP events</dt><dd>{dk ? (dk.seps.length ? dk.seps.slice(0, 2).map((e) => e.time.slice(5, 16).replace("T", " ")).join(", ") + " UTC" : "none") : "–"}</dd></div>
+            <div><dt>CMEs modelled to reach Mars</dt><dd>{dk ? (dk.marsCmes.length ? dk.marsCmes.map((c) => `${c.arrival.slice(5, 16).replace("T", " ")} UTC`).join(", ") : "none") : "–"}</dd></div>
+            <div><dt>Mars from Earth, around the Sun</dt><dd>{dk ? `${Math.round(dk.separationDeg)}°${dk.separationDeg > 60 ? ", Earth-side events are a weak guide" : ""}` : "–"}</dd></div>
+          </dl>
+          <p>{dk && dk.state !== "unavailable" ? `Source: ${dk.source}. ` : ""}{dk?.note ? `Fetch log: ${dk.note}. ` : ""}Flares and SEPs are observed from near Earth; Mars-bound CMEs come from the WSA-ENLIL model runs in DONKI.</p>
         </div>
         <div className="mc-box">
           <h3>Atmosphere and climate</h3>
@@ -146,7 +160,9 @@ export function MissionControl() {
             <div><dt>Air pressure</dt><dd>{pres ? `${Math.round(pres.pa)} Pa, REMS sol ${refSol}` : "no REMS reading at this time"}</dd></div>
             <div><dt>Ground at the crew</dt><dd>{ground !== null ? `${ground} °C (model)` : "–"}</dd></div>
             <div><dt>Sunlight</dt><dd>{Math.round(irr)} W/m² direct, sun {sun.elevationDeg.toFixed(0)}°</dd></div>
+            <div><dt>Latest Curiosity sol (REMS)</dt><dd>{rm?.latest ? `sol ${rm.latest.sol}, ${rm.latest.date}: air ${rm.latest.minC} to ${rm.latest.maxC} °C, ground ${rm.latest.groundMinC} to ${rm.latest.groundMaxC} °C, ${rm.latest.pressurePa} Pa, UV ${rm.latest.uv.toLowerCase()}` : rm ? "feed unreachable" : "fetching"}</dd></div>
           </dl>
+          {rm?.latest && <p>{rm.state === "live" ? "Live" : "Snapshot of the"} NASA/JPL Mars weather feed{rm.ageDays !== null ? `; the newest published sol is ${Math.round(rm.ageDays)} days old (the instrument team publishes with a lag)` : ""}. Measured at Gale by Curiosity.</p>}
         </div>
         <div className="mc-box">
           <h3>Event log</h3>

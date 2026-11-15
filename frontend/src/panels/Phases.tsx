@@ -8,6 +8,7 @@ import { directIrradiance, tauAtElevation, evaDoseMsv, RAD_GY_PER_DAY, RAD_QUALI
 import { overlayValues, currentThermalTable } from "../engine/overlays";
 import { flatCurve, STEPS_PER_SOL } from "../engine/thermal";
 import { Tag } from "./Tag";
+import { useLiveWeather } from "../engine/liveWeather";
 import { siteText } from "../data/bundle";
 import { RoverViews } from "./RoverViews";
 import { useAtmosphere, seasonalTau, pressureAt } from "../engine/atmosphere";
@@ -64,6 +65,7 @@ export function ExploreBrief() {
   const o = b?.manifest.crs.origin;
   const sun = sunMars24(s.lsDeg, s.lmstHours, o?.lat ?? -4.8, o?.lon ?? 137.38);
   const tauSite = tauAtElevation(s.storm ? Math.max(s.tau, 3) : s.tau, -3.6);
+  const live = useLiveWeather();
   const irr = directIrradiance(s.lsDeg, sun.elevationDeg, tauSite);
   const temps = useMemo(() => {
     if (!b) return null;
@@ -100,7 +102,8 @@ export function ExploreBrief() {
           {b?.manifest.siteId === "gale-boxwork" && <div><dt>Air pressure{refSol ? `, REMS on sol ${refSol} at ${formatLmst(sun.ltstH)} LTST` : ""}</dt><dd>{pres ? `${Math.round(pres.pa)} Pa (${pres.n} samples)` : "No REMS reading at this time"}</dd><Tag t="HISTORICAL" /></div>}
           {temps && <div><dt>Ground temperature</dt><dd>{Math.round(temps.now)} °C now, {Math.round(temps.min)} to {Math.round(temps.max)} today</dd><Tag t="DERIVED" /></div>}
           <div><dt>Radiation</dt><dd>{doseRate.toFixed(2)} mSv/day{s.storm ? " (event)" : ""}</dd><Tag t={s.storm ? "SCENARIO" : "HISTORICAL"} /></div>
-          <div><dt>Space weather</dt><dd>Feed not connected</dd></div>
+          <div><dt>Space weather, NASA DONKI</dt><dd>{live.donki ? `${live.donki.level === "quiet" ? "Quiet" : live.donki.level.toUpperCase()}: ${live.donki.summary}` : "fetching"}</dd>{live.donki && live.donki.state !== "unavailable" && <Tag t={live.donki.state === "live" ? "OBSERVED" : "HISTORICAL"} />}</div>
+          {live.rems?.latest && <div><dt>Latest Curiosity weather, sol {live.rems.latest.sol}</dt><dd>air {live.rems.latest.minC} to {live.rems.latest.maxC} °C, {live.rems.latest.pressurePa} Pa, {live.rems.latest.date}</dd><Tag t={live.rems.state === "live" ? "OBSERVED" : "HISTORICAL"} /></div>}
         </dl>
         <h3 className="list-h">Data layered here</h3>
         <ul className="brief-kinds">
