@@ -1,0 +1,36 @@
+{
+ "origin": {
+  "lat": -4.8031,
+  "lon": 137.384
+ },
+ "frame": "site frame: x east, y north, true metres; row 0 = north",
+ "mola": {
+  "path": "regional/mola_160km.f32",
+  "cols": 400,
+  "rows": 400,
+  "spacingM": 400.0,
+  "extentM": 160000.0,
+  "source": "MGS MOLA 128/64 ppd merged global DEM (NASA), Trek ArcGIS image service mola128_mola64_merge_90Nto90S_SimpleC_clon0",
+  "minM": -4600.064453125,
+  "maxM": 753.8224487304688,
+  "centreM": -3634.576171875,
+  "siteDemMeanM": -3617.981689453125,
+  "offsetToSiteM": 16.594482421875
+ },
+ "ctx": {
+  "path": "regional/ctx_40km.jpg",
+  "size": 2048,
+  "extentM": 40000.0,
+  "source": "MRO CTX Gale Crater mosaic Gale_CTX_BlockAdj_dd (NASA/JPL/MSSS), coloured by ratio with Viking MDIM 2.1 colour (NASA/USGS), via Mars Trek",
+  "note": "Colour is the Viking orbital colour (about 230 m), detail is CTX (6 m resampled to 20 m). Display only."
+ },
+ "siteColour": {
+  "path": "regional/site_colour.png",
+  "meanRGB": [
+   0.36784651690466463,
+   0.28657281448023136,
+   0.28405040456395825
+  ],
+  "source": "Viking MDIM 2.1 colour mosaic (NASA/USGS) via Mars Trek, about 330 m per pixel at the level used"
+ }
+}

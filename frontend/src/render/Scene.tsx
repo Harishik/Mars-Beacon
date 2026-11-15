@@ -205,7 +205,7 @@ export function Scene({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       className="scene"
       dpr={low ? 1 : [1, 2]}
       gl={{ antialias: !low, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: low ? "default" : "high-performance" }}
-      camera={{ fov: 45, near: 1, far: 40000, position: [0, 1500, 2500] }}
+      camera={{ fov: 45, near: 1, far: 170000, position: [0, 1500, 2500] }}
       onCreated={({ gl }) => gl.setClearColor("#0a1322")}
     >
       <Suspense fallback={null}>

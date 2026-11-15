@@ -69,6 +69,8 @@ const frag = /* glsl */ `
   uniform float uShadows;
   uniform float uBeam;        // fraction of sunlight surviving the dust column
   uniform float uTau;
+  uniform sampler2D uColourMap; // Viking orbital colour (site tint) when uColourMode = 2
+  uniform float uColourMode;    // 0: grade the greyscale ortho, 1: ortho is already colour (CTX + Viking), 2: tint greyscale with uColourMap
   uniform sampler2D uOverlay;  // 0..254 data value, 255 = no data
   uniform float uOverlayMode;  // -1 none, 0 thermal, 1 solar, 2 science, 3 hazard
 
@@ -145,11 +147,21 @@ const frag = /* glsl */ `
     float camDist = length(vWorld - cameraPosition);
 
     vec3 albedo;
-    if (uHasOrtho > 0.5) {
+    if (uHasOrtho > 0.5 && uColourMode > 0.5 && uColourMode < 1.5) {
+      // CTX detail already coloured with Viking (sRGB): to linear, scaled to the site's brightness.
+      vec3 c = texture2D(uOrtho, vUv).rgb;
+      albedo = pow(c, vec3(2.2)) * 2.3;
+    } else if (uHasOrtho > 0.5) {
       float g = texture2D(uOrtho, vUv).r;
       // HiRISE has the orbital sun baked in; soften its contrast so our own sun does the shading.
       g = clamp(0.5 + (g - 0.5) * 0.9, 0.0, 1.0);
-      albedo = marsGrade(g);
+      if (uColourMode > 1.5) {
+        // Measured colour: Viking orbital colour (about 330 m) carries the hue, HiRISE (25 cm) the detail.
+        vec3 v = pow(texture2D(uColourMap, vUv).rgb, vec3(2.2));
+        albedo = v * 2.3 * clamp(g / 0.5, 0.3, 1.9);
+      } else {
+        albedo = marsGrade(g);
+      }
     } else {
       albedo = marsGrade(0.42 + 0.08 * (vnoise(vWorld.xz / 400.0) - 0.5) + 0.1 * (t - 0.5));
     }
@@ -322,7 +334,7 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uHasMargin: { value: 0 },
       uFogColor: { value: new THREE.Color("#c9a27c") },
       uFogNear: { value: 3500 },
-      uFogFar: { value: 16000 },
+      uFogFar: { value: 60000 },
       uOrtho: { value: null },
       uHasOrtho: { value: 0 },
       uNormalMap: { value: null },
@@ -335,6 +347,8 @@ export function makeTerrainMaterial(slopeTex: THREE.Texture | null, zMin: number
       uTau: { value: 0.6 },
       uOverlay: { value: null },
       uOverlayMode: { value: -1 },
+      uColourMap: { value: null },
+      uColourMode: { value: 0 },
     },
   });
 }
@@ -445,6 +459,11 @@ export function Terrain({ bundle, segments = 384 }: { bundle: SiteBundle; segmen
       t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
       u.uOrtho.value = t; u.uHasOrtho.value = 1; disposers.push(t);
     });
+    // Viking orbital colour over the site (Mars Trek), if the bundle has it.
+    loader.load(`${(import.meta.env.VITE_BUNDLE_BASE_URL as string | undefined) ?? "./bundle"}/${bundle.manifest.siteId}/regional/site_colour.png`, (t) => {
+      t.colorSpace = THREE.NoColorSpace; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter;
+      u.uColourMap.value = t; u.uColourMode.value = 2; disposers.push(t);
+    }, undefined, () => {});
     if (bundle.normalUrl) loader.load(bundle.normalUrl, (t) => {
       t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8;
       u.uNormalMap.value = t; u.uHasNormal.value = 1; disposers.push(t);
