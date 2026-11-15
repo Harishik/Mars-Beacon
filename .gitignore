@@ -12,7 +12,7 @@ __pycache__/
 .env.*
 !.env.example
 # Large data (bundles go to the storage bucket, not Git)
-data/
+/data/
 *.tif
 *.tiff
 *.img
