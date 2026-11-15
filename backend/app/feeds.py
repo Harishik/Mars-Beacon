@@ -24,8 +24,8 @@ UA = {"User-Agent": "MarsBEACON/1.0 (NASA Space Apps 2026 mission planner)"}
 Fetch = Callable[[str], Any]
 
 
-def http_get_json(url: str) -> Any:
-    with httpx.Client(timeout=20.0, headers=UA, follow_redirects=True) as c:
+def http_get_json(url: str, headers: dict | None = None) -> Any:
+    with httpx.Client(timeout=20.0, headers={**UA, **(headers or {})}, follow_redirects=True) as c:
         r = c.get(url)
         r.raise_for_status()
         return r.json()
@@ -44,18 +44,19 @@ def donki(db: Database, kind: str, start: date, end: date, fetch: Fetch = http_g
                 "ageS": _age_s(cached[2]), "sourceUrl": cached[1]}
     q = f"startDate={start.isoformat()}&endDate={end.isoformat()}"
     api_key = os.environ.get("NASA_API_KEY", "").strip()
-    sources = [f"{CCMC}/{kind}?{q}"]
+    # The key goes in the X-Api-Key header (api.data.gov accepts it), never in a URL that could be logged.
+    sources: list[tuple[str, dict | None]] = [(f"{CCMC}/{kind}?{q}", None)]
     if api_key:
-        sources.append(f"{APINASA}/{kind}?{q}&api_key={api_key}")
+        sources.append((f"{APINASA}/{kind}?{q}", {"X-Api-Key": api_key}))
     errors: list[str] = []
-    for url in sources:
+    for url, hdrs in sources:
         try:
-            events = fetch(url)
+            events = fetch(url, hdrs) if hdrs else fetch(url)
             if events in ("", None):
                 events = []
             if not isinstance(events, list):
                 raise ValueError("unexpected DONKI payload")
-            public = url.split("&api_key=")[0]
+            public = url
             at = db.cache_put(key, events, public)
             return {**base, "events": events, "cached": False, "badge": "LIVE", "fetchedAt": at.isoformat(), "ageS": 0, "sourceUrl": public}
         except Exception as e:  # noqa: BLE001 - every upstream failure falls through to the next source

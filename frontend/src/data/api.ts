@@ -7,6 +7,8 @@ import type { SiteBundle } from "./bundle";
 import type { State } from "../store/store";
 
 export const API_BASE = ((import.meta.env.VITE_BEACON_API as string | undefined) || "https://beacon-api-naomi42.azurewebsites.net").replace(/\/$/, "");
+/** Absolute form of the API address, for share links and display. */
+export const API_LABEL = API_BASE.startsWith("/") ? `this server${API_BASE}` : API_BASE.replace(/^https?:\/\//, "");
 
 async function call<T>(path: string, init?: RequestInit, ms = 20000): Promise<T> {
   const ctl = new AbortController();

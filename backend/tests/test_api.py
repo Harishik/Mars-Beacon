@@ -110,12 +110,16 @@ def test_donki_unavailable_without_cache(client):
 
 def test_api_key_never_leaks(client, monkeypatch):
     monkeypatch.setenv("NASA_API_KEY", "SECRETKEY123")
-    def fetch(url):
+    seen = {}
+    def fetch(url, headers=None):
         if "kauai" in url:
             raise ConnectionError("ccmc down")
+        seen["headers"] = headers
+        assert "SECRETKEY123" not in url
         return []
     r = feeds.donki(main.db(), "CME", date(2026, 2, 1), date(2026, 2, 7), fetch=fetch)
     assert r["badge"] == "LIVE" and "SECRETKEY123" not in str(r)
+    assert seen["headers"] == {"X-Api-Key": "SECRETKEY123"}
 
 
 def test_spaceweather_endpoint_window(client):

@@ -8,5 +8,6 @@ export default defineConfig({
   publicDir: "../fixtures",
   base: "./",
   worker: { format: "es" },
-  server: { port: 5173, host: true },
+  // Dev: /api goes to a local backend (uvicorn on 8000), so one address serves both (VITE_BEACON_API=/api).
+  server: { port: 5173, host: true, proxy: { "/api": { target: "http://127.0.0.1:8000", changeOrigin: true, rewrite: (p) => p.replace(/^\/api/, "") } } },
 });

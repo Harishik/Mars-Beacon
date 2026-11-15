@@ -1,7 +1,7 @@
 // Save the mission to the team backend (PostgreSQL) and get a link that reopens it anywhere.
 import { useState } from "react";
 import { useStore } from "../store/store";
-import { missionRecord, saveMission, shareUrl, useBackend, API_BASE } from "../data/api";
+import { missionRecord, saveMission, shareUrl, useBackend, API_LABEL } from "../data/api";
 import { activePlanOf } from "../engine/useMission";
 import { routeGeoJSON, waypoints, waypointsCSV, download, WAYPOINT_SPACING_M } from "../engine/exportRoute";
 
@@ -67,7 +67,7 @@ export function BackendStatus() {
     <div className="pending-row">
       <span className="layer-name">Mission database {!be ? "(checking)" : be.ok ? "connected" : "offline"}</span>
       <span className="layer-source">
-        {!be ? API_BASE.replace(/^https?:\/\//, "") : be.ok ? `${be.health.db === "postgresql" ? "PostgreSQL" : be.health.db}${be.health.postgis ? " + PostGIS" : ""}, API ${be.health.version}. Stores saved missions and debriefs behind share links.` : `${be.error}. Planning still runs in the browser; saving is off.`}
+        {!be ? API_LABEL : be.ok ? `${be.health.db === "postgresql" ? "PostgreSQL" : be.health.db}${be.health.postgis ? " + PostGIS" : ""}, API ${be.health.version}. Stores saved missions and debriefs behind share links.` : `${be.error}. Planning still runs in the browser; saving is off.`}
       </span>
     </div>
   );
