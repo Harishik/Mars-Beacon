@@ -819,3 +819,4 @@ body > .sheet-backdrop { z-index: 40; }
 .vz-comm-lost b { color: #ffb347; }
 .scene-fallback { background: #0a1322 center / contain no-repeat; }
 .scene-fallback p { position: absolute; left: 50%; bottom: 140px; transform: translateX(-50%); background: rgba(10, 19, 34, 0.9); color: #e8eef6; padding: 10px 14px; border-radius: 8px; max-width: 560px; font-size: 13px; }
+.seg .seg-2d { margin-left: 6px; border-left: 1px solid rgba(255,255,255,0.18); }

@@ -53,6 +53,7 @@ export function MapLayers() {
         {(["none", ...available.map((o) => o.id)] as OverlayId[]).map((id) => (
           <button key={id} role="radio" aria-checked={overlay === id} onClick={() => set({ overlay: id })}>{SHORT[id]}</button>
         ))}
+        <TopViewToggle />
       </div>
       {info && (
         <div className="ml-legend">
@@ -66,5 +67,14 @@ export function MapLayers() {
         </div>
       )}
     </div>
+  );
+}
+
+function TopViewToggle() {
+  const top = useStore((s) => s.topView);
+  return (
+    <button className="seg-2d" aria-pressed={top} onClick={() => useStore.getState().set({ topView: !top })} title="Straight-down map view; zoom in for full-resolution 25 cm HiRISE">
+      {top ? "3D" : "2D map"}
+    </button>
   );
 }

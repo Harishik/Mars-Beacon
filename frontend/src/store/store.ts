@@ -62,6 +62,7 @@ export interface State {
   dwellMin: number;                 // minutes at each stop
   crewPos: { x: number; y: number; heading: number } | null;
   sharedStatus: { text: string; error?: boolean } | null; // loading a mission from a share link
+  topView: boolean;                 // console map seen straight down (2D planning view)
   setBundle: (b: SiteBundle) => void;
   setError: (e: string) => void;
   set: (p: Partial<State>) => void;
@@ -125,6 +126,7 @@ export const useStore = create<State>((set) => ({
   dwellMin: 20,
   crewPos: null,
   sharedStatus: null,
+  topView: false,
   setBundle: (b) => {
     setVertExag(b.manifest.display?.verticalExaggeration ?? 1.6);
     // Start with the first ridge selected so the turn-back card and route are visible at once.

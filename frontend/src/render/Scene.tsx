@@ -61,6 +61,17 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
   const hab = m.havens.find((h) => h.type === "habitat")!;
   const habP = useMemo(() => toScene(bundle, hab.x, hab.y), [bundle, hab.x, hab.y]);
   const livePos = useStore((s) => s.crewPos);
+  const topView = useStore((s) => s.topView) && (mode === "console" || mode === "linked");
+  // Toggle the 2D planning view: straight down over the current focus, keeping the zoom.
+  useEffect(() => {
+    const c = controls.current;
+    if (!c) return;
+    const cam = camera as THREE.PerspectiveCamera;
+    const d = Math.max(150, cam.position.distanceTo(c.target));
+    if (topView) cam.position.set(c.target.x, c.target.y + d, c.target.z + 0.01);
+    else cam.position.set(c.target.x - d * 0.3, c.target.y + d * 0.7, c.target.z + d * 0.65);
+    c.update();
+  }, [topView, camera]);
   const goal = m.targets.find((t) => t.type === "ridge") ?? m.targets[0];
   const goalP = useMemo(() => toScene(bundle, goal.x, goal.y), [bundle, goal.x, goal.y]);
   // Frame the working area: habitat and stops.
@@ -137,12 +148,12 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       autoRotate={mode === "hero" && !reduced}
       autoRotateSpeed={0.25}
       enabled={mode !== "hero"}
-      enableRotate={mode !== "tablet"}
+      enableRotate={mode !== "tablet" && !topView}
       enablePan={mode === "console" || mode === "tablet" || mode === "linked"}
       enableZoom={mode !== "hud" && mode !== "rover"}
-      screenSpacePanning={mode === "tablet"}
+      screenSpacePanning={mode === "tablet" || topView}
       maxPolarAngle={mode === "hud" || mode === "rover" ? Math.PI * 0.62 : Math.PI * 0.47}
-      minDistance={mode === "hud" || mode === "rover" ? 0.1 : 60}
+      minDistance={mode === "hud" || mode === "rover" ? 0.1 : topView ? 25 : 60}
       maxDistance={7000}
       rotateSpeed={mode === "hud" || mode === "rover" ? -0.35 : 0.6}
     />

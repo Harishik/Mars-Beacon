@@ -21,10 +21,10 @@ const LINEAGE = [
 const BRIEF = [
   ["Map, tool or interface a Mars astronaut could use", "Habitat console, mission control, field tablet, helmet visor and rover cockpit from one mission state"],
   ["Start from science goals and a location", "Ridge against hollow in the Mount Sharp boxwork, where Curiosity worked in 2025 and 2026"],
-  ["Details of routes and destinations", "Every stop shows whether it is reachable now, the route home, the time to turn back and its hazards"],
+  ["Details of routes and destinations", "Every stop shows whether it is reachable now, the route home, the time to turn back and its hazards; routes export as GeoJSON and 10 m waypoint tables"],
   ["Updates on current conditions", "Live Curiosity REMS weather and NASA DONKI space weather, the Mars sun by local solar time, seasonal dust"],
   ["At least three kinds of data", "Topographic, optical, rover imagery, atmospheric, radiation and space weather"],
-  ["Astronaut safety, radiation, space weather", "The Return Envelope, a go/no-go safety board, RAD dose against the career limit, shelter time during a solar event"],
+  ["Astronaut safety, radiation, space weather", "The Return Envelope, a go/no-go safety board, RAD dose against the career limit, a shelter alert on every display when DONKI or the scenario raises a solar event, radio line of sight to the habitat"],
   ["Suits and equipment affect mobility", "Suit load and pace change speed, oxygen use and the envelope live"],
   ["Avoid large rock formations", "Steep ground is no-go; detected boulders are shown in 3D and flagged on the route ahead"],
   ["Rovers or paired astronauts", "Park the rover to add a second haven; the pair walks at the slower member's pace"],
@@ -33,7 +33,7 @@ const BRIEF = [
 
 const DATA = [
   ["Topographic", "MRO HiRISE 1 m elevation model (USGS); MGS MOLA for the 160 km setting"],
-  ["Optical", "MRO HiRISE 25 cm orthophoto; MRO CTX; Viking orbital colour (via JPL Mars Trek)"],
+  ["Optical", "MRO HiRISE 25 cm orthophoto at full resolution when zoomed in; MRO CTX; Viking orbital colour (via JPL Mars Trek)"],
   ["Rover imagery", "Curiosity Navcam frames; AI4Mars expert labels to train the terrain classifier"],
   ["Machine learning", "Terrain classes on rover images (mIoU 0.81 on held-out frames); boulders from HiRISE shadows"],
   ["Atmospheric", "Curiosity 880 nm dust climatology, REMS pressure, live REMS daily weather"],
