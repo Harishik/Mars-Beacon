@@ -18,8 +18,8 @@ const GROUPS: Group[] = [
     { id: "grid", name: "500 m grid", source: "Site frame", tag: "DERIVED" },
   ] },
   { kind: "Science and rover context", rows: [
-    { id: "targets", name: "Curiosity workspaces", source: "PDS PLACES rover positions, by sol", tag: "HISTORICAL" },
-    { id: "traverse", name: "Curiosity traverse", source: "MSL localizations, PDS Imaging Node", tag: "HISTORICAL", manifestId: "traverse" },
+    { id: "targets", name: "ROVER workspaces", source: "Rover positions by sol (PDS PLACES and NASA waypoints)", tag: "HISTORICAL" },
+    { id: "traverse", name: "ROVER traverse", source: "Rover localizations, NASA waypoints", tag: "HISTORICAL", manifestId: "traverse" },
   ] },
 ];
 
@@ -48,6 +48,7 @@ export function LayerDrawer() {
   const set = useStore((s) => s.set);
   const manifest = useStore((s) => s.bundle?.manifest);
   const synthetic = !!manifest?.synthetic;
+  const rover = manifest?.site?.rover ?? "Rover";
   const panel = useStore((s) => s.panel);
 
   return (
@@ -69,7 +70,7 @@ export function LayerDrawer() {
                   <button className="layer-toggle" role="switch" aria-checked={layers[r.id]} onClick={() => toggle(r.id)}>
                     <span className="switch" aria-hidden />
                     <span className="layer-text">
-                      <span className="layer-name">{r.name}</span>
+                      <span className="layer-name">{r.name.replace("ROVER", rover)}</span>
                       <span className="layer-source">{r.source}</span>
                     </span>
                   </button>
@@ -89,7 +90,7 @@ export function LayerDrawer() {
           </section>
         ))}
         <ReconstructionGroup />
-        {!synthetic && (
+        {!synthetic && manifest?.siteId === "gale-boxwork" && (
           <section className="layer-group">
             <h3>Validation</h3>
             {VALIDATION.map((v) => (

@@ -62,6 +62,7 @@ export function MapLayers() {
           {here !== null && <div className="ml-here">Under the pointer: <b>{info.fmt(here)} {info.unit}</b></div>}
           {range && <div className="ml-here">Level ground today: {Math.round(range.min)} to {Math.round(range.max)} °C</div>}
           <p className="ml-src">{info.source}</p>
+          {overlay === "rocks" && bundle?.manifest.rocksReliable === false && <p className="ml-warn">Display only at this site: sand-ripple crests are detected as rocks, so boulders do not block routes here.</p>}
         </div>
       )}
     </div>

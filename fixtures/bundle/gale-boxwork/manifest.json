@@ -1299,5 +1299,12 @@
   "siteHash": "fbb0693edc3ecce3",
   "display": {
     "verticalExaggeration": 1.0
+  },
+  "site": {
+    "name": "Gale crater, Mount Sharp boxwork",
+    "objective": "Sample one boxwork ridge and the hollow beside it, to test whether mineral-rich groundwater cemented the ridges.",
+    "objectiveSource": "Follows Curiosity's 2025 to 2026 boxwork campaign",
+    "rover": "Curiosity",
+    "roverSols": "sols 4534 to 4844"
   }
 }

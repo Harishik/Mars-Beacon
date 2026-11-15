@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useStore } from "../store/store";
-import { loadSite } from "../data/bundle";
+import { loadSite, siteFromUrl } from "../data/bundle";
 import { useEngine } from "../engine/useEngine";
 import { useMission } from "../engine/useMission";
 import { anim } from "../render/Terrain";
@@ -25,7 +25,7 @@ export function App() {
   useMission();
 
   useEffect(() => {
-    loadSite().then((b) => useStore.getState().setBundle(b)).catch((e: Error) => useStore.getState().setError(e.message));
+    loadSite(siteFromUrl()).then((b) => useStore.getState().setBundle(b)).catch((e: Error) => useStore.getState().setError(e.message));
   }, []);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function App() {
     );
   }
   if (!bundle) {
-    return <div className="loading" role="status"><span className="loading-ring" aria-hidden />Loading Gale crater terrain</div>;
+    return <div className="loading" role="status"><span className="loading-ring" aria-hidden />Loading site terrain</div>;
   }
   return route === "app" ? <Console /> : <Landing />;
 }

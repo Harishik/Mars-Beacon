@@ -1,0 +1,19 @@
+{
+ "n_rocks": 27741,
+ "n_big": 12629,
+ "D_percentiles_m": [
+  1.75,
+  3.0,
+  3.75
+ ],
+ "golombek_k_median": 0.10766282368237708,
+ "golombek_k_p90": 0.13826253807889977,
+ "params": {
+  "bundle": "C:/Users/sahaj/MarsBeaconData/bundles/jezero",
+  "sun_az": 270.0,
+  "k": 1.5,
+  "d_min": 0.75,
+  "d_big": 2.0,
+  "tile": 2000
+ }
+}

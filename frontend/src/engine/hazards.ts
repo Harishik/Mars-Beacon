@@ -41,7 +41,10 @@ export function stopHazards(bundle: SiteBundle, x: number, y: number, o: { lsDeg
   const slope = around(bundle, x, y, bundle.slopeP90 ?? bundle.slopeDeg, (v) => p90(v.filter((s) => s < 89)));
   if (Number.isFinite(slope)) out.push({ id: "slope", label: "Slope", value: `${slope.toFixed(0)}°`, level: slope > 20 ? "high" : slope > L.slopeCaution ? "caution" : "ok", why: "90th percentile slope within 12 m (4 m grid, P90 of 16 DEM realisations)" });
   const rocks = around(bundle, x, y, bundle.rocks, mean) * 100;
-  if (Number.isFinite(rocks)) out.push({ id: "rocks", label: "Boulders", value: `${rocks.toFixed(0)}%`, level: rocks > L.rocksHigh ? "high" : rocks > L.rocksCaution ? "caution" : "ok", why: "Boulder cover within 12 m from the M2 HiRISE detector (precision not yet measured)" });
+  if (Number.isFinite(rocks)) {
+    if (bundle.manifest.rocksReliable === false) out.push({ id: "rocks", label: "Boulders", value: "not rated", level: "caution", why: "The boulder layer at this site is display only: sand-ripple crests are detected as rocks. Check rover images before relying on it." });
+    else out.push({ id: "rocks", label: "Boulders", value: `${rocks.toFixed(0)}%`, level: rocks > L.rocksHigh ? "high" : rocks > L.rocksCaution ? "caution" : "ok", why: "Boulder cover within 12 m from the M2 HiRISE detector (precision not yet measured)" });
+  }
   const cell = (() => { const [c, r] = toCell(bundle.manifest, x, y); return r * bundle.manifest.grid.cols + c; })();
   const t = temperatureAt(bundle, o.lsDeg, o.tau, o.arriveLmstH, cell);
   out.push({ id: "cold", label: "Ground", value: `${Math.round(t)} °C`, level: t < L.coldHigh ? "high" : t < L.coldCaution ? "caution" : "ok", why: "Modelled ground temperature at arrival (slope, aspect, sun and dust)" });

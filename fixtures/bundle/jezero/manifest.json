@@ -1,0 +1,1051 @@
+{
+  "siteId": "jezero",
+  "name": "Jezero crater, Perseverance landing area (Octavia E. Butler)",
+  "body": "Mars",
+  "version": "0.2.0",
+  "crs": {
+    "proj4": "+proj=eqc +lat_ts=18.4447 +lat_0=18.4447 +lon_0=77.4509 +x_0=0 +y_0=0 +R=3396190 +units=m +no_defs",
+    "origin": {
+      "lat": 18.4447,
+      "lon": 77.4509
+    },
+    "datum": "sphere R=3396190 m (Mars 2000, IAU)",
+    "lonDomain": "-180..180",
+    "axes": "x east, y north, metres; rasters north-up, row 0 = north edge; cell centre x=-extent/2+cell*(c+0.5), y=extent/2-cell*(r+0.5)",
+    "source": "USGS equirectangular clon 0, lat_ts 0 (E=R*lon, N=R*lat), resampled bilinear to true local metres"
+  },
+  "grid": {
+    "liveM": 4.0,
+    "cols": 750,
+    "rows": 750,
+    "extentM": 3000.0
+  },
+  "elevation": {
+    "min": -2621.54345703125,
+    "max": -2471.254638671875,
+    "note": "USGS merged DEM heights (relative to the Mars areoid per USGS product description; VERIFY). Relative relief is what the engine uses.",
+    "nodataFraction": 0.0
+  },
+  "files": [
+    {
+      "name": "height_4m",
+      "path": "height_4m.f32",
+      "dtype": "float32",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "sha256": "c91b54e4353d71db0450117db0e36a519e99c498a49fa54776510c97afb35402",
+      "units": "m",
+      "datum": "DEM heights as stored by USGS (see manifest.elevation.note)"
+    },
+    {
+      "name": "slope_4m",
+      "path": "slope_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "sha256": "662b9e704364c47fe8cd11f5851117e1f96f895c32a734b649689ce6541b87b1",
+      "nodata": 255,
+      "units": "deg",
+      "method": "Horn 1981 on 4 m grid"
+    },
+    {
+      "name": "slopeMax1m_4m",
+      "path": "slopeMax1m_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "sha256": "d7b7979c08d13ea535200c2e06e2f5cbc3906a23d7d3a2ebf9adff0dd8c488a2",
+      "nodata": 255,
+      "units": "deg",
+      "method": "max Horn slope of 1 m DEM inside each 4 m cell"
+    },
+    {
+      "name": "slopeP50",
+      "path": "slopeP50.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "sha256": "6675ea6adbf2a773a84efa6bccf7ebd4ba8d10fa7be90104b884925c97b8ab8f",
+      "nodata": 255,
+      "units": "deg",
+      "method": "median 1 m slope per 4 m cell (placeholder until Monte Carlo band)"
+    },
+    {
+      "name": "slopeP90",
+      "path": "slopeP90.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.25,
+      "offset": 0.0,
+      "sha256": "1f401015c72d6f17c510736a63e834bf4ffa766300d76d3ecf7d44ca64e90258",
+      "nodata": 255,
+      "units": "deg",
+      "method": "90th percentile 1 m slope per 4 m cell (placeholder until Monte Carlo band)"
+    },
+    {
+      "name": "rough_4m",
+      "path": "rough_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.01,
+      "offset": 0.0,
+      "sha256": "ce8a1184aafff05ee0848d37d9828d5fa746a321bc05be9c3d1528d3efad274f",
+      "nodata": 255,
+      "units": "m",
+      "method": "RMS residual of plane fit to 1 m DEM in 4x4 block"
+    },
+    {
+      "name": "relief_4m",
+      "path": "relief_4m.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.1,
+      "offset": -12.7,
+      "sha256": "2ecbe54bfce5f824ebaa1847e0e6b46b51ad25bf32ff6a5a59041b4c02ca84b5",
+      "nodata": 255,
+      "units": "m",
+      "method": "1 m DEM minus Gaussian(sigma 15 m), block mean"
+    },
+    {
+      "name": "horizon_32az",
+      "path": "horizon_32az.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.5,
+      "offset": 0.0,
+      "sha256": "d7a536bbb17a330cc808d683c86216678f17f3237b9e6c1dc5290fffc48f47c2",
+      "bands": 32,
+      "layout": "band-major [band][row][col]",
+      "nodata": 255,
+      "units": "deg",
+      "azimuths": "32, k*11.25 deg clockwise from north",
+      "method": "max elevation angle; local 4 m DEM to box+margin, plus 32 m ring to 15 km"
+    },
+    {
+      "name": "svf",
+      "path": "svf.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "sha256": "7eac3ac2a738a20222115482cefa18cf260089fdb1d5b3fa85be473352886e0d",
+      "nodata": 255,
+      "units": "fraction",
+      "method": "SVF = mean cos^2(h_k) (Dozier and Frew 1990 style)"
+    },
+    {
+      "name": "viewshed_hab",
+      "path": "viewshed_hab.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "sha256": "d620e7859983d286f0545be3ab057474ec404872092d15c727dab1af38a8cc90",
+      "nodata": 255,
+      "units": "0/1",
+      "method": "line of sight from habitat antenna 3 m (ASSUMPTION) to 1.7 m eye height"
+    },
+    {
+      "name": "normal_2048",
+      "path": "normal_2048.png",
+      "dtype": "image",
+      "cols": 2048,
+      "rows": 2048,
+      "scale": 1,
+      "offset": 0,
+      "sha256": "608749f8afc8c6a73db48e8a02a2602088538fc7d238c98427f109ea76860621",
+      "encoding": "RGB = (n*0.5+0.5)*255, x east, y north, z up"
+    },
+    {
+      "name": "ortho_4096",
+      "path": "ortho_4096.jpg",
+      "dtype": "image",
+      "cols": 4096,
+      "rows": 4096,
+      "scale": 1,
+      "offset": 0,
+      "sha256": "d1291b894667a9ed1497dcaef4d477cfb43ab32ec43e07cc156dd7c6a2b4da79",
+      "units": "greyscale DN",
+      "resolutionM": 0.732421875
+    },
+    {
+      "name": "rocks",
+      "path": "rocks.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.003937007874015748,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "d1205658b5152c0127e2f8c9753afbbbe2c93aa9a8f2d1b5df6a431b36046d52",
+      "method": "M2 shadow baseline, sun az 270.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "cumulative fractional area of detected rocks D>=Dmin",
+      "status": "UNRELIABLE at Jezero: aeolian ripple crests are detected as rocks (visual review); display only, do not use as hard blocks"
+    },
+    {
+      "name": "rockCount",
+      "path": "rockCount.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "53e316da5f304c484c0c505ae31770aaf7b01cbef68023b3fc08fa8e2de58578",
+      "method": "M2 shadow baseline, sun az 270.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "rocks per 4 m cell",
+      "status": "UNRELIABLE at Jezero: aeolian ripple crests are detected as rocks (visual review); display only, do not use as hard blocks"
+    },
+    {
+      "name": "rockBig",
+      "path": "rockBig.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 1.0,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "67ed00583539872f0b2aa84cb527502abc67b5503ddcc60fd2b4fd4c550204c1",
+      "method": "M2 shadow baseline, sun az 270.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "1 if a rock with D >= 2.0 m (hard block, ASSUMPTION)",
+      "status": "UNRELIABLE at Jezero: aeolian ripple crests are detected as rocks (visual review); display only, do not use as hard blocks"
+    },
+    {
+      "name": "golombekK",
+      "path": "golombekK.u8",
+      "dtype": "uint8",
+      "cols": 750,
+      "rows": 750,
+      "scale": 0.002,
+      "offset": 0.0,
+      "nodata": 255,
+      "sha256": "82feccb8da00a78390301a70885d69148c691fa833175300ab7ee49e390d01a9",
+      "method": "M2 shadow baseline, sun az 270.0, k 1.5, Dmin 0.75 m (ASSUMPTION parameters)",
+      "units": "Golombek k per 100 m block (fraction)",
+      "status": "UNRELIABLE at Jezero: aeolian ripple crests are detected as rocks (visual review); display only, do not use as hard blocks"
+    }
+  ],
+  "orthoTiles": {
+    "path": "ortho/{level}/{row}_{col}.jpg",
+    "tileSize": 512,
+    "maxLevel": 5,
+    "tileExtentM": "3000.0/2^level",
+    "nativeResolutionM": 0.25,
+    "count": 1365,
+    "note": "greyscale HiRISE orthophoto; colour mosaic not used yet"
+  },
+  "layers": [
+    {
+      "id": "ortho",
+      "kind": "optical",
+      "mission": "MRO",
+      "instrument": "HiRISE",
+      "productId": "JEZ_hirise_soc_006_orthoMosaic_25cm (Mars 2020 TRN)",
+      "resolutionM": 0.25,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "NASA/JPL/University of Arizona; USGS Astrogeology",
+      "url": "https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/"
+    },
+    {
+      "id": "dem",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "HiRISE (+CTX, HRSC, MOLA)",
+      "productId": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m (Mars 2020 TRN)",
+      "resolutionM": 1,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "USGS Astrogeology; NASA/JPL/University of Arizona",
+      "url": "https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/"
+    },
+    {
+      "id": "slope",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE DEM",
+      "productId": "slope_4m, slopeMax1m_4m",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "roughness",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE DEM",
+      "productId": "rough_4m",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "relief",
+      "kind": "topographic",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE DEM",
+      "productId": "relief_4m",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "illumination",
+      "kind": "illumination",
+      "mission": "MRO",
+      "instrument": "horizon map from HiRISE DEM",
+      "productId": "horizon_32az, svf",
+      "resolutionM": 4,
+      "acquired": "n/a",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/build_site.py",
+      "url": ""
+    },
+    {
+      "id": "rover_route",
+      "kind": "rover",
+      "mission": "M2020",
+      "instrument": "localized waypoints",
+      "productId": "M20_waypoints.json",
+      "resolutionM": 1,
+      "acquired": "sols 0-2000",
+      "tag": "HISTORICAL",
+      "attribution": "NASA/JPL-Caltech",
+      "url": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json"
+    },
+    {
+      "id": "rocks",
+      "kind": "geophysical",
+      "mission": "MRO",
+      "instrument": "derived from HiRISE 25 cm ortho (M2)",
+      "productId": "rocks, rockCount, rockBig, golombekK",
+      "resolutionM": 4,
+      "acquired": "various",
+      "tag": "DERIVED",
+      "attribution": "Mars BEACON pipeline/ml/m2_rocks.py",
+      "url": "",
+      "limits": "Jezero: ripple crests cause many false positives; display only. Sun azimuth fit weak (r=0.30)."
+    }
+  ],
+  "patches": [],
+  "splats": [],
+  "havens": [
+    {
+      "id": "hab",
+      "type": "habitat",
+      "x": 82.0,
+      "y": 174.0,
+      "note": "ASSUMPTION: flattest cell near the campaign entry point"
+    }
+  ],
+  "targets": [
+    {
+      "id": "rochette",
+      "name": "Rochette rock, Montdenier and Montagnac cores (approx.)",
+      "type": "drill",
+      "x": -367.4,
+      "y": -827.5,
+      "sol": 196,
+      "source": "M20_waypoints.json, last localized waypoint at or before sol 196 (sol 180); first Perseverance rock cores, Citadelle ridge. VERIFY with PDS PLACES"
+    },
+    {
+      "id": "brac",
+      "name": "Brac rock, Salette and Coulettes cores (approx.)",
+      "type": "drill",
+      "x": -443.1,
+      "y": -636.4,
+      "sol": 271,
+      "source": "M20_waypoints.json, last localized waypoint at or before sol 271 (sol 248); Seitah olivine-rich rock. VERIFY with PDS PLACES"
+    },
+    {
+      "id": "quartier",
+      "name": "Quartier rock, Robine and Malay cores (approx.)",
+      "type": "drill",
+      "x": -535.7,
+      "y": -713.6,
+      "sol": 295,
+      "source": "M20_waypoints.json, last localized waypoint at or before sol 295 (sol 286); Seitah. VERIFY with PDS PLACES"
+    }
+  ],
+  "povImages": [],
+  "route": {
+    "source": "NASA/JPL M20_waypoints.json (mars.nasa.gov MMGIS), sols 0-2000 inside the box",
+    "points": [
+      [
+        -0.8,
+        -4.3
+      ],
+      [
+        2.6,
+        -9.3
+      ],
+      [
+        7.5,
+        25.8
+      ],
+      [
+        33.6,
+        34.4
+      ],
+      [
+        53.8,
+        26.6
+      ],
+      [
+        49.3,
+        29.8
+      ],
+      [
+        51.8,
+        27.5
+      ],
+      [
+        24.3,
+        28.5
+      ],
+      [
+        16.7,
+        0.0
+      ],
+      [
+        7.0,
+        3.1
+      ],
+      [
+        6.8,
+        9.6
+      ],
+      [
+        7.0,
+        14.2
+      ],
+      [
+        6.8,
+        14.4
+      ],
+      [
+        35.4,
+        4.7
+      ],
+      [
+        51.7,
+        10.2
+      ],
+      [
+        62.9,
+        5.7
+      ],
+      [
+        69.7,
+        3.1
+      ],
+      [
+        74.5,
+        -2.0
+      ],
+      [
+        78.6,
+        -10.2
+      ],
+      [
+        90.9,
+        -25.0
+      ],
+      [
+        94.9,
+        -34.0
+      ],
+      [
+        77.4,
+        -28.5
+      ],
+      [
+        74.2,
+        -32.0
+      ],
+      [
+        73.5,
+        -48.6
+      ],
+      [
+        70.9,
+        -55.6
+      ],
+      [
+        35.3,
+        -85.7
+      ],
+      [
+        16.6,
+        -100.9
+      ],
+      [
+        -2.0,
+        -135.0
+      ],
+      [
+        -11.4,
+        -159.6
+      ],
+      [
+        -12.4,
+        -167.3
+      ],
+      [
+        -32.7,
+        -173.2
+      ],
+      [
+        -66.1,
+        -212.2
+      ],
+      [
+        -70.6,
+        -266.8
+      ],
+      [
+        -76.6,
+        -301.7
+      ],
+      [
+        -84.2,
+        -333.8
+      ],
+      [
+        -83.7,
+        -304.0
+      ],
+      [
+        -71.1,
+        -369.9
+      ],
+      [
+        -75.4,
+        -377.0
+      ],
+      [
+        -60.7,
+        -394.7
+      ],
+      [
+        -52.9,
+        -433.8
+      ],
+      [
+        -52.6,
+        -431.0
+      ],
+      [
+        -27.5,
+        -453.8
+      ],
+      [
+        46.4,
+        -530.2
+      ],
+      [
+        64.5,
+        -632.3
+      ],
+      [
+        78.4,
+        -724.6
+      ],
+      [
+        70.2,
+        -804.0
+      ],
+      [
+        64.3,
+        -837.9
+      ],
+      [
+        70.3,
+        -872.6
+      ],
+      [
+        63.5,
+        -967.8
+      ],
+      [
+        38.0,
+        -1003.1
+      ],
+      [
+        42.2,
+        -1008.0
+      ],
+      [
+        39.7,
+        -1034.1
+      ],
+      [
+        -5.3,
+        -1011.1
+      ],
+      [
+        -95.5,
+        -963.8
+      ],
+      [
+        -181.2,
+        -898.2
+      ],
+      [
+        -216.7,
+        -894.3
+      ],
+      [
+        -230.9,
+        -891.4
+      ],
+      [
+        -306.2,
+        -840.9
+      ],
+      [
+        -370.5,
+        -822.4
+      ],
+      [
+        -367.4,
+        -827.5
+      ],
+      [
+        -426.0,
+        -798.4
+      ],
+      [
+        -574.3,
+        -720.3
+      ],
+      [
+        -540.5,
+        -711.2
+      ],
+      [
+        -513.9,
+        -677.3
+      ],
+      [
+        -486.5,
+        -673.7
+      ],
+      [
+        -477.4,
+        -669.9
+      ],
+      [
+        -493.6,
+        -647.0
+      ],
+      [
+        -463.2,
+        -639.4
+      ],
+      [
+        -446.5,
+        -642.2
+      ],
+      [
+        -443.5,
+        -636.6
+      ],
+      [
+        -443.1,
+        -636.4
+      ],
+      [
+        -440.9,
+        -638.6
+      ],
+      [
+        -476.0,
+        -641.6
+      ],
+      [
+        -499.1,
+        -667.3
+      ],
+      [
+        -495.9,
+        -666.2
+      ],
+      [
+        -531.5,
+        -707.1
+      ],
+      [
+        -535.7,
+        -713.6
+      ],
+      [
+        -533.6,
+        -717.1
+      ],
+      [
+        -537.1,
+        -716.9
+      ],
+      [
+        -539.0,
+        -716.7
+      ],
+      [
+        -556.9,
+        -712.7
+      ],
+      [
+        -521.5,
+        -804.6
+      ],
+      [
+        -433.7,
+        -829.1
+      ],
+      [
+        -362.1,
+        -818.3
+      ],
+      [
+        -303.4,
+        -848.6
+      ],
+      [
+        -233.4,
+        -885.0
+      ],
+      [
+        -222.0,
+        -890.4
+      ],
+      [
+        -213.5,
+        -899.9
+      ],
+      [
+        -217.1,
+        -903.6
+      ],
+      [
+        -140.1,
+        -932.1
+      ],
+      [
+        82.2,
+        -918.2
+      ],
+      [
+        79.1,
+        -858.7
+      ],
+      [
+        95.2,
+        -789.2
+      ],
+      [
+        68.2,
+        -702.2
+      ],
+      [
+        70.4,
+        -616.6
+      ],
+      [
+        55.2,
+        -542.7
+      ],
+      [
+        49.3,
+        -520.0
+      ],
+      [
+        31.6,
+        -273.4
+      ],
+      [
+        56.0,
+        -237.8
+      ],
+      [
+        55.8,
+        -237.7
+      ],
+      [
+        48.8,
+        -152.3
+      ],
+      [
+        71.4,
+        -50.0
+      ],
+      [
+        86.5,
+        -47.8
+      ],
+      [
+        86.3,
+        -47.3
+      ],
+      [
+        32.3,
+        90.6
+      ],
+      [
+        192.6,
+        254.6
+      ],
+      [
+        192.6,
+        254.7
+      ],
+      [
+        452.1,
+        385.3
+      ],
+      [
+        616.2,
+        531.8
+      ],
+      [
+        624.4,
+        733.2
+      ],
+      [
+        620.6,
+        746.2
+      ],
+      [
+        687.9,
+        953.8
+      ],
+      [
+        600.5,
+        1172.2
+      ],
+      [
+        419.0,
+        1333.6
+      ],
+      [
+        199.1,
+        1398.7
+      ],
+      [
+        70.7,
+        1393.4
+      ],
+      [
+        -124.0,
+        1371.9
+      ],
+      [
+        -278.2,
+        1343.8
+      ],
+      [
+        -323.2,
+        1309.2
+      ],
+      [
+        -472.1,
+        1237.9
+      ],
+      [
+        -665.0,
+        1147.4
+      ],
+      [
+        -831.9,
+        1022.1
+      ],
+      [
+        -1007.8,
+        1001.5
+      ],
+      [
+        -1175.4,
+        943.4
+      ],
+      [
+        -1413.8,
+        866.5
+      ]
+    ],
+    "sols": [
+      13,
+      14,
+      15,
+      16,
+      20,
+      23,
+      29,
+      31,
+      32,
+      33,
+      34,
+      43,
+      44,
+      47,
+      48,
+      49,
+      52,
+      65,
+      66,
+      72,
+      73,
+      84,
+      86,
+      91,
+      99,
+      102,
+      103,
+      104,
+      105,
+      107,
+      108,
+      109,
+      110,
+      113,
+      116,
+      122,
+      123,
+      124,
+      126,
+      127,
+      128,
+      129,
+      130,
+      131,
+      134,
+      135,
+      136,
+      137,
+      153,
+      155,
+      157,
+      168,
+      169,
+      170,
+      171,
+      173,
+      175,
+      177,
+      178,
+      180,
+      199,
+      200,
+      201,
+      202,
+      203,
+      204,
+      210,
+      237,
+      238,
+      239,
+      248,
+      278,
+      280,
+      281,
+      283,
+      285,
+      286,
+      328,
+      333,
+      335,
+      340,
+      340,
+      340,
+      341,
+      341,
+      341,
+      342,
+      343,
+      343,
+      350,
+      351,
+      352,
+      353,
+      353,
+      354,
+      354,
+      354,
+      355,
+      358,
+      359,
+      360,
+      360,
+      361,
+      362,
+      379,
+      380,
+      381,
+      382,
+      383,
+      384,
+      385,
+      386,
+      387,
+      388,
+      389,
+      394,
+      395,
+      396,
+      397,
+      398,
+      399,
+      400,
+      401,
+      402,
+      404
+    ]
+  },
+  "build": {
+    "script": "pipeline/build_site.py",
+    "args": {
+      "site": "jezero",
+      "out": "C:/Users/sahaj/MarsBeaconData/bundles/jezero",
+      "extent": 3000.0,
+      "margin": 500.0,
+      "ring_km": 15.0,
+      "live_cell": 4.0,
+      "no_ortho": false,
+      "work": null,
+      "hab_x": null,
+      "hab_y": null
+    },
+    "seconds": 264
+  },
+  "siteHash": "25e8c555644cd684",
+  "display": {
+    "verticalExaggeration": 1.0
+  },
+  "rocksReliable": false,
+  "site": {
+    "name": "Jezero crater, Seitah and the crater floor",
+    "objective": "Revisit the first rock cores Perseverance collected on the crater floor and in Seitah, to compare the igneous floor units before samples are returned.",
+    "objectiveSource": "Follows Perseverance's 2021 crater-floor campaign",
+    "rover": "Perseverance",
+    "roverSols": "sols 13 to 404"
+  }
+}

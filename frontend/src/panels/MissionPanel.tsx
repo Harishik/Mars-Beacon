@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
 import { reportAt, type PointReport } from "../engine/query";
 import { Tag } from "./Tag";
+import { siteText } from "../data/bundle";
 import { PlanCards } from "./Plan";
 import { RoverViews } from "./RoverViews";
 import { stopHazards, type Hazard } from "../engine/hazards";
@@ -122,14 +123,16 @@ export function SelectedCard() {
 }
 
 export function MissionPanel() {
+  const m = useStore((s) => s.bundle?.manifest);
+  const site = m ? siteText(m) : null;
   const targets = useStore((s) => s.bundle?.manifest.targets ?? []);
   const sel = useStore((s) => s.selected);
   return (
     <div className="mission">
       <section className="objective">
         <h3>Science objective</h3>
-        <p>Sample one boxwork ridge and the hollow beside it, to test whether mineral-rich groundwater cemented the ridges.</p>
-        <span className="obj-src">Follows Curiosity's 2025 to 2026 boxwork campaign <Tag t="HISTORICAL" /></span>
+        <p>{site?.objective}</p>
+        <span className="obj-src">{site?.objectiveSource} <Tag t="HISTORICAL" /></span>
       </section>
       <section>
         <h3 className="list-h">EVA plan</h3>

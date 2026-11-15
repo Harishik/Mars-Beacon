@@ -8,6 +8,7 @@ import { directIrradiance, tauAtElevation, evaDoseMsv, RAD_GY_PER_DAY, RAD_QUALI
 import { overlayValues, currentThermalTable } from "../engine/overlays";
 import { flatCurve, STEPS_PER_SOL } from "../engine/thermal";
 import { Tag } from "./Tag";
+import { siteText } from "../data/bundle";
 import { RoverViews } from "./RoverViews";
 import type { Plan } from "../engine/planner";
 
@@ -57,8 +58,8 @@ export function ExploreBrief() {
   }, [b, s.lsDeg, tauSite, s.lmstHours]);
   const layers = b?.manifest.layers ?? [];
   const kinds = [
-    ["Optical", "HiRISE 25 cm orthophoto"], ["Topographic", "HiRISE 1 m DEM, 4 m slope with P90"],
-    ["Rover", "Curiosity traverse and drill sites, Navcam stereo"], ["Geophysical", "Boulder cover, ridges and hollows"],
+    ["Optical", "HiRISE 25 cm orthophoto"], ["Topographic", b?.slopeP90 ? "HiRISE 1 m DEM, 4 m slope with P90" : "HiRISE 1 m DEM, 4 m slope"],
+    ["Rover", `${b ? siteText(b.manifest).rover : "Rover"} traverse and sample sites`], ["Geophysical", "Boulder cover, ridges and hollows"],
     ["Thermal", "Surface temperature model"], ["Atmospheric", "Dust optical depth, sunlight"], ["Radiation", "Curiosity RAD surface dose"],
   ];
   const doseRate = RAD_GY_PER_DAY * RAD_QUALITY * 1000 * (s.storm ? 10 : 1);
@@ -66,7 +67,7 @@ export function ExploreBrief() {
     <aside className="pane brief" aria-label="Site conditions">
       <header className="pane-head"><h2>Site conditions</h2><span className="status ready">{formatLmst(s.lmstHours)} LMST</span></header>
       <div className="brief-body">
-        <p className="brief-lede">Gale crater, Mount Sharp boxwork. Curiosity drilled a ridge and the hollow beside it here in 2025 to 2026.</p>
+        <p className="brief-lede">{b ? `${siteText(b.manifest).name}. ${siteText(b.manifest).objective}` : ""}</p>
         <dl className="brief-grid">
           <div><dt>Sun</dt><dd>{sun.elevationDeg.toFixed(0)}° up, {Math.round(sun.azimuthDeg)}° az</dd><Tag t="PREDICTED" /></div>
           <div><dt>Direct sunlight</dt><dd>{Math.round(irr)} W/m²</dd><Tag t="DERIVED" /></div>
@@ -118,8 +119,8 @@ export function DebriefPanel() {
           </tbody>
         </table>
         <div className="db-notes">
-          <h3>Against Curiosity's route</h3>
-          <p>The plan visits {plan.order.map(name).join(", ")}: the same workspaces the rover team drove to on sols 4534 to 4844. Curiosity covered this ground in weeks of drives; the crew samples it in one {hm(plan.totalS)} EVA with {Math.round(plan.minMargin * 100)}% margin left at the tightest point.</p>
+          <h3>Against {siteText(b.manifest).rover}'s route</h3>
+          <p>The plan visits {plan.order.map(name).join(", ")}: the same workspaces the {siteText(b.manifest).rover} team drove to on {siteText(b.manifest).roverSols}. The rover covered this ground in weeks of drives; the crew samples it in one {hm(plan.totalS)} EVA with {Math.round(plan.minMargin * 100)}% margin left at the tightest point.</p>
           <h3>For the next EVA</h3>
           <ul>
             {plan.minMargin < 0.3 && <li>Margin dropped below 30%: shorten dwell or carry less.</li>}
@@ -149,7 +150,7 @@ export function CueCard() {
   return (
     <div className="cuecard" aria-hidden>
       <h1>Mars BEACON EVA cue card</h1>
-      <p>Gale crater, Mount Sharp boxwork. Egress {formatLmst(s.evaStartLmst)} LMST, Ls {Math.round(s.lsDeg)}°. Plan: {plan.id === "balanced" ? "balanced" : plan.id === "maxMargin" ? "maximum margin" : "maximum science"}. Habitat at E {Math.round(hab.x)} m, N {Math.round(hab.y)} m in the site frame.</p>
+      <p>{siteText(b.manifest).name}. Egress {formatLmst(s.evaStartLmst)} LMST, Ls {Math.round(s.lsDeg)}°. Plan: {plan.id === "balanced" ? "balanced" : plan.id === "maxMargin" ? "maximum margin" : "maximum science"}. Habitat at E {Math.round(hab.x)} m, N {Math.round(hab.y)} m in the site frame.</p>
       <table>
         <thead><tr><th>#</th><th>Stop</th><th>Arrive</th><th>Leave by</th><th>O₂ left EV1/EV2</th><th>Walk home</th><th>Spare before turn-back</th><th>Home bearing</th></tr></thead>
         <tbody>

@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { reportAt } from "../engine/query";
 import { useStore, type View } from "../store/store";
-import { sampleHeight, toCell } from "../data/bundle";
+import { sampleHeight, toCell, SITES } from "../data/bundle";
 import { formatLmst, sunMars24 } from "../engine/sun";
 import { directIrradiance, tauAtElevation } from "../engine/environment";
 import { Tag } from "./Tag";
@@ -30,7 +30,13 @@ export function InstrumentStrip() {
 
   return (
     <div className="strip" aria-live="off">
-      <span><i>Site</i> {bundle?.manifest.siteId ?? "loading"}</span>
+      <label className="site-pick"><i>Site</i>
+        <select aria-label="Site" value={bundle?.manifest.siteId ?? ""} onChange={(e) => {
+          const u = new URL(window.location.href); u.searchParams.set("site", e.target.value); window.location.assign(u.toString());
+        }}>
+          {SITES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
+      </label>
       <span><i>Origin</i> {o ? `${Math.abs(o.lat).toFixed(2)}° S, ${o.lon.toFixed(2)}° E` : ""}</span>
       {info && cursor ? (
         <>
