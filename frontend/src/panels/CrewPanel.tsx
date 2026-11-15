@@ -22,13 +22,13 @@ export function CrewPanel() {
   const noReturn = env.margin && env.insideCells === 0;
 
   return (
-    <aside className="pane crew" aria-label="Crew and resources" data-guide="crew-panel">
+    <aside className="pane crew" aria-label="Crew and resources" data-guide-anchor="crew-panel">
       <header className="pane-head">
         <h2>Crew and margins</h2>
         <span className={`status ${env.computing ? "busy" : "ready"}`}>{env.computing ? "Recomputing" : "Certified"}</span>
       </header>
 
-      <div className="envelope-summary">
+      <div className="envelope-summary" data-guide-anchor="envelope-summary">
         {noReturn ? (
           <p className="no-return">No verified return path from the crew's position. Reduce load, restore pace or bring the rover closer.</p>
         ) : (

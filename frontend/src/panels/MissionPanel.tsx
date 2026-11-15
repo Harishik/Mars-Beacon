@@ -168,7 +168,7 @@ export function MissionPanel() {
       <SelectedCard />
       <section>
         <h3 className="list-h">Stops</h3>
-        <ul className="stops">
+        <ul className="stops" data-guide-anchor="mission-stops">
           {targets.map((t) => <StopRow key={t.id} t={t} active={!!sel && sel.x === t.x && sel.y === t.y} />)}
         </ul>
       </section>

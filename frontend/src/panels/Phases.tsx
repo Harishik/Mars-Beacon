@@ -45,9 +45,9 @@ export function PhaseBar() {
   const phase = useStore((s) => s.phase);
   const setPhase = useStore((s) => s.setPhase);
   return (
-    <nav className="phasebar" aria-label="EVA workflow" data-guide="phase-bar">
+    <nav className="phasebar" aria-label="EVA workflow" data-guide-anchor="phase-bar">
       {PHASES.map((p, i) => (
-        <button key={p.id} aria-current={phase === p.id ? "step" : undefined} title={p.hint} onClick={() => setPhase(p.id)}>
+        <button key={p.id} aria-current={phase === p.id ? "step" : undefined} title={p.hint} onClick={() => setPhase(p.id)} data-guide-anchor={p.id === "rehearse" ? "phase-rehearse" : undefined}>
           <i>{i + 1}</i><span>{p.label}</span>
         </button>
       ))}

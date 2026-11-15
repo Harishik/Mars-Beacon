@@ -188,7 +188,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 .pending-row { display: flex; flex-direction: column; padding: 6px 8px 6px 46px; }
 .pending-row .layer-name { color: var(--dust-3); }
 
-.crew { top: 102px; right: 16px; bottom: 112px; width: 320px; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; }
+.crew { top: 102px; right: 16px; bottom: 192px; width: 320px; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; }
 .status { font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; color: var(--home); }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 .status.busy { color: var(--sun); }
@@ -541,7 +541,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .topbar .ledger-btn { margin-left: 0; }
 @media (max-width: 1280px) { .phasebar button span { display: none; } .phasebar button { padding: 6px; } }
 
-.brief { top: 102px; right: 16px; bottom: 112px; width: 340px; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; }
+.brief { top: 102px; right: 16px; bottom: 192px; width: 340px; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; }
 .brief-body { padding: 4px 18px 18px; display: grid; gap: 12px; }
 .brief-lede { margin: 0; color: var(--dust); line-height: 1.45; }
 .brief-grid { margin: 0; display: grid; gap: 8px; }

@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store/store";
 import { useWalkKeys } from "../engine/useMission";
-import { BeaconCompanion } from "../companion/BeaconCompanion";
 import { Scene } from "../render/Scene";
 import { LayerDrawer } from "../panels/LayerDrawer";
 import { CrewPanel } from "../panels/CrewPanel";
@@ -56,8 +55,8 @@ export function Console() {
         <a href="#/" className="brand" aria-label="Mars BEACON home"><Wordmark /></a>
         {synthetic && <span className="badge-warn" title={bundle.manifest.notice}>Placeholder terrain</span>}
         <PhaseBar />
-        <button data-guide="equations" className="btn btn-quiet ledger-btn" onClick={() => useStore.getState().set({ ledger: true })}>Equations</button>
-        <button data-guide="focus-view" className={`btn btn-quiet focus-btn ${focusView ? "on" : ""}`} aria-pressed={focusView} onClick={() => useStore.getState().set({ focusView: !focusView })}>
+        <button data-guide-anchor="equations" className="btn btn-quiet ledger-btn" onClick={() => useStore.getState().set({ ledger: true })}>Equations</button>
+        <button data-guide-anchor="focus-view" className={`btn btn-quiet focus-btn ${focusView ? "on" : ""}`} aria-pressed={focusView} onClick={() => useStore.getState().set({ focusView: !focusView })}>
           {focusView ? "Show panels" : "Focus view"} <kbd>F</kbd>
         </button>
         <ViewSwitch />
@@ -85,7 +84,6 @@ export function Console() {
       <CueCard />
       {view === "tablet" && phase === "execute" && <ExecuteNext />}
       <Ledger />
-      <BeaconCompanion />
       {false && (
         <div className="legend" aria-hidden>
           <span><i className="lg-home" /> Edge of safe return</span>

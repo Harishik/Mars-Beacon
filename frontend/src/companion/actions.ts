@@ -1,77 +1,71 @@
-// The only things the BEACON guide can make the app do. Guide content (scripts, tours, replies) is data: every
-// action it asks for is checked here against a closed list before it touches the mission state, and anything
-// else is refused. No action can change crew budgets, the envelope inputs, saved missions or the network.
-import { useStore, type Phase, type View, type LayerId } from "../store/store";
+// Guide action dispatcher (BEACON_Guide.md §4, §5.5). The guide changes the app only through these reviewed,
+// idempotent functions. None of them touch crew loads, budgets, time limits, slope limit, rover haven, weather
+// scenario, mission time, science stops or saved missions. Playback starts only from start_rehearsal, which the
+// UI calls from an explicit button press, never from a tour step or a typed question.
+import { useStore } from "../store/store";
+import { ANCHORS } from "./anchors";
+import type { ActionResult, GuideActionId } from "./types";
 
-const PHASES: readonly Phase[] = ["explore", "plan", "rehearse", "execute", "debrief"];
-const VIEWS: readonly View[] = ["console", "control", "tablet", "eva", "hud", "rover", "linked"];
+export const ACTION_IDS: readonly GuideActionId[] = [
+  "open_explore", "open_plan", "open_layers", "open_mission", "show_envelope", "show_slope", "show_thermal",
+  "open_equations", "set_low_quality", "focus_plan_cards", "offer_rehearsal", "start_rehearsal", "open_app",
+];
 
-/** Interface elements the guide may point at. Each is a `data-guide="..."` attribute in the app. */
-export const GUIDE_TARGETS = [
-  "phase-bar", "view-switch", "equations", "focus-view",
-  "map-layers", "mission-panel", "crew-panel", "timeline", "play", "speed",
-] as const;
-export type GuideTarget = (typeof GUIDE_TARGETS)[number];
-
-export type GuideAction =
-  | { type: "goPhase"; phase: Phase }
-  | { type: "setView"; view: View }
-  | { type: "showLayer"; layer: LayerId; on: boolean }
-  | { type: "selectStop"; stopId: string }
-  | { type: "play" }
-  | { type: "pause" }
-  | { type: "openEquations" }
-  | { type: "focusView"; on: boolean }
-  | { type: "highlight"; target: GuideTarget };
-
-export type GuideActionResult = { ok: true } | { ok: false; reason: string };
-
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
-
-/** Narrow untrusted input to a GuideAction, or say why not. */
-export function parseGuideAction(raw: unknown): GuideAction | string {
-  if (!isObj(raw) || typeof raw.type !== "string") return "not an action";
-  const s = useStore.getState();
-  switch (raw.type) {
-    case "goPhase": return PHASES.includes(raw.phase as Phase) ? { type: "goPhase", phase: raw.phase as Phase } : "unknown phase";
-    case "setView": return VIEWS.includes(raw.view as View) ? { type: "setView", view: raw.view as View } : "unknown view";
-    case "showLayer":
-      return typeof raw.layer === "string" && Object.prototype.hasOwnProperty.call(s.layers, raw.layer) && typeof raw.on === "boolean"
-        ? { type: "showLayer", layer: raw.layer as LayerId, on: raw.on } : "unknown layer";
-    case "selectStop":
-      return typeof raw.stopId === "string" && !!s.bundle?.manifest.targets.some((t) => t.id === raw.stopId)
-        ? { type: "selectStop", stopId: raw.stopId } : "unknown stop";
-    case "play": case "pause": case "openEquations": return { type: raw.type };
-    case "focusView": return typeof raw.on === "boolean" ? { type: "focusView", on: raw.on } : "focusView needs on";
-    case "highlight": return GUIDE_TARGETS.includes(raw.target as GuideTarget) ? { type: "highlight", target: raw.target as GuideTarget } : "unknown target";
-    default: return `action "${raw.type}" is not allowed`;
-  }
+export function isGuideActionId(v: unknown): v is GuideActionId {
+  return typeof v === "string" && (ACTION_IDS as readonly string[]).includes(v);
 }
 
-/** The element for a guide target, or null when that part of the interface is not on screen. */
-export function guideElement(target: GuideTarget): HTMLElement | null {
-  return document.querySelector<HTMLElement>(`[data-guide="${target}"]`);
-}
+/** Actions that need the site data loaded (disabled clearly when it is missing, §9). */
+const NEEDS_SITE: ReadonlySet<GuideActionId> = new Set(["show_envelope", "show_slope", "show_thermal", "focus_plan_cards", "start_rehearsal", "open_plan", "open_explore"]);
 
-/** Run one action from guide content. Untrusted input is validated first; refusals never throw. */
-export function runGuideAction(raw: unknown): GuideActionResult {
-  const a = parseGuideAction(raw);
-  if (typeof a === "string") return { ok: false, reason: a };
+const inApp = () => window.location.hash.startsWith("#/app");
+
+export function runGuideAction(id: unknown): ActionResult {
+  if (!isGuideActionId(id)) return { ok: false, reason: "That action is not available to the guide.", manual: "Use the controls on the map." };
   const s = useStore.getState();
-  switch (a.type) {
-    case "goPhase": s.setPhase(a.phase); break;
-    case "setView": s.set({ view: a.view }); break;
-    case "showLayer": if (s.layers[a.layer] !== a.on) s.toggleLayer(a.layer); break;
-    case "selectStop": {
-      const t = s.bundle!.manifest.targets.find((x) => x.id === a.stopId)!;
-      s.set({ selected: { x: t.x, y: t.y, label: t.name } });
-      break;
-    }
-    case "play": if (s.plans.length) s.set({ playing: true }); else return { ok: false, reason: "no plan yet" }; break;
-    case "pause": s.set({ playing: false }); break;
-    case "openEquations": s.set({ ledger: true }); break;
-    case "focusView": s.set({ focusView: a.on }); break;
-    case "highlight": if (!guideElement(a.target)) return { ok: false, reason: "not on screen" }; break;
+  if (NEEDS_SITE.has(id) && !s.bundle) return { ok: false, reason: "The site data has not loaded, so this needs the map first.", manual: s.loadError ? "Reload the page; if it persists the site files are missing." : "Wait for the terrain to finish loading." };
+  if (id !== "open_app" && !inApp()) window.location.hash = "#/app"; // every action lives on the map page
+
+  switch (id) {
+    case "open_app":
+      if (!inApp()) window.location.hash = "#/app";
+      return { ok: true };
+    case "open_explore":
+      if (s.phase !== "explore") s.setPhase("explore"); // also opens the Data layers tab and pauses playback
+      return { ok: true };
+    case "open_plan":
+      if (s.phase !== "plan") { s.setPhase("plan"); return { ok: true, note: "Opening Plan returns the timeline to egress and clears the terrain colouring." }; }
+      return { ok: true };
+    case "open_layers":
+      s.set({ view: "console", panel: "layers" }); // presentation only
+      return { ok: true };
+    case "open_mission":
+      s.set({ view: "console", panel: "mission" });
+      return { ok: true };
+    case "show_envelope":
+      if (!s.layers.envelope) s.set({ layers: { ...s.layers, envelope: true } }); // ensure on, never toggle off
+      return { ok: true };
+    case "show_slope":
+      if (!s.layers.slope) s.set({ layers: { ...s.layers, slope: true } }); // the slope limit is not changed
+      return { ok: true };
+    case "show_thermal":
+      if (s.phase !== "explore" && s.phase !== "plan") s.setPhase("explore"); // the colouring control lives in Explore and Plan
+      useStore.getState().set({ view: "console", overlay: "thermal" });
+      return { ok: true };
+    case "open_equations":
+      s.set({ ledger: true });
+      return { ok: true };
+    case "set_low_quality":
+      s.set({ quality: "low" }); // rendering only: grid, routes and values are unchanged
+      return { ok: true };
+    case "focus_plan_cards":
+      s.set({ view: "console", panel: "mission" });
+      return { ok: true };
+    case "offer_rehearsal":
+      return { ok: true }; // the panel shows a separate "Start rehearsal" button; nothing changes here
+    case "start_rehearsal":
+      if (!s.plans.length) return { ok: false, reason: "There is no plan to rehearse yet.", manual: ANCHORS["plan-cards"].manual };
+      s.setPhase("rehearse"); // starts playback: only ever called from an explicit button press
+      return { ok: true };
   }
-  return { ok: true };
 }

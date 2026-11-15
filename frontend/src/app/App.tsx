@@ -8,6 +8,7 @@ import { useMission } from "../engine/useMission";
 import { anim } from "../render/Terrain";
 import { Landing } from "../views/Landing";
 import { Console } from "../views/Console";
+import { Companion } from "../companion/Companion";
 
 function useRoute() {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -59,15 +60,18 @@ export function App() {
 
   if (error) {
     return (
+      <>
+      <Companion />
       <main className="fatal">
         <h1>The site data did not load</h1>
         <p>{error}</p>
         <p>Run <code>npm run fixture</code> in <code>frontend/</code> to create the placeholder bundle, or set <code>VITE_BUNDLE_BASE_URL</code> to the bucket.</p>
       </main>
+      </>
     );
   }
   if (!bundle) {
-    return <div className="loading" role="status"><span className="loading-ring" aria-hidden />Loading site terrain</div>;
+    return <><div className="loading" role="status"><span className="loading-ring" aria-hidden />Loading site terrain</div><Companion /></>;
   }
-  return route === "app" ? <Console /> : <Landing />;
+  return <>{route === "app" ? <Console /> : <Landing />}<Companion /></>;
 }
