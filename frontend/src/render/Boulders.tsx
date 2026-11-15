@@ -2,6 +2,7 @@
 // Real data drives where each rock is and how big; the rock shape itself is a generic low-poly form.
 import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
+import { useFrame } from "@react-three/fiber";
 import type { SiteBundle } from "../data/bundle";
 import { sampleHeight } from "../data/bundle";
 import { useStore } from "../store/store";
@@ -16,7 +17,8 @@ const rnd = (i: number, k: number) => { const s = Math.sin(i * 12.9898 + k * 78.
 
 function rockGeometry() {
   // Lumpy, flattened icosphere: a generic boulder shape.
-  const g = new THREE.IcosahedronGeometry(1, 2);
+  // 20 triangles per rock: 42,685 rocks stay under a million triangles for phones and integrated graphics.
+  const g = new THREE.IcosahedronGeometry(1, 0);
   const p = g.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < p.count; i++) {
     const v = new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i));
@@ -26,6 +28,12 @@ function rockGeometry() {
   }
   g.computeVertexNormals();
   return g;
+}
+
+/** Boulders are under a pixel from far away: skip drawing them when the camera is high above the site. */
+function BoulderLod({ mesh }: { mesh: THREE.InstancedMesh }) {
+  useFrame(({ camera }) => { mesh.visible = camera.position.y < 900; });
+  return <primitive object={mesh} />;
 }
 
 export function Boulders({ bundle }: { bundle: SiteBundle }) {
@@ -78,5 +86,5 @@ export function Boulders({ bundle }: { bundle: SiteBundle }) {
   useEffect(() => () => { mesh?.dispose(); }, [mesh]);
 
   if (!mesh || !show) return null;
-  return <primitive object={mesh} />;
+  return <BoulderLod mesh={mesh} />;
 }

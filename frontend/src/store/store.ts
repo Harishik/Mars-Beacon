@@ -34,6 +34,8 @@ interface State {
   lmstHours: number;                // local mean solar time, hours
   lsDeg: number;                    // solar longitude (season)
   tau: number;                      // column dust optical depth at the datum
+  tauManual: boolean;
+  quality: "high" | "low";          // rendering tier only; never changes the grid, routes or envelope               // true once the crew sets dust by hand; otherwise the measured climatology drives it
   overlay: OverlayId;               // data field coloured onto the terrain
   storm: boolean;                   // solar particle event / dust storm scenario
   // Assumptions and scenario values (shown in the app with their tags)
@@ -68,6 +70,17 @@ interface State {
   setEnvelope: (p: Partial<EnvelopeState>) => void;
 }
 
+/** Low tier for phones, few-core or low-memory devices, or when the user asks to save data (?quality=low|high overrides). */
+function detectQuality(): "high" | "low" {
+  if (typeof window === "undefined") return "high";
+  const q = new URLSearchParams(window.location.search).get("quality");
+  if (q === "low" || q === "high") return q;
+  const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+  const mobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || window.matchMedia("(pointer: coarse)").matches;
+  if (mobile || (navigator.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || nav.connection?.saveData) return "low";
+  return "high";
+}
+
 export const useStore = create<State>((set) => ({
   bundle: null,
   loadError: null,
@@ -78,6 +91,8 @@ export const useStore = create<State>((set) => ({
   lmstHours: 9.0,
   lsDeg: 150,
   tau: 0.6,
+  tauManual: false,
+  quality: detectQuality(),
   overlay: "none",
   storm: false,
   v0: 0.7, slopeLimitDeg: 20, reserveM: 0.25, kG: 0.78, mRestW: 100, bodyMassKg: 80,
@@ -113,7 +128,7 @@ export const useStore = create<State>((set) => ({
   setError: (e) => set({ loadError: e }),
   set: (p) => set(p),
   setPhase: (phase) => set((s) => {
-    const wide = typeof window === "undefined" || window.innerWidth >= 1100;
+    const wide = (typeof window === "undefined" || window.innerWidth >= 1100) && s.quality === "high";
     const total = s.plans.find((p) => p.id === s.activePlan)?.totalS ?? 0;
     switch (phase) {
       case "explore": return { phase, view: "console", panel: "layers", playing: false };

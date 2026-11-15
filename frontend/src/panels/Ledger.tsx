@@ -85,6 +85,15 @@ export function Ledger() {
             </ul>
           </section>
           <section>
+            <h3>Display</h3>
+            <label className="param">
+              <span className="param-top"><span>Rendering detail</span><b>{st.quality === "low" ? "Low power" : "Full"}</b></span>
+              <select value={st.quality} onChange={(e) => set({ quality: e.target.value as "high" | "low" })}>
+                <option value="high">Full: shadows, boulders, rover patch, linked insets</option>
+                <option value="low">Low power: for phones and integrated graphics</option>
+              </select>
+              <span className="param-note">Changes only what is drawn. The terrain grid, routes, Return Envelope and risks are identical in both modes.</span>
+            </label>
             <h3>Risk thresholds at a stop</h3>
             <ul className="limits">
               <li>Slope: caution above {HAZARD_LIMITS.slopeCaution}° (P90 within 12 m), high above 20° <Tag t="ASSUMPTION" /></li>
@@ -97,6 +106,8 @@ export function Ledger() {
             <ul className="limits">
               <li>Certification uses one search tree (least pair time). A second tree minimising oxygen will be added; until then a feasible cell can be missed, never an infeasible one certified.</li>
               <li>Sun from the Mars24 algorithm (Allison and McEwen 2000), checked against the NASA GISS worked examples. The season slider picks the first date from 15 Nov 2026 at that solar longitude.</li>
+              <li>Dust optical depth follows a seasonal climatology fitted to Curiosity's 880 nm column measurements (sols 33 to 3953; held-out error 0.22; 87% of later sols inside the band). It is seasonal context, not a storm forecast or a spatial map. Gale only.</li>
+              <li>Air pressure is REMS measured at the rover, shown only where a reading exists within half an hour; the pressure trend model failed its later-sol test and is not used.</li>
               <li>The thermal model uses one thermal inertia for the whole site and ignores cast shadows; rock and sand differ. A THEMIS inertia map would set it per pixel.</li>
               <li>No radiation shelter layer yet: shelter needs overhang or habitat geometry, not available for this site.</li>
               <li>Terrain is the USGS HiRISE 1 m DEM and 25 cm orthophoto (Sahaj's L0 bundle). No-go uses the 4 m slope; the P90 band uses 16 DEM realisations.</li>

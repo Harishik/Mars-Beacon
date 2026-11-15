@@ -10,6 +10,7 @@ import { flatCurve, STEPS_PER_SOL } from "../engine/thermal";
 import { Tag } from "./Tag";
 import { siteText } from "../data/bundle";
 import { RoverViews } from "./RoverViews";
+import { useAtmosphere, seasonalTau, pressureAt } from "../engine/atmosphere";
 import type { Plan } from "../engine/planner";
 
 export const PHASES: { id: Phase; label: string; hint: string }[] = [
@@ -57,6 +58,12 @@ export function ExploreBrief() {
     return { now: c[k] - 273.15, min: mn - 273.15, max: mx - 273.15 };
   }, [b, s.lsDeg, tauSite, s.lmstHours]);
   const layers = b?.manifest.layers ?? [];
+  const atm = useAtmosphere();
+  const dust = atm?.tau880 ? seasonalTau(atm.tau880, s.lsDeg) : null;
+  // Reference sol: the workspace sol of the first stop in the active plan (when Curiosity was there).
+  const plan0 = activePlanOf(s);
+  const refSol = b?.manifest.targets.find((t) => t.id === plan0?.order[0])?.sol ?? null;
+  const pres = atm && refSol ? pressureAt(atm, refSol, sun.ltstH) : null;
   const kinds = [
     ["Optical", "HiRISE 25 cm orthophoto"], ["Topographic", b?.slopeP90 ? "HiRISE 1 m DEM, 4 m slope with P90" : "HiRISE 1 m DEM, 4 m slope"],
     ["Rover", `${b ? siteText(b.manifest).rover : "Rover"} traverse and sample sites`], ["Geophysical", "Boulder cover, ridges and hollows"],
@@ -71,7 +78,8 @@ export function ExploreBrief() {
         <dl className="brief-grid">
           <div><dt>Sun</dt><dd>{sun.elevationDeg.toFixed(0)}° up, {Math.round(sun.azimuthDeg)}° az</dd><Tag t="PREDICTED" /></div>
           <div><dt>Direct sunlight</dt><dd>{Math.round(irr)} W/m²</dd><Tag t="DERIVED" /></div>
-          <div><dt>Dust optical depth</dt><dd>τ {tauSite.toFixed(2)}{s.storm ? " (storm)" : ""}</dd><Tag t={s.storm ? "SCENARIO" : "ASSUMPTION"} /></div>
+          <div><dt>Dust optical depth{dust && !s.storm ? ", Curiosity climatology at 880 nm" : ""}</dt><dd>τ {tauSite.toFixed(2)}{s.storm ? " (storm)" : dust ? `, range ${dust.lo.toFixed(2)} to ${dust.hi.toFixed(2)}` : ""}</dd><Tag t={s.storm ? "SCENARIO" : dust ? "DERIVED" : "ASSUMPTION"} /></div>
+          {b?.manifest.siteId === "gale-boxwork" && <div><dt>Air pressure{refSol ? `, REMS on sol ${refSol} at ${formatLmst(sun.ltstH)} LTST` : ""}</dt><dd>{pres ? `${Math.round(pres.pa)} Pa (${pres.n} samples)` : "No REMS reading at this time"}</dd><Tag t="HISTORICAL" /></div>}
           {temps && <div><dt>Ground temperature</dt><dd>{Math.round(temps.now)} °C now, {Math.round(temps.min)} to {Math.round(temps.max)} today</dd><Tag t="DERIVED" /></div>}
           <div><dt>Radiation</dt><dd>{doseRate.toFixed(2)} mSv/day{s.storm ? " (event)" : ""}</dd><Tag t={s.storm ? "SCENARIO" : "HISTORICAL"} /></div>
           <div><dt>Space weather</dt><dd>Feed not connected</dd></div>

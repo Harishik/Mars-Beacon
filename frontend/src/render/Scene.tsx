@@ -126,6 +126,7 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
 function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   const m = bundle.manifest;
   const roverActive = useStore((s) => s.roverActive);
+  const quality = useStore((s) => s.quality);
   const showHavens = useStore((s) => s.layers.havens);
   const hab = m.havens.find((h) => h.type === "habitat")!;
   const rover = m.havens.find((h) => h.type === "rover");
@@ -158,10 +159,10 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <Sky />
       <Lights lat={m.crs.origin.lat} />
       <Surroundings bundle={bundle} />
-      <Patches bundle={bundle} />
-      <Boulders bundle={bundle} />
+      {quality === "high" && <Patches bundle={bundle} />}
+      {quality === "high" && <Boulders bundle={bundle} />}
       <group onClick={onClick} onPointerMove={onMove} onPointerOut={() => useStore.getState().set({ cursor: null })}>
-        <Terrain bundle={bundle} segments={mode === "hero" ? 320 : 448} />
+        <Terrain bundle={bundle} segments={quality === "low" ? 256 : mode === "hero" ? 320 : 448} />
       </group>
       {showHavens && <Habitat position={habP} />}
       {showHavens && rover && <Rover bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
@@ -172,7 +173,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       {mode !== "hero" && <PlanRoute bundle={bundle} />}
       {mode !== "hero" && <CuriosityTraverse bundle={bundle} />}
       <CameraRig mode={mode} bundle={bundle} />
-      {mode === "linked" && <LinkedViews bundle={bundle} />}
+      {mode === "linked" && quality === "high" && <LinkedViews bundle={bundle} />}
       <FirstFrame />
     </>
   );
@@ -180,14 +181,15 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
 
 export function Scene({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   const ready = useStore((s) => s.sceneReady);
+  const low = useStore((s) => s.quality === "low");
   useEffect(() => () => useStore.getState().set({ sceneReady: false }), []);
   return (
     <>
     {!ready && <div className="scene-veil" role="status"><span className="loading-ring" aria-hidden />Preparing Gale terrain</div>}
     <Canvas
       className="scene"
-      dpr={[1, 2]}
-      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: "high-performance" }}
+      dpr={low ? 1 : [1, 2]}
+      gl={{ antialias: !low, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: low ? "default" : "high-performance" }}
       camera={{ fov: 45, near: 1, far: 40000, position: [0, 1500, 2500] }}
       onCreated={({ gl }) => gl.setClearColor("#0a1322")}
     >

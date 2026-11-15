@@ -1,0 +1,24 @@
+{
+ "source": "Fitted to Curiosity column optical depth (880 and 440 nm), sols 33 to 3953; chronological train/validation/test",
+ "model": "log tau = c0 + c1 sin(Ls) + c2 cos(Ls)",
+ "tau880": {
+  "coefficients": [
+   -0.15155099745367465,
+   -0.5557158635229585,
+   -0.06342503579422211
+  ],
+  "band": 0.5138502463470034,
+  "testMAE": 0.2239097398203894,
+  "testCoverage": 0.8713235294117647
+ },
+ "tau440": {
+  "coefficients": [
+   -0.19115908942393411,
+   -0.5556013879863498,
+   -0.08334149212214342
+  ],
+  "band": 0.48581293796599867,
+  "testMAE": 0.2227393977258286
+ },
+ "scope": "Gale rover column optical depth at stated wavelength. Climatology is not a storm forecast or spatial map. Band is empirical, not guaranteed under temporal shift."
+}

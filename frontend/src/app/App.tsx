@@ -1,3 +1,4 @@
+import { useClimatologyDust } from "../engine/atmosphere";
 import { useEffect, useState } from "react";
 import { useStore } from "../store/store";
 import { loadSite, siteFromUrl } from "../data/bundle";
@@ -23,6 +24,7 @@ export function App() {
   const error = useStore((s) => s.loadError);
   useEngine();
   useMission();
+  useClimatologyDust();
 
   useEffect(() => {
     loadSite(siteFromUrl()).then((b) => useStore.getState().setBundle(b)).catch((e: Error) => useStore.getState().setError(e.message));

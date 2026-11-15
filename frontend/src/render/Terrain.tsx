@@ -357,6 +357,8 @@ export function useTerrainUniforms(material: THREE.ShaderMaterial, lat: number, 
     u.uShowSlope.value = site && s.layers.slope ? 1 : 0;
     u.uShowContours.value = site && s.layers.contours ? 1 : 0;
     u.uShowGrid.value = site && s.layers.grid ? 1 : 0;
+    // Low tier: no ray-marched cast shadows (the costliest shader step).
+    if (site) u.uShadows.value = s.quality === "low" ? 0 : 1;
     if (site) {
       // Envelope draws in once after the first result, then follows edits instantly.
       if (u.uHasMargin.value > 0.5 && anim.reveal < 1) anim.reveal = Math.min(1, anim.reveal + dt / 2.4);
