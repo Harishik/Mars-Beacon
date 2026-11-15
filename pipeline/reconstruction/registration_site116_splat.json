@@ -1,0 +1,16 @@
+{
+ "site": 116,
+ "frame": "site 116 ENU (Codex transforms.json, site_origin_enu_m added back)",
+ "placesSiteOrigin": {
+  "easting": 8143539.442,
+  "northing": -284377.334,
+  "elevation": -3657.81
+ },
+ "dx": 12.5,
+ "dy": -1.0,
+ "verticalOffsetM": -0.9727549576759884,
+ "rmseM": 0.33892961244969216,
+ "rmse0M": 0.5642302398648007,
+ "bins2m": 314,
+ "method": "grid search of horizontal shift minimising RMSE between 2 m median splat-centre heights (opacity > 0.5) and the 4 m HiRISE grid, after removing the median vertical offset"
+}

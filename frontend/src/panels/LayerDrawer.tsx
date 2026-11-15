@@ -2,6 +2,7 @@ import { useStore, type LayerId } from "../store/store";
 import type { ManifestLayer, Tag as TagT } from "../data/bundle";
 import { Tag } from "./Tag";
 import { MissionPanel } from "./MissionPanel";
+import { splatsOf } from "../render/Splats";
 
 interface Row { id: LayerId; name: string; source: string; tag: TagT; manifestId?: string }
 interface Group { kind: string; rows: Row[] }
@@ -138,7 +139,8 @@ function ReconstructionGroup() {
   const patches = useStore((s) => ((s.bundle?.manifest as unknown as { patches?: { id: string; source: string; products?: { site: number }[]; validation: Record<string, number | number[]> }[] })?.patches) ?? []);
   const on = useStore((s) => s.layers.patches);
   const toggle = useStore((s) => s.toggleLayer);
-  if (!patches.length) return null;
+  const splats = useStore((s) => (s.bundle ? splatsOf(s.bundle) : []));
+  if (!patches.length && !splats.length) return null;
   return (
     <section className="layer-group">
       <h3>Reconstruction</h3>
@@ -146,12 +148,20 @@ function ReconstructionGroup() {
         <button className="layer-toggle" role="switch" aria-checked={on} onClick={() => toggle("patches")}>
           <span className="switch" aria-hidden />
           <span className="layer-text">
-            <span className="layer-name">Rover stereo ground patches</span>
-            <span className="layer-source">Curiosity Navcam stereo fused onto HiRISE</span>
+            <span className="layer-name">Rover reconstructions</span>
+            <span className="layer-source">Navcam stereo patch (sol 4752) and Altadena Gaussian splats</span>
           </span>
         </button>
         <div className="layer-meta"><Tag t="DERIVED" /></div>
       </div>
+      {splats.map((s) => (
+        <dl key={s.id} className="prov-card">
+          <div><dt>Where</dt><dd>{s.name}: Gaussian splats from rover images</dd></div>
+          <div><dt>Placed on map</dt><dd>shifted {s.registration.dx} m E, {s.registration.dy} m N; height error {s.registration.rmse0M} to {s.registration.rmseM} m against HiRISE</dd></div>
+          <div><dt>Image fit</dt><dd>trained views {s.quality.validationPSNR} dB; a separate drive {s.quality.newDrivePSNR} dB. {s.quality.note}</dd></div>
+          <div><dt>Source</dt><dd>{s.source}. Greyscale Navcam, tinted for display. Shown in full-detail mode only.</dd></div>
+        </dl>
+      ))}
       {patches.map((p) => {
         const v = p.validation as { points: number; rmseM: number; madM: number; coverage: number; horizontalShiftM?: number[]; rmse1mBeforeM?: number; rmse1mAfterM?: number };
         return (

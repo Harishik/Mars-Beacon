@@ -551,7 +551,37 @@
       "tag": "DERIVED"
     }
   ],
-  "splats": [],
+  "splats": [
+    {
+      "id": "altadena",
+      "name": "Altadena workspace, Curiosity Navcam reconstruction",
+      "path": "splats/altadena_clean.splat",
+      "bytes": 3640704,
+      "frame": "splat x east, y north, z up (site 116 ENU minus site_origin_enu_m)",
+      "siteX": -31.1459894702894,
+      "siteY": 172.95597723167157,
+      "elevation": -3645.4584203362465,
+      "scaleX": 0.9964883303839341,
+      "registration": {
+        "dx": 12.5,
+        "dy": -1.0,
+        "rmseM": 0.339,
+        "rmse0M": 0.564,
+        "method": "grid search of horizontal shift minimising RMSE between 2 m median splat-centre heights (opacity > 0.5) and the 4 m HiRISE grid, after removing the median vertical offset"
+      },
+      "quality": {
+        "validationPSNR": 32.92,
+        "validationSSIM": 0.728,
+        "newDrivePSNR": 24.58,
+        "newDriveSSIM": 0.439,
+        "note": "Novel-drive quality gate not met (Codex training audit). Looks best from the rover viewpoints; check rover images."
+      },
+      "source": "Codex training run, gsplat 30k (selected 20k) on 112 Curiosity Navcam RAS frames from site 116, drives 1890 and 1944 (around sol 4560)",
+      "tag": "DERIVED",
+      "cleaning": "kept splats with largest scale under 0.25 m, opacity over 120/255, within 22 m of the rover-image core and 1.6 m of its ground level (removes floaters); the full export is in Mars_BEACON_Rover_Final.zip on the team Drive",
+      "display": "Navcam is greyscale; tinted toward the terrain colour for display"
+    }
+  ],
   "havens": [
     {
       "id": "hab",
