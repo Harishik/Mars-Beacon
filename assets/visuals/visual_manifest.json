@@ -1,0 +1,59 @@
+[
+  {
+    "id": "01_mars_beacon_hero",
+    "title": "Hero / AI-generated concept",
+    "svg": null,
+    "watermark": "AI-generated concept art | ChatGPT (GPT-6) | Team NASHA",
+    "is_real_app_screenshot": false,
+    "jpg": "01_mars_beacon_hero.jpg",
+    "note": "Optimized JPEG for GitHub; source PNG is included in the original download pack."
+  },
+  {
+    "id": "02_return_envelope",
+    "title": "Return Envelope explainer",
+    "png": "PNG_1920x1080/02_return_envelope.png",
+    "svg": "SVG_Editable/02_return_envelope.svg",
+    "watermark": "AI-generated with ChatGPT (GPT-6) | Conceptual visual",
+    "is_real_app_screenshot": false
+  },
+  {
+    "id": "03_seven_views",
+    "title": "Shared-state display overview",
+    "png": "PNG_1920x1080/03_seven_views.png",
+    "svg": "SVG_Editable/03_seven_views.svg",
+    "watermark": "AI-generated with ChatGPT (GPT-6) | Conceptual visual",
+    "is_real_app_screenshot": false
+  },
+  {
+    "id": "04_data_pipeline",
+    "title": "NASA data and model pipeline",
+    "png": "PNG_1920x1080/04_data_pipeline.png",
+    "svg": "SVG_Editable/04_data_pipeline.svg",
+    "watermark": "AI-generated with ChatGPT (GPT-6) | Conceptual visual",
+    "is_real_app_screenshot": false
+  },
+  {
+    "id": "05_route_comparison_rehearsal",
+    "title": "Route selection and replan storyboard",
+    "png": "PNG_1920x1080/05_route_comparison_rehearsal.png",
+    "svg": "SVG_Editable/05_route_comparison_rehearsal.svg",
+    "watermark": "AI-generated with ChatGPT (GPT-6) | Conceptual visual",
+    "is_real_app_screenshot": false
+  },
+  {
+    "id": "06_rover_intelligence",
+    "title": "Rover image and reconstruction explainer",
+    "png": "PNG_1920x1080/06_rover_intelligence.png",
+    "svg": "SVG_Editable/06_rover_intelligence.svg",
+    "watermark": "AI-generated with ChatGPT (GPT-6) | Conceptual visual",
+    "is_real_app_screenshot": false
+  },
+  {
+    "id": "07_system_architecture",
+    "title": "System architecture",
+    "png": "PNG_1920x1080/07_system_architecture.png",
+    "svg": "SVG_Editable/07_system_architecture.svg",
+    "watermark": "AI-generated with ChatGPT (GPT-6) | Conceptual visual",
+    "is_real_app_screenshot": false
+  }
+]

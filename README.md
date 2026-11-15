@@ -23,6 +23,24 @@ The primary site is a **3 × 3 km area of Mount Sharp's boxwork in Gale crater**
 
 The landing page is an interactive introduction, not the competition's short Project Demo. **Demo video and walkthrough video are intentionally pending.** Their reserved folders contain only empty Git placeholders: `demo-video/` and `walkthrough-video/`.
 
+## Visual gallery (watermarked concept graphics)
+
+![Seven Mars BEACON concept visuals, including the Return Envelope, shared mission displays, data pipeline, route rehearsal, rover analysis and system architecture.](assets/visuals/CONTACT_SHEET.jpg)
+
+The gallery contains seven **illustrative** 1920 × 1080 visuals created for Team NASHA. They explain the prototype, but are **not screenshots of the deployed interface, NASA imagery, measured mission results or operational safety evidence**. Numbers and routes depicted in the hero image are illustrative. Each exported visual carries a visible AI-generation watermark.
+
+| Visual | Open | Editable source |
+|---|---|---|
+| 01 · Mars BEACON concept hero | [Watermarked image](assets/visuals/01_mars_beacon_hero.jpg) | Raster concept |
+| 02 · Return Envelope | [PNG](assets/visuals/PNG_1920x1080/02_return_envelope.png) | [SVG](assets/visuals/SVG_Editable/02_return_envelope.svg) |
+| 03 · Seven shared mission views | [PNG](assets/visuals/PNG_1920x1080/03_seven_views.png) | [SVG](assets/visuals/SVG_Editable/03_seven_views.svg) |
+| 04 · NASA/USGS data pipeline | [PNG](assets/visuals/PNG_1920x1080/04_data_pipeline.png) | [SVG](assets/visuals/SVG_Editable/04_data_pipeline.svg) |
+| 05 · Route comparison and rehearsal | [PNG](assets/visuals/PNG_1920x1080/05_route_comparison_rehearsal.png) | [SVG](assets/visuals/SVG_Editable/05_route_comparison_rehearsal.svg) |
+| 06 · Rover intelligence | [PNG](assets/visuals/PNG_1920x1080/06_rover_intelligence.png) | [SVG](assets/visuals/SVG_Editable/06_rover_intelligence.svg) |
+| 07 · System architecture | [PNG](assets/visuals/PNG_1920x1080/07_system_architecture.png) | [SVG](assets/visuals/SVG_Editable/07_system_architecture.svg) |
+
+**Image credit:** ChatGPT (GPT-6), Team NASHA. **Development assistance:** OpenAI Codex and Anthropic Claude Code, as recorded separately in [AI_USAGE.md](AI_USAGE.md). The existing Microsoft TRELLIS.2 disclosure applies to the project's separate 3D concept-model collection, not to these new diagrams. See [visual attribution and limitations](assets/visuals/AI_ATTRIBUTION_AND_USAGE.md) and the [gallery manifest](assets/visuals/visual_manifest.json). Neither the short demo video nor the walkthrough video has been added.
+
 ## What is implemented
 
 | Capability | Implementation and scope |
