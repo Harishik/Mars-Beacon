@@ -6,7 +6,7 @@ import { setVertExag } from "../render/Terrain";
 
 export type View = "console" | "tablet" | "hud" | "linked";
 export type Phase = "explore" | "plan" | "rehearse" | "execute" | "debrief";
-export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse" | "patches";
+export type LayerId = "terrain" | "contours" | "slope" | "envelope" | "grid" | "targets" | "havens" | "traverse" | "patches" | "boulders";
 
 export interface Crew { label: string; loadKg: number; fMob: number; o2BudgetG: number; o2SpentG: number }
 
@@ -73,7 +73,7 @@ export const useStore = create<State>((set) => ({
   loadError: null,
   view: "console",
   phase: "plan",
-  layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true, traverse: true, patches: true },
+  layers: { terrain: true, contours: false, slope: false, envelope: true, grid: false, targets: true, havens: true, traverse: true, patches: true, boulders: true },
   provenance: null,
   lmstHours: 9.0,
   lsDeg: 150,

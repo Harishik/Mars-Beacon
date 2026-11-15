@@ -11,6 +11,7 @@ const GROUPS: Group[] = [
     { id: "terrain", name: "3D terrain", source: "MRO HiRISE, USGS merged DEM", tag: "OBSERVED", manifestId: "dem" },
     { id: "contours", name: "Contours, 10 m", source: "Derived from the DEM", tag: "DERIVED" },
     { id: "slope", name: "Slope and no-go ground", source: "Horn 3x3 on the DEM", tag: "DERIVED", manifestId: "slope" },
+    { id: "boulders", name: "Boulders in 3D", source: "Detected positions and sizes, M2 on HiRISE shadows", tag: "DERIVED" },
   ] },
   { kind: "Operations", rows: [
     { id: "envelope", name: "Return Envelope", source: "Mars BEACON engine, paired crew", tag: "DERIVED", manifestId: "envelope" },

@@ -101,9 +101,9 @@ const frag = /* glsl */ `
   // HiRISE is greyscale. This grade maps its brightness onto Mars surface colours
   // (dark basaltic sand to bright dust). Visualisation, not measured colour.
   vec3 marsGrade(float g) {
-    vec3 dark = vec3(0.075, 0.040, 0.024);
-    vec3 mid = vec3(0.30, 0.15, 0.075);
-    vec3 dust = vec3(0.62, 0.40, 0.24);
+    vec3 dark = vec3(0.085, 0.052, 0.034);
+    vec3 mid = vec3(0.30, 0.17, 0.095);
+    vec3 dust = vec3(0.60, 0.42, 0.28);
     return g < 0.5 ? mix(dark, mid, g * 2.0) : mix(mid, dust, (g - 0.5) * 2.0);
   }
 
@@ -155,7 +155,12 @@ const frag = /* glsl */ `
     }
     // Close-range grain so the ground does not go soft when the camera is near (procedural, labelled).
     float near = 1.0 - smoothstep(30.0, 260.0, camDist);
-    albedo *= 1.0 + near * (vnoise(vWorld.xz * 1.7) - 0.5) * 0.22 + near * (vnoise(vWorld.xz * 7.3) - 0.5) * 0.12;
+    float close = 1.0 - smoothstep(4.0, 70.0, camDist);
+    albedo *= 1.0 + near * (vnoise(vWorld.xz * 1.7) - 0.5) * 0.26 + near * (vnoise(vWorld.xz * 7.3) - 0.5) * 0.16;
+    // Within a few tens of metres: pebbles and fractured-plate texture of the boxwork bedrock (procedural, labelled).
+    float pebble = smoothstep(0.72, 0.9, vnoise(vWorld.xz * 3.1)) - smoothstep(0.72, 0.9, vnoise(vWorld.xz * 3.1 + 0.15)) * 0.6;
+    float plates = abs(vnoise(vWorld.xz * 0.9) - 0.5) < 0.03 ? -0.18 : 0.0;
+    albedo *= 1.0 + close * (pebble * 0.35 + plates + (vnoise(vWorld.xz * 19.0) - 0.5) * 0.18);
 
     // Cavity term from the smoothed surface: hollows darker, crests a touch lighter.
     float cavity = clamp(1.0 + (elev - vSmooth) * 0.035, 0.72, 1.12);

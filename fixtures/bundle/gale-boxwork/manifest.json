@@ -1306,5 +1306,12 @@
     "objectiveSource": "Follows Curiosity's 2025 to 2026 boxwork campaign",
     "rover": "Curiosity",
     "roverSols": "sols 4534 to 4844"
+  },
+  "rocksList": {
+    "path": "rocks_list.bin",
+    "count": 42685,
+    "format": "records of int16 x*4, int16 y*4 (site metres), uint8 D*20 (diameter m), little endian",
+    "source": "M2 boulder detector on HiRISE shadows (Sahaj), D >= 0.75 m",
+    "tag": "DERIVED"
   }
 }

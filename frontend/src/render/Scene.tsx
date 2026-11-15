@@ -13,6 +13,7 @@ import { RouteHome } from "./RouteHome";
 import { PlanRoute } from "./PlanRoute";
 import { LinkedViews } from "./LinkedViews";
 import { CuriosityTraverse } from "./Traverse";
+import { Boulders } from "./Boulders";
 import { Patches } from "./Patches";
 import { Astronaut, Habitat, Rover, TargetPins, toScene } from "./Assets";
 
@@ -158,6 +159,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       <Lights lat={m.crs.origin.lat} />
       <Surroundings bundle={bundle} />
       <Patches bundle={bundle} />
+      <Boulders bundle={bundle} />
       <group onClick={onClick} onPointerMove={onMove} onPointerOut={() => useStore.getState().set({ cursor: null })}>
         <Terrain bundle={bundle} segments={mode === "hero" ? 320 : 448} />
       </group>
