@@ -113,6 +113,12 @@ Feeds may fail or be rate-limited; the newest published REMS observation may lag
 
 ## Team and licence
 
-**Team NASHA**. Repository responsibilities are frontend/interaction and reconstruction, backend/API, and terrain/data/ML; see existing component documentation for development ownership.
+| Team member | GitHub | Project contribution areas |
+|---|---|---|
+| Harishik | [@Harishik](https://github.com/Harishik) | Frontend, interaction/planning integration, terrain reconstruction and project integration. |
+| Sahaj | [@sahaj2310-tech](https://github.com/sahaj2310-tech) | Scientific data processing, site bundles, terrain/ML models and simulation calibration. |
+| Naomi | [@naomesk](https://github.com/naomesk) | Backend/API, database and deployment integration. |
+
+See [full team credits](CONTRIBUTORS.md) and the [contributing guide](CONTRIBUTING.md). Team contributions are recognized independently of GitHub's automatic commit-based Contributors list.
 
 Original project code is under [Apache License 2.0](LICENSE). Data, dependencies, third-party artwork and generated-asset inputs retain their own terms. See [References](REFERENCES.md), [dependency inventory](docs/DEPENDENCIES.csv), and [AI disclosure](AI_USAGE.md). NASA data use does not imply NASA endorsement.
