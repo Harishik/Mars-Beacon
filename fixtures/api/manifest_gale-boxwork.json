@@ -1,0 +1,165 @@
+{
+  "siteId": "gale-boxwork",
+  "name": "Gale crater, Mount Sharp boxwork unit",
+  "body": "Mars",
+  "version": "0.1.0",
+  "siteHash": "2d5174dc3864",
+  "crs": {
+    "proj4": "TBD (local equirectangular centred on the box)",
+    "origin": {
+      "lat": -4.86,
+      "lon": 137.32
+    },
+    "datum": "sphere R=3396190 m",
+    "lonDomain": "-180..180"
+  },
+  "grid": {
+    "liveM": 4,
+    "cols": 750,
+    "rows": 750,
+    "extentM": 3000
+  },
+  "elevation": {
+    "min": 0,
+    "max": 0
+  },
+  "files": [],
+  "layers": [
+    {
+      "id": "dem",
+      "kind": "topographic",
+      "mission": "MRO HiRISE + CTX + HRSC tied to MOLA (USGS)",
+      "instrument": "HiRISE (+CTX, HRSC, MOLA)",
+      "productId": "MSL_Gale_DEM_Mosaic_1m_v3",
+      "resolutionM": 1.0,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "USGS Astrogeology; NASA/JPL/University of Arizona",
+      "url": "https://planetarymaps.usgs.gov/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif",
+      "file": "height_4m.f32",
+      "bundleUrl": null
+    },
+    {
+      "id": "ortho",
+      "kind": "optical",
+      "mission": "MRO HiRISE",
+      "instrument": "HiRISE",
+      "productId": "MSL_Gale_Orthophoto_Mosaic_25cm_v3",
+      "resolutionM": 0.25,
+      "acquired": "various",
+      "tag": "OBSERVED",
+      "attribution": "NASA/JPL/University of Arizona; USGS",
+      "url": "https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif",
+      "file": "normal_2048.webp",
+      "bundleUrl": null
+    },
+    {
+      "id": "crism",
+      "kind": "spectral",
+      "mission": "MRO CRISM",
+      "instrument": "CRISM",
+      "productId": null,
+      "resolutionM": 18.0,
+      "acquired": null,
+      "tag": "OBSERVED",
+      "attribution": "NASA/JHUAPL",
+      "url": "https://ode.rsl.wustl.edu/mars/",
+      "file": null,
+      "bundleUrl": null
+    },
+    {
+      "id": "themis",
+      "kind": "thermal",
+      "mission": "Mars Odyssey THEMIS",
+      "instrument": "THEMIS",
+      "productId": null,
+      "resolutionM": 100.0,
+      "acquired": null,
+      "tag": "OBSERVED",
+      "attribution": "NASA/JPL/ASU",
+      "url": "https://trek.nasa.gov/mars/",
+      "file": null,
+      "bundleUrl": null
+    },
+    {
+      "id": "rad",
+      "kind": "radiation",
+      "mission": "Curiosity RAD",
+      "instrument": "RAD",
+      "productId": null,
+      "resolutionM": null,
+      "acquired": null,
+      "tag": "OBSERVED",
+      "attribution": "NASA/JPL-Caltech/SwRI",
+      "url": "https://www.science.org/doi/10.1126/science.1244797",
+      "file": null,
+      "bundleUrl": null
+    },
+    {
+      "id": "rems",
+      "kind": "atmospheric",
+      "mission": "Curiosity REMS",
+      "instrument": "REMS",
+      "productId": null,
+      "resolutionM": null,
+      "acquired": null,
+      "tag": "OBSERVED",
+      "attribution": "NASA/JPL-Caltech/CAB",
+      "url": "https://atmos.nmsu.edu/",
+      "file": null,
+      "bundleUrl": null
+    },
+    {
+      "id": "geology",
+      "kind": "geologic",
+      "mission": "USGS-NASA Planetary Geologic Mapping Program",
+      "instrument": null,
+      "productId": null,
+      "resolutionM": null,
+      "acquired": null,
+      "tag": "DERIVED",
+      "attribution": "USGS Astrogeology",
+      "url": "https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars",
+      "file": null,
+      "bundleUrl": null
+    }
+  ],
+  "patches": [],
+  "splats": [],
+  "havens": [
+    {
+      "id": "hab",
+      "type": "habitat",
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "targets": [
+    {
+      "id": "ridge-fixture",
+      "name": "Ridge top (fixture)",
+      "type": "ridge",
+      "x": 0.0,
+      "y": 0.0,
+      "sol": null,
+      "source": "fixture"
+    },
+    {
+      "id": "hollow-fixture",
+      "name": "Hollow (fixture)",
+      "type": "hollow",
+      "x": 2.0,
+      "y": 0.0,
+      "sol": null,
+      "source": "fixture"
+    }
+  ],
+  "povImages": [],
+  "route": {
+    "source": "PDS PLACES / Curiosity traverse",
+    "points": []
+  },
+  "fixture": true,
+  "placeholderCoordinates": true,
+  "bundleBaseUrl": null
+}

@@ -1,0 +1,7 @@
+{
+  "status": "ok",
+  "version": "0.2.0",
+  "fixture_mode": true,
+  "db": "sqlite",
+  "postgis": null
+}

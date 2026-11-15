@@ -1,0 +1,19 @@
+{
+  "siteHash": "fixture",
+  "siteId": null,
+  "seed": 7,
+  "assumptions": {
+    "reserveM": 0.25
+  },
+  "events": null,
+  "utcStart": "2026-11-15T00:00:00Z",
+  "plans": [
+    {
+      "id": "p1",
+      "label": "balanced"
+    }
+  ],
+  "activePlanId": "p1",
+  "shareId": "mNReUio2",
+  "createdAt": "2026-11-14T16:12:30.241042"
+}

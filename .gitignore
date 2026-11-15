@@ -25,3 +25,7 @@ data/
 .DS_Store
 .idea/
 .vscode/
+beacon.db
+.pytest_cache/
+backend/backend.zip
+*.zip

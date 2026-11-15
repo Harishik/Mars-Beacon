@@ -1,0 +1,456 @@
+openapi: 3.1.0
+info:
+  title: Mars BEACON API
+  version: 0.2.0
+paths:
+  /health:
+    get:
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /sites:
+    get:
+      summary: List Sites
+      operationId: list_sites_sites_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /sites/{siteId}/manifest:
+    get:
+      summary: Manifest
+      description: 'Catalogue view in the shape of contracts/site_manifest.example.json.
+        The pipeline''s real bundle manifest
+
+        (files, crs, grid, elevation) replaces the placeholder fields here once Sahaj''s
+        bundle exists.'
+      operationId: manifest_sites__siteId__manifest_get
+      parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Siteid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /sites/{siteId}/targets:
+    get:
+      summary: Targets
+      operationId: targets_sites__siteId__targets_get
+      parameters:
+      - name: siteId
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Siteid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /datasets:
+    get:
+      summary: Datasets
+      operationId: datasets_datasets_get
+      parameters:
+      - name: site
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Site
+      - name: kind
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Kind
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /conditions:
+    get:
+      summary: Conditions
+      operationId: conditions_conditions_get
+      parameters:
+      - name: site
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Site
+      - name: utc
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Utc
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /spaceweather:
+    get:
+      summary: Spaceweather
+      operationId: spaceweather_spaceweather_get
+      parameters:
+      - name: kind
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^(FLR|CME|SEP|notifications)$
+          default: CME
+          title: Kind
+      - name: start
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Start
+      - name: end
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: End
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /rover-images:
+    get:
+      summary: Rover Images
+      operationId: rover_images_rover_images_get
+      parameters:
+      - name: site
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Site
+      - name: near
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: x,y in site metres
+          title: Near
+        description: x,y in site metres
+      - name: radius
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 200.0
+          title: Radius
+      - name: sol
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Sol
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 12
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /plans:
+    post:
+      summary: Save Plan
+      operationId: save_plan_plans_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /plans/{shareId}:
+    get:
+      summary: Get Plan
+      operationId: get_plan_plans__shareId__get
+      parameters:
+      - name: shareId
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Shareid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /jobs/generate-site:
+    post:
+      summary: Generate Site
+      operationId: generate_site_jobs_generate_site_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateSiteIn'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /jobs/{jobId}:
+    get:
+      summary: Get Job
+      operationId: get_job_jobs__jobId__get
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Jobid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /trek/layers:
+    get:
+      summary: Trek Layers
+      operationId: trek_layers_trek_layers_get
+      parameters:
+      - name: site
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Site
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    GenerateSiteIn:
+      properties:
+        name:
+          type: string
+          maxLength: 80
+          minLength: 1
+          title: Name
+        bbox:
+          items: {}
+          type: array
+          maxItems: 4
+          minItems: 4
+          title: Bbox
+        dem_url:
+          type: string
+          title: Dem Url
+        ortho_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ortho Url
+        levels:
+          items: {}
+          type: array
+          title: Levels
+          default:
+          - L0
+      type: object
+      required:
+      - name
+      - bbox
+      - dem_url
+      title: GenerateSiteIn
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    PlanIn:
+      properties:
+        siteHash:
+          type: string
+          title: Sitehash
+        siteId:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Siteid
+        seed:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Seed
+        assumptions:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Assumptions
+        events:
+          anyOf:
+          - items: {}
+            type: array
+          - type: 'null'
+          title: Events
+      additionalProperties: true
+      type: object
+      required:
+      - siteHash
+      title: PlanIn
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
