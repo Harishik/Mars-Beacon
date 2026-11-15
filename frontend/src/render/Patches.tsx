@@ -94,6 +94,14 @@ function Patch({ bundle, p, ortho }: { bundle: SiteBundle; p: PatchEntry; ortho:
     return m;
   }, [min, max, zMid]);
   useEffect(() => { material.uniforms.uOrtho.value = ortho; material.uniforms.uHasOrtho.value = ortho ? 1 : 0; }, [material, ortho]);
+  // Same Viking colour tint as the site terrain, so the patch does not show as a differently coloured square.
+  useEffect(() => {
+    const t = new THREE.TextureLoader().load(`${BASE}/${bundle.manifest.siteId}/regional/site_colour.png`, () => {
+      material.uniforms.uColourMap.value = t; material.uniforms.uColourMode.value = 2;
+    }, undefined, () => {});
+    t.colorSpace = THREE.NoColorSpace;
+    return () => t.dispose();
+  }, [material, bundle.manifest.siteId]);
   useTerrainUniforms(material, bundle.manifest.crs.origin.lat, false);
   useEffect(() => () => { material.dispose(); geometry?.dispose(); }, [material, geometry]);
 
