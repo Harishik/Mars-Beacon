@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Line } from "@react-three/drei";
+import { GroundLine } from "./GroundLine";
 import { useStore } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
 import { Label, toScene } from "./Assets";
@@ -13,7 +13,7 @@ export function CuriosityTraverse({ bundle }: { bundle: SiteBundle }) {
   const last = route.points[route.points.length - 1];
   return (
     <group>
-      <Line points={pts} color="#c9b18a" lineWidth={2} dashed dashSize={10} gapSize={6} />
+      <GroundLine points={pts} color="#c9b18a" lineWidth={2} dashed dashSize={10} gapSize={6} />
       <group position={toScene(bundle, last[0], last[1])}>
         <Label text={`Curiosity, sol ${route.sols?.[1] ?? ""}`} color="#c9b18a" y={14} />
       </group>

@@ -1,7 +1,7 @@
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, PerformanceMonitor } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useStore, type View } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
@@ -20,6 +20,7 @@ import { HabitatModel, RoverModel } from "./Models";
 import { VisorAnchors } from "./VisorAnchors";
 import { Patches } from "./Patches";
 import { Astronaut, TargetPins, toScene } from "./Assets";
+import { liveCrewPose } from "../engine/useMission";
 
 type Mode = "hero" | View;
 
@@ -45,10 +46,10 @@ function Lights({ lat }: { lat: number }) {
 
 /** Flags the first rendered frame so the UI can lift its loading veil. */
 function FirstFrame() {
-  const done = useRef(false);
+  // Checks the store rather than a one-shot flag: a remount (or React's development double mount) clears
+  // sceneReady after the first frame, which left the loading veil over the view, costing paint on every frame.
   useFrame(() => {
-    if (done.current) return;
-    done.current = true;
+    if (useStore.getState().sceneReady) return;
     requestAnimationFrame(() => useStore.getState().set({ sceneReady: true }));
   });
   return null;
@@ -82,6 +83,46 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
     return { p: toScene(bundle, fx, fy), span };
   }, [bundle, hab, m.targets]);
 
+  // Eye-level cameras that follow the crew: EV1's visor, third person behind EV1, and the support rover cab.
+  const placeFollow = (pose: { x: number; y: number; heading: number } | null) => {
+    const c = controls.current;
+    const cam = camera as THREE.PerspectiveCamera;
+    if (mode === "hud") {
+      // EV1's eye, 1.7 m above the ground, looking along the walking direction.
+      const h = pose ? (pose.heading * Math.PI) / 180 : Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
+      const dx = Math.sin(h), dy = Math.cos(h);
+      const bx = pose ? pose.x + Math.cos(h) * 1.5 : hab.x + dx * 30, by = pose ? pose.y - Math.sin(h) * 1.5 : hab.y + dy * 30;
+      const eye = toScene(bundle, bx, by, 1.7);
+      const ahead = toScene(bundle, bx + dx * 40, by + dy * 40, 1.7);
+      cam.position.copy(eye);
+      c?.target.copy(eye.clone().add(ahead.sub(eye).normalize().multiplyScalar(0.5)));
+    } else if (mode === "eva") {
+      // Third person: 4.5 m behind and 2.4 m above EV1, looking at a point 10 m ahead of the pair.
+      const h = pose ? (pose.heading * Math.PI) / 180 : Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
+      const dx = Math.sin(h), dy = Math.cos(h);
+      const px = pose?.x ?? hab.x + dx * 20, py = pose?.y ?? hab.y + dy * 20;
+      const eye = toScene(bundle, px - dx * 4.5, py - dy * 4.5, 2.4);
+      const look = toScene(bundle, px + dx * 10, py + dy * 10, 0.9);
+      cam.position.copy(eye);
+      c?.target.copy(look);
+    } else if (mode === "rover") {
+      // Support rover cab, 3 m up, looking at the crew (or the first stop before egress).
+      const rv = m.havens.find((h) => h.type === "rover");
+      const rx = rv?.x ?? hab.x + 60, ry = rv?.y ?? hab.y;
+      const tx = pose?.x ?? goal.x, ty = pose?.y ?? goal.y;
+      const eye = toScene(bundle, rx, ry, 3.2);
+      cam.position.copy(eye);
+      const look = toScene(bundle, tx, ty, 1.5);
+      c?.target.copy(eye.clone().add(look.sub(eye).normalize().multiplyScalar(0.5)));
+    }
+  };
+  // While a rehearsal plays, follow the live clock every frame (the shared state updates at 20 Hz).
+  useFrame(() => {
+    if (!(mode === "hud" || mode === "eva" || mode === "rover") || !useStore.getState().playing) return;
+    placeFollow(liveCrewPose());
+    controls.current?.update();
+  });
+
   useEffect(() => {
     const c = controls.current;
     const cam = camera as THREE.PerspectiveCamera;
@@ -89,36 +130,9 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
       cam.position.set(0, 4300, 0.01);
       c?.target.set(0, 0, 0);
       cam.fov = 40;
-    } else if (mode === "hud") {
-      // EV1's eye, 1.7 m above the ground, looking along the walking direction.
-      const h = livePos ? (livePos.heading * Math.PI) / 180 : Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
-      const dx = Math.sin(h), dy = Math.cos(h);
-      const bx = livePos ? livePos.x + Math.cos(h) * 1.5 : hab.x + dx * 30, by = livePos ? livePos.y - Math.sin(h) * 1.5 : hab.y + dy * 30;
-      const eye = toScene(bundle, bx, by, 1.7);
-      const ahead = toScene(bundle, bx + dx * 40, by + dy * 40, 1.7);
-      cam.position.copy(eye);
-      c?.target.copy(eye.clone().add(ahead.sub(eye).normalize().multiplyScalar(0.5)));
-      cam.fov = 70;
-    } else if (mode === "eva") {
-      // Third person: 7 m behind and 3.2 m above EV1, looking at a point 12 m ahead of the pair.
-      const h = livePos ? (livePos.heading * Math.PI) / 180 : Math.atan2(goalP.x - habP.x, -(goalP.z - habP.z));
-      const dx = Math.sin(h), dy = Math.cos(h);
-      const px = livePos?.x ?? hab.x + dx * 20, py = livePos?.y ?? hab.y + dy * 20;
-      const eye = toScene(bundle, px - dx * 4.5, py - dy * 4.5, 2.4);
-      const look = toScene(bundle, px + dx * 10, py + dy * 10, 0.9);
-      cam.position.copy(eye);
-      c?.target.copy(look);
-      cam.fov = 55;
-    } else if (mode === "rover") {
-      // Support rover cab, 3 m up, looking at the crew (or the first stop before egress).
-      const rv = m.havens.find((h) => h.type === "rover");
-      const rx = rv?.x ?? hab.x + 60, ry = rv?.y ?? hab.y;
-      const tx = livePos?.x ?? goal.x, ty = livePos?.y ?? goal.y;
-      const eye = toScene(bundle, rx, ry, 3.2);
-      cam.position.copy(eye);
-      const look = toScene(bundle, tx, ty, 1.5);
-      c?.target.copy(eye.clone().add(look.sub(eye).normalize().multiplyScalar(0.5)));
-      cam.fov = 58;
+    } else if (mode === "hud" || mode === "eva" || mode === "rover") {
+      placeFollow(livePos);
+      cam.fov = mode === "hud" ? 70 : mode === "eva" ? 55 : 58;
     } else if (mode === "hero") {
       cam.position.set(habP.x - 900, habP.y + 520, habP.z + 1250);
       c?.target.set(habP.x + 350, habP.y - 40, habP.z - 250);
@@ -160,6 +174,31 @@ function CameraRig({ mode, bundle }: { mode: Mode; bundle: SiteBundle }) {
   );
 }
 
+
+const ORIGIN = new THREE.Vector3();
+
+/**
+ * EV1 and EV2, side by side 3 m apart across the walking direction. Placed every frame from the live mission
+ * clock, so they glide during a rehearsal instead of stepping at the 20 Hz rate of the shared state.
+ * `standby` is where they wait by the airlock before there is a crew position.
+ */
+function CrewPair({ bundle, standby, showEv1 }: { bundle: SiteBundle; standby: THREE.Vector3[]; showEv1: boolean }) {
+  const a = useRef<THREE.Group>(null), b = useRef<THREE.Group>(null);
+  useFrame(() => {
+    const pose = liveCrewPose();
+    if (!pose) { a.current?.position.copy(standby[0]); b.current?.position.copy(standby[1]); return; }
+    const h = (pose.heading * Math.PI) / 180, px = Math.cos(h) * 1.5, py = -Math.sin(h) * 1.5;
+    a.current?.position.copy(toScene(bundle, pose.x + px, pose.y + py));
+    b.current?.position.copy(toScene(bundle, pose.x - px, pose.y - py));
+  });
+  return (
+    <>
+      {showEv1 && <group ref={a} position={standby[0]}><Astronaut position={ORIGIN} color="#6fd6e6" layer={2} /></group>}
+      <group ref={b} position={standby[1]}><Astronaut position={ORIGIN} color="#f4c552" phase={1.4} /></group>
+    </>
+  );
+}
+
 function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   const m = bundle.manifest;
   const roverActive = useStore((s) => s.roverActive);
@@ -175,13 +214,6 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
     return [toScene(bundle, hab.x + ux * 60 - uy * 2, hab.y + uy * 60 + ux * 2), toScene(bundle, hab.x + ux * 57 + uy * 2, hab.y + uy * 57 - ux * 2)];
   }, [bundle, goal.x, goal.y, hab.x, hab.y]);
   const habP = useMemo(() => toScene(bundle, hab.x, hab.y), [bundle, hab.x, hab.y]);
-  const livePos = useStore((s) => s.crewPos);
-  const crewAt = useMemo(() => {
-    if (!livePos) return null;
-    // Side by side, 3 m apart, across the walking direction.
-    const h = (livePos.heading * Math.PI) / 180, px = Math.cos(h) * 1.5, py = -Math.sin(h) * 1.5;
-    return [toScene(bundle, livePos.x + px, livePos.y + py), toScene(bundle, livePos.x - px, livePos.y - py)];
-  }, [bundle, livePos]);
 
   const onClick = (e: { point: THREE.Vector3; delta: number }) => {
     if (mode === "hero" || mode === "hud" || mode === "rover" || mode === "eva" || e.delta > 6) return; // ignore drags
@@ -205,8 +237,7 @@ function World({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
       </group>
       {showHavens && <HabitatModel bundle={bundle} x={hab.x} y={hab.y} position={habP} />}
       {showHavens && rover && mode !== "rover" && <RoverModel bundle={bundle} x={rover.x} y={rover.y} active={roverActive} />}
-      {mode !== "hud" && <Astronaut position={(crewAt ?? crewPos)[0]} color="#6fd6e6" layer={2} />}
-      <Astronaut position={(crewAt ?? crewPos)[1]} color="#f4c552" phase={1.4} />
+      <CrewPair bundle={bundle} standby={crewPos} showEv1={mode !== "hud"} />
       {mode !== "hud" && mode !== "hero" && <TargetPins bundle={bundle} />}
       {mode !== "hero" && <RouteHome bundle={bundle} marker={mode !== "hud"} />}
       {(mode === "hud" || mode === "eva") && <VisorPath bundle={bundle} />}
@@ -233,6 +264,13 @@ export function Scene({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
   const ready = useStore((s) => s.sceneReady);
   const low = useStore((s) => s.quality === "low");
   useEffect(() => () => useStore.getState().set({ sceneReady: false }), []);
+  // Adaptive resolution: start at 1.5x on high-density screens (full 2x costs about a quarter of the frame rate
+  // for little visible gain on terrain), then step down to 1x or back up to the screen's density as the measured
+  // frame rate allows. Never changes the data, only how many pixels are drawn.
+  const maxDpr = typeof window === "undefined" ? 1 : Math.min(2, window.devicePixelRatio || 1);
+  const [dpr, setDpr] = useState(() => Math.min(maxDpr, 1.5));
+  // Development only: lets automated checks pin the resolution for repeatable measurements.
+  if (import.meta.env.DEV) (window as unknown as { __setDpr?: unknown }).__setDpr = setDpr;
   if (!hasWebGL()) {
     return (
       <div className="scene scene-fallback" style={bundle.orthoUrl ? { backgroundImage: `url(${bundle.orthoUrl})` } : undefined}>
@@ -245,11 +283,20 @@ export function Scene({ bundle, mode }: { bundle: SiteBundle; mode: Mode }) {
     {!ready && <div className="scene-veil" role="status"><span className="loading-ring" aria-hidden />Preparing {bundle.manifest.site?.name ?? bundle.manifest.name}</div>}
     <Canvas
       className="scene"
-      dpr={low ? 1 : [1, 2]}
+      dpr={low ? 1 : dpr}
       gl={{ antialias: !low, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: low ? "default" : "high-performance" }}
       camera={{ fov: 45, near: 1, far: 170000, position: [0, 1500, 2500] }}
       onCreated={({ gl }) => gl.setClearColor("#0a1322")}
     >
+      {!low && (
+        <PerformanceMonitor
+          bounds={() => [45, 58]}
+          flipflops={4}
+          onDecline={() => setDpr((d) => Math.max(1, Math.round((d - 0.25) * 4) / 4))}
+          onIncline={() => setDpr((d) => Math.min(maxDpr, Math.round((d + 0.25) * 4) / 4))}
+          onFallback={() => setDpr(1)}
+        />
+      )}
       <Suspense fallback={null}>
         <World bundle={bundle} mode={mode} />
       </Suspense>

@@ -24,6 +24,7 @@ export interface EnvelopeState {
   insideCells: number;
   insideP90: Uint8Array | null; // certified on the P90 slope too (null: not computed, e.g. while playing)
   p90Cells: number;
+  display: Uint8Array | null;   // RGBA texture of the envelope for the terrain shader (built in the worker)
   computing: boolean;
   version: number;
 }
@@ -115,7 +116,7 @@ export const useStore = create<State>((set) => ({
   timeBudgetS: 4 * 3600, timeSpentS: 0,
   crew: DEFAULT_CREW,
   roverActive: false,
-  envelope: { margin: null, timeToHaven: null, parent: null, o2A: null, o2B: null, ms: 0, insideCells: 0, insideP90: null, p90Cells: 0, computing: false, version: 0 },
+  envelope: { margin: null, timeToHaven: null, parent: null, o2A: null, o2B: null, ms: 0, insideCells: 0, insideP90: null, p90Cells: 0, display: null, computing: false, version: 0 },
   cursor: null,
   selected: null,
   panel: "mission",

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Line } from "@react-three/drei";
+import { GroundLine } from "./GroundLine";
 import { useStore } from "../store/store";
 import type { SiteBundle } from "../data/bundle";
 import { activePlanOf } from "../engine/useMission";
@@ -23,8 +23,8 @@ export function PlanRoute({ bundle }: { bundle: SiteBundle }) {
   const targets = bundle.manifest.targets;
   return (
     <group>
-      <Line points={pts} color="#0b1730" lineWidth={6} transparent opacity={0.55} />
-      <Line points={pts} color="#f3efe6" lineWidth={2.2} />
+      <GroundLine points={pts} color="#0b1730" lineWidth={6} transparent opacity={0.55} />
+      <GroundLine points={pts} color="#f3efe6" lineWidth={2.2} />
       {plan.order.map((id, i) => {
         const t = targets.find((x) => x.id === id);
         if (!t) return null;

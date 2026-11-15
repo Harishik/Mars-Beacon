@@ -9,6 +9,7 @@
   --line: rgba(173, 201, 236, 0.14);
   --line-strong: rgba(173, 201, 236, 0.28);
   --glass: rgba(12, 22, 40, 0.72);
+  --glass-solid: rgba(12, 22, 40, 0.88); /* large panels over the 3D view (no backdrop blur) */
 
   /* Meaning */
   --home: #8fbcf0;          /* Return Envelope, primary actions */

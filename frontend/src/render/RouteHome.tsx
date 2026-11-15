@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Line } from "@react-three/drei";
+import { GroundLine } from "./GroundLine";
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "../store/store";
 import { reportAt } from "../engine/query";
@@ -28,8 +28,8 @@ export function RouteHome({ bundle, marker = true }: { bundle: SiteBundle; marke
     <group>
       {data && data.pts.length > 1 && (
         <>
-          <Line points={data.pts} color="#3f74b8" lineWidth={7} transparent opacity={0.45} />
-          <Line points={data.pts} color={col} lineWidth={2.5} dashed dashSize={14} gapSize={7} />
+          <GroundLine points={data.pts} color="#3f74b8" lineWidth={7} transparent opacity={0.45} />
+          <GroundLine points={data.pts} color={col} lineWidth={2.5} dashed dashSize={14} gapSize={7} />
         </>
       )}
       {marker && <group position={p} ref={(g) => g?.traverse((o) => o.layers.set(1))}>

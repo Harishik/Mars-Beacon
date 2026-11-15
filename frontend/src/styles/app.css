@@ -141,7 +141,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 .strip {
   position: absolute; z-index: 4; top: 60px; left: 16px; right: 16px; height: 30px;
   display: flex; align-items: center; gap: 22px; padding: 0 14px; border-radius: var(--r-s);
-  background: rgba(8, 15, 28, 0.66); border: 1px solid var(--line); backdrop-filter: blur(10px);
+  background: rgba(8, 15, 28, 0.84); border: 1px solid var(--line);
   font-size: 0.75rem; color: var(--dust); white-space: nowrap; overflow: hidden;
 }
 .strip i { font-style: normal; color: var(--dust-3); margin-right: 4px; }
@@ -151,8 +151,10 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 .strip-right { margin-left: auto; }
 
 .pane {
-  position: absolute; z-index: 4; background: var(--glass); border: 1px solid var(--line);
-  border-radius: var(--r-m); backdrop-filter: blur(18px) saturate(1.2); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  /* No backdrop blur on the large panels: re-blurring the 3D view behind them on every frame cost about a
+     quarter of the frame rate. A denser glass keeps the text as legible. */
+  position: absolute; z-index: 4; background: var(--glass-solid); border: 1px solid var(--line);
+  border-radius: var(--r-m); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.32);
 }
 .pane-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 14px 16px 10px; }
 .pane-head h2 { font-size: var(--step-0); font-stretch: 108%; font-weight: 600; }
@@ -753,7 +755,7 @@ body > .sheet-backdrop { z-index: 40; }
 .type-custom { background: rgba(96, 215, 229, 0.18) !important; color: #60D7E5 !important; }
 
 /* ---------- Mission control ---------- */
-.mc { position: absolute; z-index: 5; top: 92px; left: 0; right: 0; bottom: 104px; padding: 8px 16px; background: rgba(10, 14, 18, 0.72); backdrop-filter: blur(6px); display: grid; grid-template-columns: 1.1fr 1fr 1.15fr; gap: 12px; overflow: hidden; }
+.mc { position: absolute; z-index: 5; top: 92px; left: 0; right: 0; bottom: 104px; padding: 8px 16px; background: rgba(10, 14, 18, 0.88); display: grid; grid-template-columns: 1.1fr 1fr 1.15fr; gap: 12px; overflow: hidden; }
 .mc-col { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: thin; padding-right: 2px; }
 .mc-h { margin: 0; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dust-3); }
 .mc-go { display: grid; padding: 14px 16px; border-radius: 12px; background: rgba(21, 28, 32, 0.9); border: 2px solid; }

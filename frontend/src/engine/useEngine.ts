@@ -69,7 +69,7 @@ export function useEngine() {
       if (d.type === "envelope") {
         inFlight.current = false;
         useStore.getState().setEnvelope({
-          margin: d.margin, timeToHaven: d.timeToHaven, parent: d.parent, o2A: d.o2A, o2B: d.o2B, ms: d.ms, insideCells: d.insideCells, insideP90: d.insideP90, p90Cells: d.p90Cells,
+          margin: d.margin, timeToHaven: d.timeToHaven, parent: d.parent, o2A: d.o2A, o2B: d.o2B, ms: d.ms, insideCells: d.insideCells, insideP90: d.insideP90, p90Cells: d.p90Cells, display: d.display,
           computing: pending.current !== null, version: d.id,
         });
         if (pending.current) { const p = pending.current; pending.current = null; send(p); }
@@ -88,7 +88,8 @@ export function useEngine() {
     const havens = m.havens
       .filter((h) => h.type === "habitat" || (h.type === "rover" && s.roverActive))
       .map((h) => toCell(m, h.x, h.y));
-    s.setEnvelope({ computing: true });
+    // Only flag once: setting it again on every playback tick re-rendered every envelope reader for nothing.
+    if (!s.envelope.computing) s.setEnvelope({ computing: true });
     send({
       cols: m.grid.cols, rows: m.grid.rows, cellM: m.grid.liveM,
       slopeLimitDeg: s.slopeLimitDeg, v0: s.v0, kG: s.kG, mRestW: s.mRestW, bodyMassKg: s.bodyMassKg,
